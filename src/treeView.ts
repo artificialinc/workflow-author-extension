@@ -43,7 +43,6 @@ export class StubsProvider implements vscode.TreeDataProvider<AdapterFunction> {
         'Please open a project folder first'
       );
     }
-
     const folderPath = vscode.workspace.workspaceFolders[0].uri
       .toString()
       .split(':')[1];
@@ -109,7 +108,7 @@ from artificial.workflows.decorators import return_parameter, substrate_action`;
     }
 
     fs.writeFile(
-      path.join(folderPath, 'stubs_actions.py'),
+      path.join(folderPath, 'workflow', 'stubs_actions.py'),
       pythonContent,
       (err) => {
         if (err) {

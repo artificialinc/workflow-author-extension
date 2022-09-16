@@ -23,14 +23,14 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "package-explorer",
-          "title": "Package Explorer",
+          "id": "artificial-workflows",
+          "title": "Artificial Workflows",
           "icon": "media/artificial.svg"
         }
       ]
     },
     "views": {
-      "package-explorer": [
+      "artificial-workflows": [
         {
           "id": "stubs",
           "name": "Functions",
@@ -45,12 +45,9 @@
     },
     "commands": [
       {
-        "command": "artificial.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "stubs.refreshEntry",
-        "title": "Refresh",
+        "title": "Refresh Actions",
+        "category": "Artificial",
         "icon": {
           "dark": "resources/dark/refresh.svg",
           "light": "resources/light/refresh.svg"
@@ -58,7 +55,8 @@
       },
       {
         "command": "stubs.generateStubs",
-        "title": "Generate Stubs"
+        "title": "Generate Stubs",
+        "category": "Artificial"
       }
     ],
     "menus": {
