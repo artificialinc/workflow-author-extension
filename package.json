@@ -34,8 +34,7 @@
         {
           "id": "stubs",
           "name": "Functions",
-          "icon": "media/dep.svg",
-          "contextualTitle": "Artificial Workflows"
+          "icon": "media/dep.svg"
         },
         {
           "id": "stubGenerate",
@@ -45,29 +44,11 @@
     },
     "commands": [
       {
-        "command": "stubs.refreshEntry",
-        "title": "Refresh Actions",
-        "category": "Artificial",
-        "icon": {
-          "dark": "resources/dark/refresh.svg",
-          "light": "resources/light/refresh.svg"
-        }
-      },
-      {
         "command": "stubs.generateStubs",
         "title": "Generate Stubs",
         "category": "Artificial"
       }
-    ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "stubs.refreshEntry",
-          "when": "view == stubs",
-          "group": "navigation"
-        }
-      ]
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",

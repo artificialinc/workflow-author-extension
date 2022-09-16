@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { Python3Parser } from 'dt-python-parser';
-import { TokenType } from './tokens';
+import { TokenType } from './tokenTypes';
 import { pathExists } from './utils';
 import { Token, FunctionSignature, Param } from './types';
 

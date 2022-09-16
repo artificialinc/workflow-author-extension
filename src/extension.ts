@@ -1,10 +1,11 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+// TODO: Parenthesis inside parameters is bug for beam
+// TODO: Hack shove function call inside uri for drag and drop?
+// TODO: Config for different filenames for actions
+// TODO: Multiple modules with action support
 import * as vscode from 'vscode';
 import { FunctionTreeView } from './functionTreeView';
 import { GenerateActionStubs } from './generateActionStubs';
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+
 export function activate(context: vscode.ExtensionContext) {
   const rootPath =
     vscode.workspace.workspaceFolders &&
@@ -15,14 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
-  const stubsProvider = new FunctionTreeView(rootPath);
+  new FunctionTreeView(rootPath, context);
   const generateProvider = new GenerateActionStubs(rootPath);
-  vscode.window.registerTreeDataProvider('stubs', stubsProvider);
-  context.subscriptions.push(
-    vscode.commands.registerCommand('stubs.refreshEntry', () =>
-      stubsProvider.refresh()
-    )
-  );
   context.subscriptions.push(
     vscode.commands.registerCommand('stubs.generateStubs', () =>
       generateProvider.generateStubs()
@@ -31,5 +26,4 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "artificial" is now active!');
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}

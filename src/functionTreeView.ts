@@ -1,41 +1,46 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import { buildPythonFunctionSignatures } from './buildFunctionSignatures';
 import { FunctionSignature } from './types';
 import { pathExists } from './utils';
 
 export class FunctionTreeView
-  implements vscode.TreeDataProvider<AdapterFunction>
+  implements
+    vscode.TreeDataProvider<AdapterFunction>,
+    vscode.TreeDragAndDropController<AdapterFunction>
 {
-  constructor(private workspaceRoot: string) {}
-  private _onDidChangeTreeData: vscode.EventEmitter<
-    AdapterFunction | undefined | null | void
-  > = new vscode.EventEmitter<AdapterFunction | undefined | null | void>();
-  readonly onDidChangeTreeData: vscode.Event<
-    AdapterFunction | undefined | null | void
-  > = this._onDidChangeTreeData.event;
+  dropMimeTypes = ['application/vnd.code.tree.stubs'];
+  dragMimeTypes = ['text/uri-list'];
+  //constructor(private workspaceRoot: string) {}
+  constructor(private workspaceRoot: string, context: vscode.ExtensionContext) {
+    const view = vscode.window.createTreeView('stubs', {
+      treeDataProvider: this,
+      showCollapseAll: false,
+      canSelectMany: false,
+      dragAndDropController: this,
+    });
+    context.subscriptions.push(view);
+  }
 
-  refresh(): void {
-    this._onDidChangeTreeData.fire();
+  public async handleDrag(
+    source: AdapterFunction[],
+    treeDataTransfer: vscode.DataTransfer,
+    token: vscode.CancellationToken
+  ): Promise<void> {
+    // treeDataTransfer.set(
+    //   'application/vnd.code.tree.stubs',
+    //   new vscode.DataTransferItem(source)
+    // );
+    //treeDataTransfer.set('text/uri-list', new vscode.DataTransferItem('thing'));
   }
 
   getTreeItem(element: AdapterFunction): vscode.TreeItem {
     return element;
   }
 
-  getChildren(element?: AdapterFunction): Thenable<AdapterFunction[]> {
-    if (!this.workspaceRoot) {
-      vscode.window.showInformationMessage('No dependency in empty workspace');
-      return Promise.resolve([]);
-    }
-
+  getChildren(element?: AdapterFunction): AdapterFunction[] {
     if (element) {
-      return Promise.resolve(
-        this.getFuncsInActionPython(
-          path.join(this.workspaceRoot, 'adapters', 'actions.py')
-        )
-      );
+      return [];
     } else {
       const actionPythonPath = path.join(
         this.workspaceRoot,
@@ -43,10 +48,10 @@ export class FunctionTreeView
         'actions.py'
       );
       if (pathExists(actionPythonPath)) {
-        return Promise.resolve(this.getFuncsInActionPython(actionPythonPath));
+        return this.getFuncsInActionPython(actionPythonPath);
       } else {
         vscode.window.showInformationMessage('Workspace has no actions.py');
-        return Promise.resolve([]);
+        return [];
       }
     }
   }
@@ -77,7 +82,7 @@ class AdapterFunction extends vscode.TreeItem {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;
   }
-
+  resourceUri = vscode.Uri.parse(`\nawait load_plate(\n test=\n)`);
   iconPath = {
     light: path.join(
       __filename,
