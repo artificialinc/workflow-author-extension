@@ -1,98 +1,280 @@
 {
-  "name": "artificial",
-  "displayName": "artificial",
-  "description": "Does things",
-  "version": "0.0.1",
+  "name": "artificial-workflow-extension",
+  "displayName": "Artificial Inc. Workflow Authoring VSCode Extension",
+  "description": "Extension to help author Artificial workflows in Orchestration Python",
+  "publisher": "artificial",
+  "license": "apache-2.0",
+  "private": false,
+  "author": {
+    "name": "Artificial, Inc."
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/artificialinc/workflow-author-extension"
+  },
+  "version": "1.0.0",
+  "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
+  },
+  "bugs": {
+    "url": "https://github.com/artificialinc/workflow-author-extension/issues"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
-    "onView:stubs"
+    "onView:pythonActions",
+    "onView:assistantsByLab",
+    "onView:loadConfigs",
+    "onView:workflows",
+    "onView:configs"
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "viewsWelcome": [
+    "colors": [
       {
-        "view": "stubGenerate",
-        "contents": "[Generate Stubs](command:stubs.generateStubs)"
+        "id": "artificial.typeError",
+        "description": "Type Error Decoration Color",
+        "defaults": {
+          "dark": "#ff0000",
+          "light": "#ff0000",
+          "highContrast": "#ff0000"
+        }
       }
     ],
+    "snippets": [
+      {
+        "language": "python",
+        "path": "./snippets.json"
+      }
+    ],
+    "viewsWelcome": [],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "package-explorer",
-          "title": "Package Explorer",
-          "icon": "media/artificial.svg"
+          "id": "artificial-workflows",
+          "title": "Artificial Workflows",
+          "icon": "resources/artificial.svg"
         }
       ]
     },
     "views": {
-      "package-explorer": [
+      "artificial-workflows": [
         {
-          "id": "stubs",
-          "name": "Functions",
-          "icon": "media/dep.svg",
-          "contextualTitle": "Artificial Workflows"
+          "id": "pythonActions",
+          "name": "Adapter Functions",
+          "when": "devMode"
         },
         {
-          "id": "stubGenerate",
-          "name": "Generate Stubs"
+          "id": "assistantsByLab",
+          "name": "Assistants"
+        },
+        {
+          "id": "loadConfigs",
+          "name": "Labware Load Configurations",
+          "when": "devMode"
+        },
+        {
+          "id": "configs",
+          "name": "Configuration"
+        },
+        {
+          "id": "workflows",
+          "name": "Workflow Publishing"
         }
       ]
     },
     "commands": [
       {
-        "command": "artificial.helloWorld",
-        "title": "Hello World"
+        "command": "artificial-workflows.toggleDevMode",
+        "title": "Toggle Dev Mode",
+        "category": "Artificial"
       },
       {
-        "command": "stubs.refreshEntry",
-        "title": "Refresh",
+        "command": "assistantsByLab.generateStubs",
+        "title": "Generate Stubs",
+        "category": "Artificial"
+      },
+      {
+        "command": "pythonActions.addToFile",
+        "title": "Add Action Function Call to Workflow",
+        "category": "Artificial",
         "icon": {
-          "dark": "resources/dark/refresh.svg",
-          "light": "resources/light/refresh.svg"
+          "light": "resources/dark/add.svg",
+          "dark": "resources/dark/add.svg"
         }
       },
       {
-        "command": "stubs.generateStubs",
-        "title": "Generate Stubs"
+        "command": "pythonActions.refreshEntry",
+        "title": "Refresh Python Functions",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "workflows.refreshEntry",
+        "title": "Refresh Workflows",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "workflows.publish",
+        "title": "Publish Workflow",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/dark/upload.svg",
+          "dark": "resources/dark/upload.svg"
+        }
+      },
+      {
+        "command": "workflows.generateBinary",
+        "title": "Generate workflow binary file",
+        "category": "Artificial"
+      },
+      {
+        "command": "workflows.generateJson",
+        "title": "Generate workflow JSON file",
+        "category": "Artificial"
+      },
+      {
+        "command": "assistantsByLab.addToFile",
+        "title": "Add Assistant Call to Workflow",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/dark/add.svg",
+          "dark": "resources/dark/add.svg"
+        }
+      },
+      {
+        "command": "assistantsByLab.refreshEntry",
+        "title": "Refresh Assistants",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "loadConfigs.refreshEntry",
+        "title": "Refresh Load Configs",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "configs.refreshEntry",
+        "title": "Refresh Configs",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "stubs.refreshEntry",
-          "when": "view == stubs",
+          "command": "pythonActions.refreshEntry",
+          "when": "view == pythonActions",
           "group": "navigation"
+        },
+        {
+          "command": "loadConfigs.refreshEntry",
+          "when": "view == loadConfigs",
+          "group": "navigation"
+        },
+        {
+          "command": "assistantsByLab.refreshEntry",
+          "when": "view == assistantsByLab",
+          "group": "navigation"
+        },
+        {
+          "command": "assistantsByLab.generateStubs",
+          "when": "view == assistantsByLab",
+          "group": "navigation"
+        },
+        {
+          "command": "workflows.refreshEntry",
+          "when": "view == workflows",
+          "group": "navigation"
+        },
+        {
+          "command": "configs.refreshEntry",
+          "when": "view == configs",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pythonActions.addToFile",
+          "when": "view == pythonActions",
+          "group": "inline"
+        },
+        {
+          "command": "assistantsByLab.addToFile",
+          "when": "view == assistantsByLab && viewItem == ASSISTANT",
+          "group": "inline"
+        },
+        {
+          "command": "workflows.publish",
+          "when": "view == workflows",
+          "group": "inline"
+        },
+        {
+          "command": "workflows.generateBinary",
+          "when": "view == workflows"
+        },
+        {
+          "command": "workflows.generateJson",
+          "when": "view == workflows"
         }
       ]
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
+    "vscode:prepublish2": "yarn run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "test-compile": "tsc -p ./"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
+    "@types/lodash": "^4.14.185",
     "@types/mocha": "^9.1.1",
     "@types/node": "16.x",
     "@types/vscode": "^1.71.0",
+    "@types/zen-observable": "^0.8.3",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "@vscode/test-electron": "^2.1.5",
+    "esbuild": "^0.15.12",
     "eslint": "^8.20.0",
-    "glob": "^8.0.3",
     "mocha": "^10.0.0",
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "dt-python-parser": "^0.9.0"
+    "@apollo/client": "^3.6.9",
+    "apollo-link-timeout": "^4.0.0",
+    "cross-fetch": "^3.1.5",
+    "glob": "^8.0.3",
+    "graphql": "^16.6.0",
+    "lodash": "^4.17.21",
+    "python-ast": "^0.1.0",
+    "yaml": "^2.1.1"
   }
 }

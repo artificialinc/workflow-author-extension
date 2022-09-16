@@ -1,71 +1,37 @@
-# artificial README
+# Artificial, Inc. Workflow Authoring VSCode Extension
+This extension is not standalone. The Artificial, Inc. devcontainer should be installed to take full advantage of this extension.
 
-This is the README for your extension "artificial". After writing up a brief description, we recommend including the following sections.
+The Artificial, Inc. devcontainer, SDK and documentation are available to licensed SDK customers from Artificial, Inc. Please contact an Artificial, Inc. representative to learn more!
+
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+Generate workflow binary and json, and one button press publish to namespace.<br/>
+![](https://github.com/artificialinc/workflow-author-extension/blob/main/resources/readme/wfgen.gif)<br/>
+Drag and drop config, lab id's, assistant function calls into your workflow.<br/>
+![](https://github.com/artificialinc/workflow-author-extension/blob/main/resources/readme/drag_drop.gif)<br/>
+ID, Type, Param checking for assistants with errors.<br/>
+![](https://github.com/artificialinc/workflow-author-extension/blob/main/resources/readme/assistant_errors.png)<br/>
+Ability to generate assistant stub file<br/>
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Must have a config.yaml in your root project<br/>
+Config.yaml must specify host and token.<br/>
 
-## Extension Settings
+Must have workflow and adapter folder<br/>
+Must be inside a dev container with access to `wfgen` and `wfupload`.<br/>
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+Assistant Stubs are put in the root of the workflows directory in a file named stubs_assistants.py<br/>
+The tool does not find or use hand-made stubs, it assumes it is the sole owner of assistant stubs.<br/>
+Hand edits to the stubs file will be over-written the next time you generate.<br/>
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Generation and publishing of workflows throws errors to the terminal.  User has to be aware and open the terminal to ensure the operation completed successfully.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial version of extension
