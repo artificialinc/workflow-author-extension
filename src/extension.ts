@@ -1,7 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { StubsProvider } from './treeView';
+import { FunctionTreeView } from './functionTreeView';
+import { GenerateActionStubs } from './generateActionStubs';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -14,7 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
-  const stubsProvider = new StubsProvider(rootPath);
+  const stubsProvider = new FunctionTreeView(rootPath);
+  const generateProvider = new GenerateActionStubs(rootPath);
   vscode.window.registerTreeDataProvider('stubs', stubsProvider);
   context.subscriptions.push(
     vscode.commands.registerCommand('stubs.refreshEntry', () =>
@@ -23,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(
     vscode.commands.registerCommand('stubs.generateStubs', () =>
-      stubsProvider.generateStubs()
+      generateProvider.generateStubs()
     )
   );
   console.log('Congratulations, your extension "artificial" is now active!');
