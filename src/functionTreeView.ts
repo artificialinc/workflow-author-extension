@@ -65,7 +65,8 @@ export class FunctionTreeView
       (funcName: FunctionSignature): AdapterFunction => {
         return new AdapterFunction(
           funcName.name,
-          vscode.TreeItemCollapsibleState.None
+          vscode.TreeItemCollapsibleState.None,
+          funcName
         );
       }
     );
@@ -74,15 +75,19 @@ export class FunctionTreeView
   }
 }
 
-class AdapterFunction extends vscode.TreeItem {
+export class AdapterFunction extends vscode.TreeItem {
   constructor(
     public readonly label: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState
+    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    public readonly functionSignature: FunctionSignature
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;
+    this.functionSignature = functionSignature;
   }
-  resourceUri = vscode.Uri.parse(`\nawait load_plate(\n test=\n)`);
+  resourceUri = vscode.Uri.parse(
+    `\nawait load_deck(\n    num_empty_tubes= ,\n    num_tube_racks= ,\n    num_deepwell= ,\n    num_treatment= ,\n    num_final= ,\n    num_lids= ,\n)`
+  );
   iconPath = {
     light: path.join(
       __filename,

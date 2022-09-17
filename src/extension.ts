@@ -3,8 +3,9 @@
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
 import * as vscode from 'vscode';
-import { FunctionTreeView } from './functionTreeView';
+import { FunctionTreeView, AdapterFunction } from './functionTreeView';
 import { GenerateActionStubs } from './generateActionStubs';
+import { InsertFunctionCall } from './insertFunctionCall';
 
 export function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -21,6 +22,14 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('stubs.generateStubs', () =>
       generateProvider.generateStubs()
+    )
+  );
+
+  const functionCallProvider = new InsertFunctionCall();
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'stubs.addToFile',
+      (node: AdapterFunction) => functionCallProvider.insertFunction(node)
     )
   );
   console.log('Congratulations, your extension "artificial" is now active!');

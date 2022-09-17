@@ -47,8 +47,26 @@
         "command": "stubs.generateStubs",
         "title": "Generate Stubs",
         "category": "Artificial"
+      },
+      {
+        "command": "stubs.addToFile",
+        "title": "Add Action Function Call to Workflow",
+        "category": "Artificial",
+        "icon": {
+          "light": "media/dep.svg",
+          "dark": "media/dep.svg"
+        }
       }
-    ]
+    ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "stubs.addToFile",
+          "when": "view== stubs",
+          "group": "inline"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
