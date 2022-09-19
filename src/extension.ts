@@ -1,5 +1,5 @@
-// TODO: Parenthesis inside parameters is bug for beam
-// TODO: Hack shove function call inside uri for drag and drop?
+// TODO: Icons
+// TODO: Type imports, how to find them?
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
 import * as vscode from 'vscode';
@@ -36,3 +36,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
+
+// Hack shove function call inside uri for drag and drop?  NO.  URI is the only thing you can
+// Get across from tree to text editor, which is garbage.  Its not designed as a palette

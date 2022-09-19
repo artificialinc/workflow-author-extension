@@ -32,11 +32,8 @@ export function buildPythonFunctionSignatures(
           TokenType.OPEN_PAREN,
           funcStartIdx
         );
-        const closeParenIdx = findTokenIndex(
-          tokens,
-          TokenType.CLOSE_PAREN, //TODO: Assumption, no parens in params
-          funcStartIdx
-        );
+        const closeParenIdx = findClosedParenIndex(tokens, openParenIdx);
+
         const funcEndIdx = findTokenIndex(
           tokens,
           TokenType.COLON,
@@ -76,6 +73,22 @@ export function buildPythonFunctionSignatures(
     return [];
   }
 }
+
+function findClosedParenIndex(tokens: Token[], startIndex: number): number {
+  let index = startIndex;
+  let openParens = 1;
+  while (openParens >= 1) {
+    index += 1;
+    if (tokens[index].type === TokenType.OPEN_PAREN) {
+      openParens += 1;
+    }
+    if (tokens[index].type === TokenType.CLOSE_PAREN) {
+      openParens -= 1;
+    }
+  }
+  return index;
+}
+
 function findTokenIndex(
   tokens: Token[],
   type: TokenType,
@@ -103,18 +116,36 @@ function buildPythonParams(
   let paramType = '';
   let typevsname = 'name';
   let params = [];
+  let innerScope = 0;
   for (let index = paramStartIdx; index <= paramEndIdx; index++) {
+    if (
+      tokens[index].type === TokenType.OPEN_PAREN ||
+      tokens[index].type === TokenType.OPEN_BRACK ||
+      tokens[index].type === TokenType.OPEN_BRACE
+    ) {
+      innerScope += 1;
+    }
+    if (
+      tokens[index].type === TokenType.CLOSE_PAREN ||
+      tokens[index].type === TokenType.CLOSE_BRACK ||
+      tokens[index].type === TokenType.CLOSE_BRACE
+    ) {
+      innerScope -= 1;
+    }
     if (tokens[index].type === TokenType.COLON) {
       typevsname = 'type';
     } else if (
-      tokens[index].type === TokenType.COMMA ||
-      tokens[index].type === TokenType.CLOSE_PAREN
+      (tokens[index].type === TokenType.COMMA || index === paramEndIdx) &&
+      innerScope <= 0
     ) {
-      let param: Param = { name: paramName, type: paramType };
-      params.push(param);
-      paramName = '';
-      paramType = '';
-      typevsname = 'name';
+      //HACK: Handles trailing comma before the final closing brace
+      if (paramName !== '') {
+        let param: Param = { name: paramName, type: paramType };
+        params.push(param);
+        paramName = '';
+        paramType = '';
+        typevsname = 'name';
+      }
     } else if (typevsname === 'name') {
       paramName += tokens[index].text;
     } else if (typevsname === 'type') {

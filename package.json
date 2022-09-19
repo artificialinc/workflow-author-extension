@@ -25,7 +25,7 @@
         {
           "id": "artificial-workflows",
           "title": "Artificial Workflows",
-          "icon": "media/artificial.svg"
+          "icon": "media/dep.svg"
         }
       ]
     },
@@ -34,7 +34,7 @@
         {
           "id": "stubs",
           "name": "Functions",
-          "icon": "media/dep.svg"
+          "icon": "resources/dark/python.svg"
         },
         {
           "id": "stubGenerate",
@@ -53,8 +53,8 @@
         "title": "Add Action Function Call to Workflow",
         "category": "Artificial",
         "icon": {
-          "light": "media/dep.svg",
-          "dark": "media/dep.svg"
+          "light": "resources/dark/add.svg",
+          "dark": "resources/dark//add.svg"
         }
       }
     ],
