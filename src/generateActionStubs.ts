@@ -24,7 +24,7 @@ export class GenerateActionStubs {
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
     pythonContent +=
-      'from artificial.workflows.decorators import return_parameter, substrate_action\n\n';
+      'from artificial.workflows.decorators import substrate_action\n\n';
 
     for (const sig of funcSigs) {
       pythonContent = pythonContent.concat('\n');
@@ -36,14 +36,17 @@ export class GenerateActionStubs {
         '")'
       );
       pythonContent = pythonContent.concat('\n');
-      pythonContent = pythonContent.concat('@return_parameter("TODO")\n');
       // TODO: loop keywords here, this is assuming always async def
       let functionString =
         sig.keywords[0] + ' ' + sig.keywords[1] + ' ' + sig.name + '(';
       let iterations = sig.parameters.length;
       for (let param of sig.parameters) {
         --iterations;
-        if (param.name !== 'self' && param.type !== 'ActionContext') {
+        if (
+          param.name !== 'self' &&
+          param.type !== 'ActionContext' &&
+          !param.name.includes('ioraw_')
+        ) {
           functionString += param.name;
           functionString += ': ';
           functionString += param.type;
