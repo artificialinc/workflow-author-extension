@@ -37,6 +37,11 @@
           "icon": "resources/dark/python.svg"
         },
         {
+          "id": "assistants",
+          "name": "Assistants",
+          "icon": "resources/dark/python.svg"
+        },
+        {
           "id": "stubGenerate",
           "name": "Generate Stubs"
         }
@@ -90,6 +95,10 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "dt-python-parser": "^0.9.0"
+    "@apollo/client": "^3.6.9",
+    "cross-fetch": "^3.1.5",
+    "dt-python-parser": "^0.9.0",
+    "graphql": "^16.6.0",
+    "yaml": "^2.1.1"
   }
 }

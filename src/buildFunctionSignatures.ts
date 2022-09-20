@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Python3Parser } from 'dt-python-parser';
+import { Python3Parser, Python3Visitor } from 'dt-python-parser';
 import { TokenType } from './tokenTypes';
 import { pathExists } from './utils';
 import { Token, FunctionSignature, Param } from './types';
@@ -11,6 +11,24 @@ export function buildPythonFunctionSignatures(
     const packageJson = fs.readFileSync(actionPythonPath, 'utf-8');
     const parser = new Python3Parser();
     const tokens: Token[] = parser.getAllTokens(packageJson);
+
+    // const tree = parser.parse(packageJson);
+    // let crap = [];
+    // class MyVisitor extends Python3Visitor {
+    //   visitParameters(ctx): void {
+    //     let funcdef = ctx.getText();
+    //     //console.log(funcdef);
+    //   }
+    //   visitDecorated(ctx): void {
+    //     let funcdef = ctx.getText();
+    //     console.log(funcdef);
+    //     //crap.push(funcdef);
+    //   }
+    // }
+
+    // const visitor = new MyVisitor();
+    // visitor.visit(tree);
+
     const functionSignatures: FunctionSignature[] = [];
     // @action()
     // async def create_plate(self, actx: ActionContext, barcode: str) -> t.Dict:

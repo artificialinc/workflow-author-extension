@@ -3,6 +3,7 @@
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
 import * as vscode from 'vscode';
+import { AssistantTreeView } from './assistantTreeView';
 import { FunctionTreeView, AdapterFunction } from './functionTreeView';
 import { GenerateActionStubs } from './generateActionStubs';
 import { InsertFunctionCall } from './insertFunctionCall';
@@ -18,6 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
     return;
   }
   new FunctionTreeView(rootPath, context);
+  new AssistantTreeView(context);
   const generateProvider = new GenerateActionStubs(rootPath);
   context.subscriptions.push(
     vscode.commands.registerCommand('stubs.generateStubs', () =>
