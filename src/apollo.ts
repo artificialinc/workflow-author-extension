@@ -7,113 +7,126 @@ import { parse } from 'yaml';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-let rootPath =
-  vscode.workspace.workspaceFolders &&
-  vscode.workspace.workspaceFolders.length > 0
-    ? vscode.workspace.workspaceFolders[0].uri.fsPath
-    : undefined;
-if (!rootPath) {
-  vscode.window.showInformationMessage('No Root Path Found');
-  rootPath = '';
-}
-// TODO: Move token and host name to configuration, pull from config.yaml
-const configPath = path.join(rootPath, 'config.yaml');
-const config = parse(fs.readFileSync(configPath, 'utf-8'));
-const hostName = 'https://' + config.artificial.host + '/graphql';
-const apiToken = config.artificial.token;
-
-const retryLink = new RetryLink({
-  delay: {
-    initial: 100,
-    max: 2000,
-    jitter: true,
-  },
-  attempts: {
-    max: 5,
-    retryIf: (error, _operation) => !!error, // eslint-disable-line
-  },
-});
-let apollo: any;
-export function createApollo() {
-  try {
-    if (apollo) {
-      console.log('Tried to create duplicate apollo client.');
-      return apollo;
+export class ArtificialApollo {
+  private static instance: ArtificialApollo;
+  private hostName;
+  private apiToken;
+  private retryLink;
+  public apollo;
+  constructor() {
+    let rootPath =
+      vscode.workspace.workspaceFolders &&
+      vscode.workspace.workspaceFolders.length > 0
+        ? vscode.workspace.workspaceFolders[0].uri.fsPath
+        : undefined;
+    if (!rootPath) {
+      vscode.window.showInformationMessage('No Root Path Found');
+      rootPath = '';
     }
-
-    const httpLink = new HttpLink({
-      uri: hostName,
-      credentials: 'include',
-      headers: {
-        authorization: `Bearer ${apiToken}`,
-        cookie: `artificial-org=${'artificial'}`,
+    const configPath = path.join(rootPath, 'config.yaml');
+    const config = parse(fs.readFileSync(configPath, 'utf-8'));
+    this.hostName = 'https://' + config.artificial.host + '/graphql';
+    this.apiToken = config.artificial.token;
+    this.retryLink = new RetryLink({
+      delay: {
+        initial: 100,
+        max: 2000,
+        jitter: true,
       },
-      fetch,
-    });
-
-    apollo = new ApolloClient({
-      link: from([retryLink, httpLink]),
-      cache: new InMemoryCache({}),
-      defaultOptions: {
-        query: {
-          fetchPolicy: 'no-cache',
-        },
-        mutate: {
-          fetchPolicy: 'no-cache',
-        },
+      attempts: {
+        max: 5,
+        retryIf: (error, _operation) => !!error, // eslint-disable-line
       },
     });
-
-    return apollo;
-  } catch (err) {
-    console.error('Exception creating apollo client.');
-    console.log(JSON.stringify(err, null, 2));
+    this.apollo = this.createApollo();
   }
-}
-
-export async function queryWorkflows() {
-  try {
-    if (!apollo) {
-      console.error('ApolloClient missing.');
-      return;
+  public static getInstance(): ArtificialApollo {
+    if (!ArtificialApollo.instance) {
+      ArtificialApollo.instance = new ArtificialApollo();
     }
-    const result = await apollo.query({
-      query: gql`
-        query workflows {
-          workflows {
-            id
-          }
-        }
-      `,
-    });
-
-    if (result && result.data) {
-      return result.data;
-    }
-  } catch (err) {
-    console.log(JSON.stringify(err, null, 2));
+    return ArtificialApollo.instance;
   }
-}
-export async function queryAssistants() {
-  try {
-    if (!apollo) {
-      console.error('ApolloClient missing.');
-      return;
-    }
-    const result = await apollo.query({
-      query: gql`
-        query assistants {
-          assistants {
-            name
-          }
-        }
-      `,
-    });
+  private createApollo(): any {
+    try {
+      if (this.apollo) {
+        console.log('Tried to create duplicate apollo client.');
+        return this.apollo;
+      }
 
-    if (result && result.data) {
-      return result.data;
+      const httpLink = new HttpLink({
+        uri: this.hostName,
+        credentials: 'include',
+        headers: {
+          authorization: `Bearer ${this.apiToken}`,
+          cookie: `artificial-org=${'artificial'}`,
+        },
+        fetch,
+      });
+
+      this.apollo = new ApolloClient({
+        link: from([this.retryLink, httpLink]),
+        cache: new InMemoryCache({}),
+        defaultOptions: {
+          query: {
+            fetchPolicy: 'no-cache',
+          },
+          mutate: {
+            fetchPolicy: 'no-cache',
+          },
+        },
+      });
+
+      return this.apollo;
+    } catch (err) {
+      console.error('Exception creating apollo client.');
+      console.log(JSON.stringify(err, null, 2));
     }
-  } catch (err) {
-    console.log(JSON.stringify(err, null, 2));
+  }
+
+  public async queryWorkflows() {
+    try {
+      if (!this.apollo) {
+        console.error('ApolloClient missing.');
+        return;
+      }
+      const result = await this.apollo.query({
+        query: gql`
+          query workflows {
+            workflows {
+              id
+            }
+          }
+        `,
+      });
+
+      if (result && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
+    }
+  }
+  public async queryAssistants() {
+    try {
+      if (!this.apollo) {
+        console.error('ApolloClient missing.');
+        return;
+      }
+      const result = await this.apollo.query({
+        query: gql`
+          query assistants {
+            assistants {
+              name
+            }
+          }
+        `,
+      });
+
+      if (result && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
+    }
   }
 }

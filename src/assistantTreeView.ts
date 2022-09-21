@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as ApolloClient from './apollo';
+import { ArtificialApollo } from './apollo';
 
 interface AssistantResponse {
-  assistants: [];
+  assistants: [{ name: string }];
 }
 
 export class AssistantTreeView implements vscode.TreeDataProvider<Assistant> {
@@ -29,13 +29,10 @@ export class AssistantTreeView implements vscode.TreeDataProvider<Assistant> {
   }
 
   private async getAssistants(): Promise<Assistant[]> {
-    if (!ApolloClient.createApollo()) {
-      vscode.window.showInformationMessage('Failed to connect to Apollo');
-    }
+    const client = ArtificialApollo.getInstance();
+    const response: AssistantResponse = await client.queryAssistants();
 
-    const response: AssistantResponse = await ApolloClient.queryAssistants();
-    console.log(response);
-    const assistants = response.assistants.map((assistant: any): Assistant => {
+    const assistants = response.assistants.map((assistant): Assistant => {
       return new Assistant(
         assistant.name,
         vscode.TreeItemCollapsibleState.None

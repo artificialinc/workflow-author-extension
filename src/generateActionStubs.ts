@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FunctionSignature } from './types';
 import { pathExists } from './utils';
-import { buildPythonFunctionSignatures } from './buildFunctionSignatures';
+import { BuildFunctionSignatures } from './buildFunctionSignatures';
 import * as ApolloClient from './apollo';
 import { OutputLog } from './outputLog';
 export class GenerateActionStubs {
@@ -30,7 +30,7 @@ export class GenerateActionStubs {
       'actions.py'
     );
     if (pathExists(actionPythonPath)) {
-      funcSigs = buildPythonFunctionSignatures(actionPythonPath);
+      funcSigs = new BuildFunctionSignatures().build(actionPythonPath);
     } else {
       vscode.window.showInformationMessage('Workspace has no actions.py');
       return Promise.resolve([]);

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { buildPythonFunctionSignatures } from './buildFunctionSignatures';
+import { BuildFunctionSignatures } from './buildFunctionSignatures';
 import { FunctionSignature } from './types';
 import { pathExists } from './utils';
 
@@ -60,7 +60,9 @@ export class FunctionTreeView
    * Given the path to package.json, read all its dependencies and devDependencies.
    */
   private getFuncsInActionPython(actionPythonPath: string): AdapterFunction[] {
-    const functionSignatures = buildPythonFunctionSignatures(actionPythonPath);
+    const functionSignatures = new BuildFunctionSignatures().build(
+      actionPythonPath
+    );
     const adapterFunctions = functionSignatures.map(
       (funcName: FunctionSignature): AdapterFunction => {
         return new AdapterFunction(
