@@ -80,7 +80,8 @@ export class ArtificialTreeView
           funcName.name,
           vscode.TreeItemCollapsibleState.None,
           funcName,
-          this.uriPath
+          this.uriPath,
+          this.vscodeID
         );
       }
     );
@@ -94,12 +95,14 @@ export class Function extends vscode.TreeItem {
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly functionSignature: FunctionSignature,
-    public readonly uriPath: string
+    public readonly uriPath: string,
+    public readonly icon: string
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;
     this.functionSignature = functionSignature;
     this.uriPath = uriPath;
+    this.icon = icon;
   }
   resourceUri = vscode.Uri.parse(this.uriPath + this.functionSignature.name);
 
@@ -110,7 +113,7 @@ export class Function extends vscode.TreeItem {
       '..',
       'resources',
       'light',
-      'dependency.svg'
+      this.icon + '.svg'
     ),
     dark: path.join(
       __filename,
@@ -118,7 +121,7 @@ export class Function extends vscode.TreeItem {
       '..',
       'resources',
       'dark',
-      'dependency.svg'
+      this.icon + '.svg'
     ),
   };
 }
