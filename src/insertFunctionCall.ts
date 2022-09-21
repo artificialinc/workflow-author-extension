@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
+import { Assistant } from './assistantTreeView';
 import { AdapterFunction } from './functionTreeView';
 import { FunctionSignature } from './types';
 
 export class InsertFunctionCall {
-  insertFunction(node: AdapterFunction): void {
+  insertFunction(node: AdapterFunction | Assistant): void {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       const functionCall = this.buildFunctionCall(node.functionSignature);
@@ -12,7 +13,7 @@ export class InsertFunctionCall {
       });
     }
   }
-  private buildFunctionCall(signature: FunctionSignature): string {
+  buildFunctionCall(signature: FunctionSignature): string {
     let content = 'await ' + signature.name + '(\n';
 
     let functionString = '';

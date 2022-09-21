@@ -11,7 +11,6 @@ export class FunctionTreeView
 {
   dropMimeTypes = ['application/vnd.code.tree.stubs'];
   dragMimeTypes = ['text/uri-list'];
-  //constructor(private workspaceRoot: string) {}
   constructor(private workspaceRoot: string, context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('stubs', {
       treeDataProvider: this,
@@ -20,6 +19,7 @@ export class FunctionTreeView
       dragAndDropController: this,
     });
     context.subscriptions.push(view);
+    this.treeElements = this.getChildren();
   }
 
   public async handleDrag(
@@ -31,13 +31,22 @@ export class FunctionTreeView
     //   'application/vnd.code.tree.stubs',
     //   new vscode.DataTransferItem(source)
     // );
-    //treeDataTransfer.set('text/uri-list', new vscode.DataTransferItem('thing'));
+    //treeDataTransfer.set('text/plain', new vscode.DataTransferItem('thing'));
   }
 
   getTreeItem(element: AdapterFunction): vscode.TreeItem {
     return element;
   }
+  getTreeItemByUri(uri: string): AdapterFunction | undefined {
+    const element = this.treeElements.find((sig) => {
+      if (sig.resourceUri.toString() === 'file://' + uri) {
+        return sig;
+      }
+    });
+    return element;
+  }
 
+  private treeElements: AdapterFunction[];
   getChildren(element?: AdapterFunction): AdapterFunction[] {
     if (element) {
       return [];
@@ -48,7 +57,8 @@ export class FunctionTreeView
         'actions.py'
       );
       if (pathExists(actionPythonPath)) {
-        return this.getFuncsInActionPython(actionPythonPath);
+        this.treeElements = this.getFuncsInActionPython(actionPythonPath);
+        return this.treeElements;
       } else {
         vscode.window.showInformationMessage('Workspace has no actions.py');
         return [];
@@ -56,9 +66,6 @@ export class FunctionTreeView
     }
   }
 
-  /**
-   * Given the path to package.json, read all its dependencies and devDependencies.
-   */
   private getFuncsInActionPython(actionPythonPath: string): AdapterFunction[] {
     const functionSignatures = new BuildFunctionSignatures().build(
       actionPythonPath
@@ -88,8 +95,11 @@ export class AdapterFunction extends vscode.TreeItem {
     this.functionSignature = functionSignature;
   }
   resourceUri = vscode.Uri.parse(
-    `\nawait load_deck(\n    num_empty_tubes= ,\n    num_tube_racks= ,\n    num_deepwell= ,\n    num_treatment= ,\n    num_final= ,\n    num_lids= ,\n)`
+    'artificial/python/' + this.functionSignature.name
   );
+  // resourceUri = vscode.Uri.parse(
+  //   `\nawait load_deck(\n    num_empty_tubes= ,\n    num_tube_racks= ,\n    num_deepwell= ,\n    num_treatment= ,\n    num_final= ,\n    num_lids= ,\n)`
+  // );
   iconPath = {
     light: path.join(
       __filename,

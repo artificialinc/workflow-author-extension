@@ -1,12 +1,16 @@
 // TODO: Icons
-// TODO: Type imports, how to find them?
+// TODO: Type imports
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
+// TODO: Switch to parsing generated stubs
+// TODO: Use parsed stubs to create teh dropped function call signatures
+
 import * as vscode from 'vscode';
 import { AssistantTreeView } from './assistantTreeView';
 import { FunctionTreeView, AdapterFunction } from './functionTreeView';
 import { GenerateActionStubs } from './generateActionStubs';
 import { InsertFunctionCall } from './insertFunctionCall';
+import { DropProvider } from './dropProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -18,8 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
-  new FunctionTreeView(rootPath, context);
-  new AssistantTreeView(context);
+  const funcTree = new FunctionTreeView(rootPath, context);
+  const assistantTree = new AssistantTreeView(context);
   const generateProvider = new GenerateActionStubs(rootPath);
   context.subscriptions.push(
     vscode.commands.registerCommand('stubs.generateStubs', () =>
@@ -34,10 +38,14 @@ export function activate(context: vscode.ExtensionContext) {
       (node: AdapterFunction) => functionCallProvider.insertFunction(node)
     )
   );
+  const selector: vscode.DocumentSelector = { language: 'python' };
+  context.subscriptions.push(
+    vscode.languages.registerDocumentDropEditProvider(
+      selector,
+      new DropProvider(funcTree, assistantTree)
+    )
+  );
   console.log('Congratulations, your extension "artificial" is now active!');
 }
 
 export function deactivate() {}
-
-// Hack shove function call inside uri for drag and drop?  NO.  URI is the only thing you can
-// Get across from tree to text editor, which is garbage.  Its not designed as a palette
