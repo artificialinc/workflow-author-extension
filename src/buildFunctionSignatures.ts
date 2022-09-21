@@ -38,7 +38,12 @@ export class BuildFunctionSignatures {
       // Find func end by first : AFTER closing parens
       // Find Return arrow IF it exists by looking between closing paren and :
       for (const [idx, token] of tokens.entries()) {
-        if (token.type === TokenType.AT && tokens[idx + 1].text === 'action') {
+        if (
+          token.type === TokenType.AT &&
+          (tokens[idx + 1].text === 'substrate_action' ||
+            tokens[idx + 1].text === 'assistant' ||
+            tokens[idx + 1].text === 'action')
+        ) {
           const funcStartIdx = this.findTokenIndex(
             tokens,
             TokenType.ASYNC, //TODO: Assumption, always async?

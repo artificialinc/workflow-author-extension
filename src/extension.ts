@@ -2,15 +2,12 @@
 // TODO: Type imports
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
-// TODO: Switch to parsing generated stubs
-// TODO: Use parsed stubs to create teh dropped function call signatures
 
 import * as vscode from 'vscode';
-import { AssistantTreeView } from './assistantTreeView';
-import { FunctionTreeView, AdapterFunction } from './functionTreeView';
 import { GenerateActionStubs } from './generateActionStubs';
 import { InsertFunctionCall } from './insertFunctionCall';
 import { DropProvider } from './dropProvider';
+import { ArtificialTreeView, Function } from './artificialTreeView';
 
 export function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -22,8 +19,40 @@ export function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
-  const funcTree = new FunctionTreeView(rootPath, context);
-  const assistantTree = new AssistantTreeView(context);
+  //Function Tree and related commands
+  const funcTree = new ArtificialTreeView(
+    rootPath + '/workflow/stubs_actions.py',
+    'artificial/python/',
+    'stubs',
+    context
+  );
+  vscode.commands.registerCommand('stubs.refreshEntry', () =>
+    funcTree.refresh()
+  );
+  const functionCallProvider = new InsertFunctionCall();
+  context.subscriptions.push(
+    vscode.commands.registerCommand('stubs.addToFile', (node: Function) =>
+      functionCallProvider.insertFunction(node)
+    )
+  );
+
+  //Assistant Tree & Related Commands
+  const assistantTree = new ArtificialTreeView(
+    rootPath + '/workflow/stubs_assistants.py',
+    'artificial/assistant/',
+    'assistants',
+    context
+  );
+  vscode.commands.registerCommand('assistants.refreshEntry', () =>
+    assistantTree.refresh()
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('assistants.addToFile', (node: Function) =>
+      functionCallProvider.insertFunction(node)
+    )
+  );
+
+  // Generate Stubs
   const generateProvider = new GenerateActionStubs(rootPath);
   context.subscriptions.push(
     vscode.commands.registerCommand('stubs.generateStubs', () =>
@@ -31,13 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  const functionCallProvider = new InsertFunctionCall();
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      'stubs.addToFile',
-      (node: AdapterFunction) => functionCallProvider.insertFunction(node)
-    )
-  );
+  //Drop handler for document editor
   const selector: vscode.DocumentSelector = { language: 'python' };
   context.subscriptions.push(
     vscode.languages.registerDocumentDropEditProvider(

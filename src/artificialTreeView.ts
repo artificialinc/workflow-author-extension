@@ -4,15 +4,28 @@ import { BuildFunctionSignatures } from './buildFunctionSignatures';
 import { FunctionSignature } from './types';
 import { pathExists } from './utils';
 
-export class FunctionTreeView
+export class ArtificialTreeView
   implements
-    vscode.TreeDataProvider<AdapterFunction>,
-    vscode.TreeDragAndDropController<AdapterFunction>
+    vscode.TreeDataProvider<Function>,
+    vscode.TreeDragAndDropController<Function>
 {
   dropMimeTypes = ['application/vnd.code.tree.stubs'];
   dragMimeTypes = ['text/uri-list'];
-  constructor(private workspaceRoot: string, context: vscode.ExtensionContext) {
-    const view = vscode.window.createTreeView('stubs', {
+
+  private _onDidChangeTreeData: vscode.EventEmitter<
+    Function | undefined | void
+  > = new vscode.EventEmitter<Function | undefined | void>();
+
+  readonly onDidChangeTreeData: vscode.Event<Function | undefined | void> =
+    this._onDidChangeTreeData.event;
+
+  constructor(
+    private stubPath: string,
+    private uriPath: string,
+    private vscodeID: string,
+    context: vscode.ExtensionContext
+  ) {
+    const view = vscode.window.createTreeView(this.vscodeID, {
       treeDataProvider: this,
       showCollapseAll: false,
       canSelectMany: false,
@@ -21,23 +34,19 @@ export class FunctionTreeView
     context.subscriptions.push(view);
     this.treeElements = this.getChildren();
   }
-
+  refresh(): void {
+    this._onDidChangeTreeData.fire();
+  }
   public async handleDrag(
-    source: AdapterFunction[],
+    source: Function[],
     treeDataTransfer: vscode.DataTransfer,
     token: vscode.CancellationToken
-  ): Promise<void> {
-    // treeDataTransfer.set(
-    //   'application/vnd.code.tree.stubs',
-    //   new vscode.DataTransferItem(source)
-    // );
-    //treeDataTransfer.set('text/plain', new vscode.DataTransferItem('thing'));
-  }
+  ): Promise<void> {}
 
-  getTreeItem(element: AdapterFunction): vscode.TreeItem {
+  getTreeItem(element: Function): vscode.TreeItem {
     return element;
   }
-  getTreeItemByUri(uri: string): AdapterFunction | undefined {
+  getTreeItemByUri(uri: string): Function | undefined {
     const element = this.treeElements.find((sig) => {
       if (sig.resourceUri.toString() === 'file://' + uri) {
         return sig;
@@ -46,36 +55,32 @@ export class FunctionTreeView
     return element;
   }
 
-  private treeElements: AdapterFunction[];
-  getChildren(element?: AdapterFunction): AdapterFunction[] {
+  private treeElements: Function[];
+  getChildren(element?: Function): Function[] {
     if (element) {
       return [];
     } else {
-      const actionPythonPath = path.join(
-        this.workspaceRoot,
-        'adapter',
-        'actions.py'
-      );
-      if (pathExists(actionPythonPath)) {
-        this.treeElements = this.getFuncsInActionPython(actionPythonPath);
+      if (pathExists(this.stubPath)) {
+        this.treeElements = this.getFuncsInActionPython(this.stubPath);
         return this.treeElements;
       } else {
-        vscode.window.showInformationMessage('Workspace has no actions.py');
+        vscode.window.showInformationMessage('Workspace has no stubs');
         return [];
       }
     }
   }
 
-  private getFuncsInActionPython(actionPythonPath: string): AdapterFunction[] {
+  private getFuncsInActionPython(actionPythonPath: string): Function[] {
     const functionSignatures = new BuildFunctionSignatures().build(
       actionPythonPath
     );
     const adapterFunctions = functionSignatures.map(
-      (funcName: FunctionSignature): AdapterFunction => {
-        return new AdapterFunction(
+      (funcName: FunctionSignature): Function => {
+        return new Function(
           funcName.name,
           vscode.TreeItemCollapsibleState.None,
-          funcName
+          funcName,
+          this.uriPath
         );
       }
     );
@@ -84,22 +89,20 @@ export class FunctionTreeView
   }
 }
 
-export class AdapterFunction extends vscode.TreeItem {
+export class Function extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly functionSignature: FunctionSignature
+    public readonly functionSignature: FunctionSignature,
+    public readonly uriPath: string
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;
     this.functionSignature = functionSignature;
+    this.uriPath = uriPath;
   }
-  resourceUri = vscode.Uri.parse(
-    'artificial/python/' + this.functionSignature.name
-  );
-  // resourceUri = vscode.Uri.parse(
-  //   `\nawait load_deck(\n    num_empty_tubes= ,\n    num_tube_racks= ,\n    num_deepwell= ,\n    num_treatment= ,\n    num_final= ,\n    num_lids= ,\n)`
-  // );
+  resourceUri = vscode.Uri.parse(this.uriPath + this.functionSignature.name);
+
   iconPath = {
     light: path.join(
       __filename,

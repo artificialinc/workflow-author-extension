@@ -4,8 +4,11 @@ import * as path from 'path';
 import { FunctionSignature } from './types';
 import { pathExists } from './utils';
 import { BuildFunctionSignatures } from './buildFunctionSignatures';
-import * as ApolloClient from './apollo';
+import { ArtificialApollo } from './apollo';
 import { OutputLog } from './outputLog';
+interface AssistantResponse {
+  assistants: [{ name: string }];
+}
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
   constructor(private workspaceRoot: string) {}
@@ -14,14 +17,12 @@ export class GenerateActionStubs {
     if (!terminal) {
       terminal = vscode.window.createTerminal(`Ext Terminal`);
     }
+    terminal.sendText('cd workflow');
     terminal.sendText('ls');
 
-    // if (!ApolloClient.createApollo()) {
-    //   vscode.window.showInformationMessage('Failed to connect to Apollo');
-    // }
-
-    // const test = await ApolloClient.queryWorkflows();
-    // this.outputChannel.log(JSON.stringify(test));
+    const client = ArtificialApollo.getInstance();
+    const response: AssistantResponse = await client.queryAssistants();
+    this.outputChannel.log(JSON.stringify(response));
 
     let funcSigs: FunctionSignature[] = [];
     const actionPythonPath = path.join(

@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
-import { Assistant } from './assistantTreeView';
-import { AdapterFunction } from './functionTreeView';
+import { Function } from './artificialTreeView';
 import { FunctionSignature } from './types';
 
 export class InsertFunctionCall {
-  insertFunction(node: AdapterFunction | Assistant): void {
+  insertFunction(node: Function): void {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       const functionCall = this.buildFunctionCall(node.functionSignature);

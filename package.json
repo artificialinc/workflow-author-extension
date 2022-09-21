@@ -59,15 +59,59 @@
         "category": "Artificial",
         "icon": {
           "light": "resources/dark/add.svg",
-          "dark": "resources/dark//add.svg"
+          "dark": "resources/dark/add.svg"
+        }
+      },
+      {
+        "command": "stubs.refreshEntry",
+        "title": "Refresh Python Functions",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/add.svg",
+          "dark": "resources/dark/add.svg"
+        }
+      },
+      {
+        "command": "assistants.refreshEntry",
+        "title": "Refresh Assistants",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/add.svg",
+          "dark": "resources/dark/add.svg"
+        }
+      },
+      {
+        "command": "assistants.addToFile",
+        "title": "Add Assistant Call to Workflow",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/dark/add.svg",
+          "dark": "resources/dark/add.svg"
         }
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "command": "stubs.refreshEntry",
+          "when": "view == stubs",
+          "group": "navigation"
+        },
+        {
+          "command": "assistants.refreshEntry",
+          "when": "view == assistants",
+          "group": "navigation"
+        }
+      ],
       "view/item/context": [
         {
           "command": "stubs.addToFile",
-          "when": "view== stubs",
+          "when": "view == stubs",
+          "group": "inline"
+        },
+        {
+          "command": "assistants.addToFile",
+          "when": "view == assistants",
           "group": "inline"
         }
       ]
