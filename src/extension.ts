@@ -2,14 +2,16 @@
 // TODO: Type imports
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
+// TODO: Support for installed pip package actions?  cellario..etc..?
 
 import * as vscode from 'vscode';
 import { GenerateActionStubs } from './generateActionStubs';
 import { InsertFunctionCall } from './insertFunctionCall';
 import { DropProvider } from './dropProvider';
 import { ArtificialTreeView, Function } from './artificialTreeView';
+import { LoadConfigTreeView } from './loadConfigTreeView';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders.length > 0
@@ -50,6 +52,17 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('assistants.addToFile', (node: Function) =>
       functionCallProvider.insertFunction(node)
     )
+  );
+  //Load Config Tree and related commands
+  const loadConfigTree: LoadConfigTreeView = new LoadConfigTreeView(
+    rootPath,
+    'artificial/loadConfigs/',
+    'loadConfigs',
+    context
+  );
+  await loadConfigTree.init();
+  vscode.commands.registerCommand('loadConfigs.refreshEntry', () =>
+    loadConfigTree.refresh()
   );
 
   // Generate Stubs

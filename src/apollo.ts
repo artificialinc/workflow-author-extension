@@ -117,6 +117,69 @@ export class ArtificialApollo {
           query assistants {
             assistants {
               name
+              id
+              parameters {
+                input
+                typeInfo {
+                  name
+                  type
+                  subTypes {
+                    type
+                  }
+                }
+              }
+            }
+          }
+        `,
+      });
+
+      if (result && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
+    }
+  }
+  public async queryLabs() {
+    try {
+      if (!this.apollo) {
+        console.error('ApolloClient missing.');
+        return;
+      }
+      const result = await this.apollo.query({
+        query: gql`
+          query labs {
+            labs {
+              id
+              name
+            }
+          }
+        `,
+      });
+
+      if (result && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
+    }
+  }
+  public async queryConfigs(labId: string) {
+    try {
+      if (!this.apollo) {
+        console.error('ApolloClient missing.');
+        return;
+      }
+      const result = await this.apollo.query({
+        variables: {
+          labId,
+        },
+        query: gql`
+          query configs($labId: ID!) {
+            lab(id: $labId) {
+              assets {
+                loadingConfigId
+              }
             }
           }
         `,
