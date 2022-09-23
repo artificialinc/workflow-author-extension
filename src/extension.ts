@@ -1,8 +1,9 @@
-// TODO: Icons
 // TODO: Type imports
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
 // TODO: Support for installed pip package actions?  cellario..etc..?
+// TODO: Third layer for assets in load configs that obeys order
+// TODO: Group Assistants by Lab
 
 import * as vscode from 'vscode';
 import { GenerateActionStubs } from './generateActionStubs';
@@ -57,7 +58,6 @@ export async function activate(context: vscode.ExtensionContext) {
   const loadConfigTree: LoadConfigTreeView = new LoadConfigTreeView(
     rootPath,
     'artificial/loadConfigs/',
-    'loadConfigs',
     context
   );
   await loadConfigTree.init();

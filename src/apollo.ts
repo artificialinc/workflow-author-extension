@@ -178,7 +178,10 @@ export class ArtificialApollo {
           query configs($labId: ID!) {
             lab(id: $labId) {
               assets {
+                name
                 loadingConfigId
+                loadingConfigOrder
+                labId
               }
             }
           }
