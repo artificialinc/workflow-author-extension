@@ -298,6 +298,11 @@ antlr4@4.8.0:
   resolved "https://registry.yarnpkg.com/antlr4/-/antlr4-4.8.0.tgz#f938ec171be7fc2855cd3a533e87647185b32b6a"
   integrity sha512-en/MxQ4OkPgGJQ3wD/muzj1uDnFSzdFIhc2+c6bHZokWkuBb6RRvFjpWhPxWLbgQvaEzldJZ0GSQpfSAaE3hqg==
 
+antlr4ts@^0.5.0-alpha.3:
+  version "0.5.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/antlr4ts/-/antlr4ts-0.5.0-alpha.4.tgz#71702865a87478ed0b40c0709f422cf14d51652a"
+  integrity sha512-WPQDt1B74OfPv/IMS2ekXAKkTZIHl88uMetg6q3OTqgFxZ/dxDXI0EWLyZid/1Pe6hTftyg5N7gel5wNAGxXyQ==
+
 anymatch@~3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/anymatch/-/anymatch-3.1.2.tgz#c0557c096af32f106198f4f4e2a383537e378716"
@@ -1233,6 +1238,13 @@ punycode@^2.1.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
+
+python-ast@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/python-ast/-/python-ast-0.1.0.tgz#452ad08f866f7c2864e57e285f6c94d24b68c500"
+  integrity sha512-uMPE7HRMfsbHtQYPg/+EH9MJkynLfLr+0VJbeBgJHpt2wuDgf5hZrEczOIGNFKaO0W1HWiL7bSxA/EOOo70mIQ==
+  dependencies:
+    antlr4ts "^0.5.0-alpha.3"
 
 queue-microtask@^1.2.2:
   version "1.2.3"

@@ -1,45 +1,34 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ArtificialApollo } from './apollo';
-interface LabReply {
-  labs: [{ name: string; id: string }];
-}
-interface ConfigReply {
-  lab: {
-    assets: [
-      {
-        loadingConfigId: string;
-        loadingConfigOrder: number;
-        labId: string;
-        name: string;
-      }
-    ];
-  };
-}
+
 interface Asset {
   name: string;
-  collapse: vscode.TreeItemCollapsibleState;
+  id: string;
   labId: string;
   uri: string;
-  icon: string;
   type: string;
+  loadConfigId: string;
   order: number;
 }
+
+type TreeElement = LoadConfigTreeElement | LabTreeElement | AssetTreeElement;
 export class LoadConfigTreeView
   implements
-    vscode.TreeDataProvider<LoadConfigTreeElement>,
-    vscode.TreeDragAndDropController<LoadConfigTreeElement>
+    vscode.TreeDataProvider<TreeElement>,
+    vscode.TreeDragAndDropController<TreeElement>
 {
   dropMimeTypes = ['application/vnd.code.tree.stubs'];
   dragMimeTypes = ['text/uri-list'];
 
   private _onDidChangeTreeData: vscode.EventEmitter<
-    LoadConfigTreeElement | undefined | void
-  > = new vscode.EventEmitter<LoadConfigTreeElement | undefined | void>();
+    TreeElement | undefined | void
+  > = new vscode.EventEmitter<
+    LoadConfigTreeElement | LabTreeElement | undefined | void
+  >();
 
-  readonly onDidChangeTreeData: vscode.Event<
-    LoadConfigTreeElement | undefined | void
-  > = this._onDidChangeTreeData.event;
+  readonly onDidChangeTreeData: vscode.Event<TreeElement | undefined | void> =
+    this._onDidChangeTreeData.event;
 
   constructor(
     private stubPath: string,
@@ -57,8 +46,6 @@ export class LoadConfigTreeView
   }
 
   public async init(): Promise<void> {
-    // TODO: This needs to also collect children as they are discovered
-    // Right now it just holds on to all parent tree items
     this.treeElements = await this.getChildren();
     return;
   }
@@ -68,15 +55,15 @@ export class LoadConfigTreeView
     this._onDidChangeTreeData.fire();
   }
   public async handleDrag(
-    source: LoadConfigTreeElement[],
+    source: TreeElement[],
     treeDataTransfer: vscode.DataTransfer,
     token: vscode.CancellationToken
   ): Promise<void> {}
 
-  getTreeItem(element: LoadConfigTreeElement): vscode.TreeItem {
+  getTreeItem(element: TreeElement): vscode.TreeItem {
     return element;
   }
-  getTreeItemByUri(uri: string): LoadConfigTreeElement | undefined {
+  getTreeItemByUri(uri: string): TreeElement | undefined {
     const element = this.treeElements.find((sig) => {
       if (sig.resourceUri.toString() === 'file://' + uri) {
         return sig;
@@ -85,10 +72,8 @@ export class LoadConfigTreeView
     return element;
   }
 
-  private treeElements!: LoadConfigTreeElement[];
-  async getChildren(
-    element?: LoadConfigTreeElement
-  ): Promise<LoadConfigTreeElement[]> {
+  private treeElements!: TreeElement[];
+  async getChildren(element?: TreeElement): Promise<TreeElement[]> {
     if (element) {
       if (element.type === 'lab') {
         const loadconfigs = await this.getConfigs(element.labId);
@@ -107,25 +92,24 @@ export class LoadConfigTreeView
     }
   }
 
-  private async getLabs(): Promise<LoadConfigTreeElement[]> {
+  private async getLabs(): Promise<LabTreeElement[]> {
     const client = ArtificialApollo.getInstance();
-    const response: LabReply = await client.queryLabs();
-    const labs = response.labs.map((lab): LoadConfigTreeElement => {
-      return new LoadConfigTreeElement(
-        lab.name,
-        vscode.TreeItemCollapsibleState.Collapsed,
-        lab.id,
-        this.uriPath,
-        'labs',
-        'lab'
-      );
+    const response = await client.queryLabs();
+    if (!response) {
+      return [];
+    }
+    const labs = response.labs.map((lab): LabTreeElement => {
+      return new LabTreeElement(lab.name, lab.id, this.uriPath, 'lab');
     });
 
     return labs;
   }
   private async getConfigs(element: string): Promise<LoadConfigTreeElement[]> {
     const client = ArtificialApollo.getInstance();
-    const response: ConfigReply = await client.queryConfigs(element);
+    const response = await client.queryConfigs(element);
+    if (!response) {
+      return [];
+    }
     const configs: LoadConfigTreeElement[] = [];
     for (const asset of response.lab.assets) {
       if (
@@ -135,10 +119,8 @@ export class LoadConfigTreeView
         configs.push(
           new LoadConfigTreeElement(
             asset.loadingConfigId,
-            vscode.TreeItemCollapsibleState.Collapsed,
             asset.labId,
             this.uriPath,
-            'loadConfigs',
             'loadConfig'
           )
         );
@@ -149,34 +131,38 @@ export class LoadConfigTreeView
   }
   private async getAssets(
     element: LoadConfigTreeElement
-  ): Promise<LoadConfigTreeElement[]> {
+  ): Promise<AssetTreeElement[]> {
     const client = ArtificialApollo.getInstance();
-    const response: ConfigReply = await client.queryConfigs(element.labId);
+    const response = await client.queryConfigs(element.labId);
+    if (!response) {
+      return [];
+    }
     const assets: Asset[] = [];
     for (const asset of response.lab.assets) {
       if (asset.loadingConfigId === element.label) {
         assets.push({
           name: asset.name,
-          collapse: vscode.TreeItemCollapsibleState.None,
+          id: asset.id,
           labId: asset.labId,
           uri: this.uriPath,
-          icon: 'assets',
           type: 'asset',
+          loadConfigId: asset.loadingConfigId,
           order: asset.loadingConfigOrder,
         });
       }
     }
     assets.sort((first, second) => 0 - (first.order < second.order ? 1 : -1));
-    const orderedAssets: LoadConfigTreeElement[] = [];
+    const orderedAssets: AssetTreeElement[] = [];
     for (const asset of assets) {
       orderedAssets.push(
-        new LoadConfigTreeElement(
+        new AssetTreeElement(
           asset.name,
-          asset.collapse,
           asset.labId,
           asset.uri,
-          asset.icon,
-          asset.type
+          asset.type,
+          asset.id,
+          asset.loadConfigId,
+          asset.order
         )
       );
     }
@@ -188,18 +174,12 @@ export class LoadConfigTreeView
 export class LoadConfigTreeElement extends vscode.TreeItem {
   constructor(
     public readonly label: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly labId: string,
     public readonly uriPath: string,
-    public readonly icon: string,
     public readonly type: string
   ) {
-    super(label, collapsibleState);
+    super(label, vscode.TreeItemCollapsibleState.Collapsed);
     this.tooltip = `${this.label}`;
-    this.labId = labId;
-    this.uriPath = uriPath;
-    this.icon = icon;
-    this.type = type;
   }
   resourceUri = vscode.Uri.parse(this.uriPath + this.label);
 
@@ -210,7 +190,7 @@ export class LoadConfigTreeElement extends vscode.TreeItem {
       '..',
       'resources',
       'light',
-      this.icon + '.svg'
+      'loadConfigs.svg'
     ),
     dark: path.join(
       __filename,
@@ -218,7 +198,55 @@ export class LoadConfigTreeElement extends vscode.TreeItem {
       '..',
       'resources',
       'dark',
-      this.icon + '.svg'
+      'loadConfigs.svg'
     ),
+  };
+}
+
+export class LabTreeElement extends vscode.TreeItem {
+  constructor(
+    public readonly label: string,
+    public readonly labId: string,
+    public readonly uriPath: string,
+    public readonly type: string
+  ) {
+    super(label, vscode.TreeItemCollapsibleState.Collapsed);
+    this.tooltip = `${this.label}`;
+  }
+  resourceUri = vscode.Uri.parse(this.uriPath + 'lab/' + this.labId);
+
+  iconPath = {
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg'),
+  };
+}
+
+export class AssetTreeElement extends vscode.TreeItem {
+  constructor(
+    public readonly label: string,
+    public readonly labId: string,
+    public readonly uriPath: string,
+    public readonly type: string,
+    public readonly assetId: string,
+    public readonly loadConfigId: string,
+    public readonly loadConfigOrder: number
+  ) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.tooltip = `${this.label}`;
+  }
+  resourceUri = vscode.Uri.parse(
+    this.uriPath + 'asset/' + this.loadConfigId + '/' + this.loadConfigOrder
+  );
+
+  iconPath = {
+    light: path.join(
+      __filename,
+      '..',
+      '..',
+      'resources',
+      'light',
+      'assets.svg'
+    ),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assets.svg'),
   };
 }

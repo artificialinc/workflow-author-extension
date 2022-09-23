@@ -6,7 +6,22 @@ import fetch from 'cross-fetch';
 import { parse } from 'yaml';
 import * as path from 'path';
 import * as vscode from 'vscode';
-
+interface LabReply {
+  labs: [{ name: string; id: string }];
+}
+interface ConfigReply {
+  lab: {
+    assets: [
+      {
+        id: string;
+        loadingConfigId: string;
+        loadingConfigOrder: number;
+        labId: string;
+        name: string;
+      }
+    ];
+  };
+}
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
   private hostName;
@@ -140,7 +155,7 @@ export class ArtificialApollo {
       console.log(JSON.stringify(err, null, 2));
     }
   }
-  public async queryLabs() {
+  public async queryLabs(): Promise<LabReply | undefined> {
     try {
       if (!this.apollo) {
         console.error('ApolloClient missing.');
@@ -164,7 +179,7 @@ export class ArtificialApollo {
       console.log(JSON.stringify(err, null, 2));
     }
   }
-  public async queryConfigs(labId: string) {
+  public async queryConfigs(labId: string): Promise<ConfigReply | undefined> {
     try {
       if (!this.apollo) {
         console.error('ApolloClient missing.');
@@ -178,6 +193,7 @@ export class ArtificialApollo {
           query configs($labId: ID!) {
             lab(id: $labId) {
               assets {
+                id
                 name
                 loadingConfigId
                 loadingConfigOrder

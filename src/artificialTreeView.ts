@@ -41,7 +41,12 @@ export class ArtificialTreeView
     source: Function[],
     treeDataTransfer: vscode.DataTransfer,
     token: vscode.CancellationToken
-  ): Promise<void> {}
+  ): Promise<void> {
+    // treeDataTransfer.set(
+    //   'application/vnd.code.tree.stubs',
+    //   new vscode.DataTransferItem(source)
+    // );
+  }
 
   getTreeItem(element: Function): vscode.TreeItem {
     return element;
