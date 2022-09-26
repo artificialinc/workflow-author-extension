@@ -1,0 +1,18 @@
+{
+    "Workflow": {
+        "prefix": "workflow",
+        "body": [
+            "from artificial.workflows.decorators import workflow",
+            "@workflow(\"${1:wf_name}\", \"${2:wf_id}\", \"${3:lab_id}\")",
+            "async def ${4:wf_func_name}() -> None:"
+        ],
+        "description": "Workflow stub"
+    },
+    "Parameter": {
+        "prefix": "parameter",
+        "body": [
+            "@parameter('${1:param_name}', {'required': True, 'uiTitle': '${2:Display Name}'})"
+        ],
+        "description": "Parameter stub"
+    }
+}

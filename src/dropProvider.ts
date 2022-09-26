@@ -47,7 +47,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
         const loadConfigId = splitText[splitText.length - 2];
         const loadConfigOrder = splitText[splitText.length - 1];
         text = `assets = await load_assets(start_idx=${
-          loadConfigOrder + 1
+          parseFloat(loadConfigOrder) + 1
         }, number_to_load = 1, '${loadConfigId}')`;
       } else {
         const splitText = text.split('/');
