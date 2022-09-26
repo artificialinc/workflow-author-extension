@@ -30,8 +30,7 @@ export class ArtificialApollo {
   public apollo;
   constructor() {
     let rootPath =
-      vscode.workspace.workspaceFolders &&
-      vscode.workspace.workspaceFolders.length > 0
+      vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
         : undefined;
     if (!rootPath) {

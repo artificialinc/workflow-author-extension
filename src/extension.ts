@@ -2,8 +2,10 @@
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
 // TODO: Support for installed pip package actions?  cellario..etc..?
-// TODO: Third layer for assets in load configs that obeys order
 // TODO: Group Assistants by Lab
+// TODO: Tree for workflows to generate and publish
+// TODO: Type checking and flagging for assistant stubs with no alab, or parameter misalignment
+// TODO: Generate load configs out of the gql data
 
 import * as vscode from 'vscode';
 import { GenerateActionStubs } from './generateActionStubs';
@@ -14,8 +16,7 @@ import { LoadConfigTreeView } from './loadConfigTreeView';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders.length > 0
+    vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
       ? vscode.workspace.workspaceFolders[0].uri.fsPath
       : undefined;
 
@@ -29,14 +30,10 @@ export async function activate(context: vscode.ExtensionContext) {
     'stubs',
     context
   );
-  vscode.commands.registerCommand('stubs.refreshEntry', () =>
-    funcTree.refresh()
-  );
+  vscode.commands.registerCommand('stubs.refreshEntry', () => funcTree.refresh());
   const functionCallProvider = new InsertFunctionCall();
   context.subscriptions.push(
-    vscode.commands.registerCommand('stubs.addToFile', (node: Function) =>
-      functionCallProvider.insertFunction(node)
-    )
+    vscode.commands.registerCommand('stubs.addToFile', (node: Function) => functionCallProvider.insertFunction(node))
   );
 
   //Assistant Tree & Related Commands
@@ -46,40 +43,27 @@ export async function activate(context: vscode.ExtensionContext) {
     'assistants',
     context
   );
-  vscode.commands.registerCommand('assistants.refreshEntry', () =>
-    assistantTree.refresh()
-  );
+  vscode.commands.registerCommand('assistants.refreshEntry', () => assistantTree.refresh());
   context.subscriptions.push(
     vscode.commands.registerCommand('assistants.addToFile', (node: Function) =>
       functionCallProvider.insertFunction(node)
     )
   );
   //Load Config Tree and related commands
-  const loadConfigTree: LoadConfigTreeView = new LoadConfigTreeView(
-    rootPath,
-    'artificial/loadConfigs/',
-    context
-  );
+  const loadConfigTree: LoadConfigTreeView = new LoadConfigTreeView(rootPath, 'artificial/loadConfigs/', context);
   await loadConfigTree.init();
-  vscode.commands.registerCommand('loadConfigs.refreshEntry', () =>
-    loadConfigTree.refresh()
-  );
+  vscode.commands.registerCommand('loadConfigs.refreshEntry', () => loadConfigTree.refresh());
 
   // Generate Stubs
   const generateProvider = new GenerateActionStubs(rootPath);
   context.subscriptions.push(
-    vscode.commands.registerCommand('stubs.generateStubs', () =>
-      generateProvider.generateStubs()
-    )
+    vscode.commands.registerCommand('stubs.generateStubs', () => generateProvider.generateStubs())
   );
 
   //Drop handler for document editor
   const selector: vscode.DocumentSelector = { language: 'python' };
   context.subscriptions.push(
-    vscode.languages.registerDocumentDropEditProvider(
-      selector,
-      new DropProvider(funcTree, assistantTree)
-    )
+    vscode.languages.registerDocumentDropEditProvider(selector, new DropProvider(funcTree, assistantTree))
   );
   console.log('Congratulations, your extension "artificial" is now active!');
 }

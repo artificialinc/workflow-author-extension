@@ -25,11 +25,7 @@ export class GenerateActionStubs {
     this.outputChannel.log(JSON.stringify(response));
 
     let funcSigs: FunctionSignature[] = [];
-    const actionPythonPath = path.join(
-      this.workspaceRoot,
-      'adapter',
-      'actions.py'
-    );
+    const actionPythonPath = path.join(this.workspaceRoot, 'adapter', 'actions.py');
     if (pathExists(actionPythonPath)) {
       funcSigs = new BuildFunctionSignatures().build(actionPythonPath);
     } else {
@@ -39,30 +35,18 @@ export class GenerateActionStubs {
 
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
-    pythonContent +=
-      'from artificial.workflows.decorators import substrate_action\n\n';
+    pythonContent += 'from artificial.workflows.decorators import substrate_action\n\n';
 
     for (const sig of funcSigs) {
       pythonContent = pythonContent.concat('\n');
-      pythonContent = pythonContent.concat(
-        "@substrate_action('",
-        sig.name,
-        '\', display_name="',
-        sig.name,
-        '")'
-      );
+      pythonContent = pythonContent.concat("@substrate_action('", sig.name, '\', display_name="', sig.name, '")');
       pythonContent = pythonContent.concat('\n');
       // TODO: loop keywords here, this is assuming always async def
-      let functionString =
-        sig.keywords[0] + ' ' + sig.keywords[1] + ' ' + sig.name + '(';
+      let functionString = sig.keywords[0] + ' ' + sig.keywords[1] + ' ' + sig.name + '(';
       let iterations = sig.parameters.length;
       for (let param of sig.parameters) {
         --iterations;
-        if (
-          param.name !== 'self' &&
-          param.type !== 'ActionContext' &&
-          !param.name.includes('ioraw_')
-        ) {
+        if (param.name !== 'self' && param.type !== 'ActionContext' && !param.name.includes('ioraw_')) {
           functionString += param.name;
           functionString += ': ';
           functionString += param.type;
@@ -84,17 +68,11 @@ export class GenerateActionStubs {
       pythonContent = pythonContent.concat('    pass\n\n');
     }
 
-    fs.writeFile(
-      path.join(this.workspaceRoot, 'workflow', 'stubs_actions.py'),
-      pythonContent,
-      (err) => {
-        if (err) {
-          return vscode.window.showErrorMessage(
-            'Failed to create boilerplate file!'
-          );
-        }
-        vscode.window.showInformationMessage('Created boilerplate files');
+    fs.writeFile(path.join(this.workspaceRoot, 'workflow', 'stubs_actions.py'), pythonContent, (err) => {
+      if (err) {
+        return vscode.window.showErrorMessage('Failed to create boilerplate file!');
       }
-    );
+      vscode.window.showInformationMessage('Created boilerplate files');
+    });
   }
 }

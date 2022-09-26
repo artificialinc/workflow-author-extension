@@ -5,19 +5,16 @@ import { FunctionSignature } from './types';
 import { pathExists } from './utils';
 
 export class ArtificialTreeView
-  implements
-    vscode.TreeDataProvider<Function>,
-    vscode.TreeDragAndDropController<Function>
+  implements vscode.TreeDataProvider<Function>, vscode.TreeDragAndDropController<Function>
 {
   dropMimeTypes = ['application/vnd.code.tree.stubs'];
   dragMimeTypes = ['text/uri-list'];
 
-  private _onDidChangeTreeData: vscode.EventEmitter<
+  private _onDidChangeTreeData: vscode.EventEmitter<Function | undefined | void> = new vscode.EventEmitter<
     Function | undefined | void
-  > = new vscode.EventEmitter<Function | undefined | void>();
+  >();
 
-  readonly onDidChangeTreeData: vscode.Event<Function | undefined | void> =
-    this._onDidChangeTreeData.event;
+  readonly onDidChangeTreeData: vscode.Event<Function | undefined | void> = this._onDidChangeTreeData.event;
 
   constructor(
     private stubPath: string,
@@ -76,20 +73,10 @@ export class ArtificialTreeView
   }
 
   private getFuncsInActionPython(actionPythonPath: string): Function[] {
-    const functionSignatures = new BuildFunctionSignatures().build(
-      actionPythonPath
-    );
-    const adapterFunctions = functionSignatures.map(
-      (funcName: FunctionSignature): Function => {
-        return new Function(
-          funcName.name,
-          vscode.TreeItemCollapsibleState.None,
-          funcName,
-          this.uriPath,
-          this.vscodeID
-        );
-      }
-    );
+    const functionSignatures = new BuildFunctionSignatures().build(actionPythonPath);
+    const adapterFunctions = functionSignatures.map((funcName: FunctionSignature): Function => {
+      return new Function(funcName.name, vscode.TreeItemCollapsibleState.None, funcName, this.uriPath, this.vscodeID);
+    });
 
     return adapterFunctions;
   }
@@ -112,21 +99,7 @@ export class Function extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse(this.uriPath + this.functionSignature.name);
 
   iconPath = {
-    light: path.join(
-      __filename,
-      '..',
-      '..',
-      'resources',
-      'light',
-      this.icon + '.svg'
-    ),
-    dark: path.join(
-      __filename,
-      '..',
-      '..',
-      'resources',
-      'dark',
-      this.icon + '.svg'
-    ),
+    light: path.join(__filename, '..', '..', 'resources', 'light', this.icon + '.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', this.icon + '.svg'),
   };
 }
