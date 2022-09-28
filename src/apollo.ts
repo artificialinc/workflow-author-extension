@@ -23,21 +23,23 @@ export interface ConfigReply {
   };
 }
 export interface AssistantReply {
-  assistants: [
+  assistants: Assistant[];
+}
+
+export interface Assistant {
+  name: string;
+  id: string;
+  constraint: {
+    labId: string;
+  };
+  parameters: [
     {
-      name: string;
-      id: string;
-      constraint: {
-        labId: string;
-      };
-      parameters: {
-        input: string;
-        typeInfo: {
-          name: string;
+      input: string;
+      typeInfo: {
+        name: string;
+        type: string;
+        subTypes: {
           type: string;
-          subTypes: {
-            type: string;
-          };
         };
       };
     }

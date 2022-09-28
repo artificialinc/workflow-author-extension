@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ArtificialApollo, AssistantReply } from './apollo';
+import { ArtificialApollo, AssistantReply, Assistant } from './apollo';
 import { BuildAssistantSignatures, AssistantSignature } from './buildAssistantSignatures';
 import { LabTreeElement } from './loadConfigTreeView';
 
@@ -17,6 +17,7 @@ export class AssistantByLabTreeView
   private assistantResponse!: AssistantReply | undefined;
   private assistantSignatures!: AssistantSignature[];
   readonly onDidChangeTreeData: vscode.Event<TreeElement | undefined | void> = this._onDidChangeTreeData.event;
+
   constructor(private stubPath: string, private uriPath: string, context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('assistantsByLab', {
       treeDataProvider: this,
@@ -44,6 +45,7 @@ export class AssistantByLabTreeView
     this.treeElements = await this.getChildren();
     this._onDidChangeTreeData.fire();
   }
+
   public async handleDrag(
     source: TreeElement[],
     treeDataTransfer: vscode.DataTransfer,
@@ -53,6 +55,7 @@ export class AssistantByLabTreeView
   getTreeItem(element: TreeElement): vscode.TreeItem {
     return element;
   }
+
   getTreeItemByUri(uri: string): TreeElement | undefined {
     const element = this.treeElements.find((sig) => {
       if (sig.resourceUri.toString() === 'file://' + uri) {
@@ -96,6 +99,7 @@ export class AssistantByLabTreeView
     labs.push(new LabTreeElement('UNKNOWN', '', this.uriPath, 'lab'));
     return labs;
   }
+
   private async getAssistants(element: { label: string; labId: string }): Promise<AssistantTreeElement[]> {
     //const client = ArtificialApollo.getInstance();
     const response = this.assistantResponse; //await client.queryAssistants();
@@ -109,9 +113,15 @@ export class AssistantByLabTreeView
       const found = response.assistants.find((ele) => ele.id === sig.actionId);
       if (found) {
         if (found.constraint.labId === element.labId) {
-          treeElements.push(
-            new AssistantTreeElement(sig.funcdef ? sig.funcdef : '', element.labId, this.uriPath, 'assistant')
-          );
+          if (this.validParams(sig, found)) {
+            treeElements.push(
+              new AssistantTreeElement(sig.funcdef ? sig.funcdef : '', element.labId, this.uriPath, 'assistant')
+            );
+          } else {
+            treeElements.push(
+              new AssistantTreeElementError(sig.funcdef ? sig.funcdef : '', element.labId, this.uriPath, 'assistant')
+            );
+          }
         }
       } else if (element.label === 'UNKNOWN') {
         treeElements.push(
@@ -120,9 +130,15 @@ export class AssistantByLabTreeView
       }
     }
     return treeElements;
-    // Check if labID matches
-    // Check types, and create good or bad tree item
-    // For unknown lab, always make bad tree item
+  }
+
+  private validParams(stubSignature: AssistantSignature, assistant: Assistant): boolean {
+    stubSignature.params?.map((ele) => {
+      if (assistant.parameters.find((param) => param.typeInfo.name !== ele.assistantName)) {
+        return false;
+      }
+    });
+    return true;
   }
 }
 
