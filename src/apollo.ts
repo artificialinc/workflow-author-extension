@@ -6,10 +6,10 @@ import fetch from 'cross-fetch';
 import { parse } from 'yaml';
 import * as path from 'path';
 import * as vscode from 'vscode';
-interface LabReply {
+export interface LabReply {
   labs: [{ name: string; id: string }];
 }
-interface ConfigReply {
+export interface ConfigReply {
   lab: {
     assets: [
       {
@@ -21,6 +21,27 @@ interface ConfigReply {
       }
     ];
   };
+}
+export interface AssistantReply {
+  assistants: [
+    {
+      name: string;
+      id: string;
+      constraint: {
+        labId: string;
+      };
+      parameters: {
+        input: string;
+        typeInfo: {
+          name: string;
+          type: string;
+          subTypes: {
+            type: string;
+          };
+        };
+      };
+    }
+  ];
 }
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
@@ -120,7 +141,7 @@ export class ArtificialApollo {
       console.log(JSON.stringify(err, null, 2));
     }
   }
-  public async queryAssistants() {
+  public async queryAssistants(): Promise<AssistantReply | undefined> {
     try {
       if (!this.apollo) {
         console.error('ApolloClient missing.');
@@ -132,6 +153,9 @@ export class ArtificialApollo {
             assistants {
               name
               id
+              constraint {
+                labId
+              }
               parameters {
                 input
                 typeInfo {

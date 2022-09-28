@@ -3,6 +3,7 @@ import { Python3Parser, Python3Visitor } from 'dt-python-parser';
 import { TokenType } from './tokenTypes';
 import { pathExists } from './utils';
 import { Token, FunctionSignature, Param } from './types';
+import { parse, createVisitor } from 'python-ast';
 
 export class BuildFunctionSignatures {
   build(actionPythonPath: string): FunctionSignature[] {
@@ -10,23 +11,6 @@ export class BuildFunctionSignatures {
       const packageJson = fs.readFileSync(actionPythonPath, 'utf-8');
       const parser = new Python3Parser();
       const tokens: Token[] = parser.getAllTokens(packageJson);
-
-      // const tree = parser.parse(packageJson);
-      // let crap = [];
-      // class MyVisitor extends Python3Visitor {
-      //   visitParameters(ctx): void {
-      //     let funcdef = ctx.getText();
-      //     //console.log(funcdef);
-      //   }
-      //   visitDecorated(ctx): void {
-      //     let funcdef = ctx.getText();
-      //     console.log(funcdef);
-      //     //crap.push(funcdef);
-      //   }
-      // }
-
-      // const visitor = new MyVisitor();
-      // visitor.visit(tree);
 
       const functionSignatures: FunctionSignature[] = [];
       // @action()
@@ -49,24 +33,11 @@ export class BuildFunctionSignatures {
             TokenType.ASYNC, //TODO: Assumption, always async?
             idx
           );
-          const openParenIdx = this.findTokenIndex(
-            tokens,
-            TokenType.OPEN_PAREN,
-            funcStartIdx
-          );
+          const openParenIdx = this.findTokenIndex(tokens, TokenType.OPEN_PAREN, funcStartIdx);
           const closeParenIdx = this.findClosedParenIndex(tokens, openParenIdx);
 
-          const funcEndIdx = this.findTokenIndex(
-            tokens,
-            TokenType.COLON,
-            closeParenIdx
-          );
-          const returnArrowIdx = this.findTokenIndex(
-            tokens,
-            TokenType.ARROW,
-            closeParenIdx,
-            funcEndIdx
-          );
+          const funcEndIdx = this.findTokenIndex(tokens, TokenType.COLON, closeParenIdx);
+          const returnArrowIdx = this.findTokenIndex(tokens, TokenType.ARROW, closeParenIdx, funcEndIdx);
 
           let functionSignature: FunctionSignature = {
             keywords: [],
@@ -82,11 +53,7 @@ export class BuildFunctionSignatures {
               functionSignature.returnType += tokens[x].text;
             }
           }
-          functionSignature.parameters = this.buildPythonParams(
-            tokens,
-            openParenIdx + 1,
-            closeParenIdx
-          );
+          functionSignature.parameters = this.buildPythonParams(tokens, openParenIdx + 1, closeParenIdx);
           functionSignatures.push(functionSignature);
         }
       }
@@ -109,28 +76,14 @@ export class BuildFunctionSignatures {
     }
     return index;
   }
-  private findTokenIndex(
-    tokens: Token[],
-    type: TokenType,
-    startIndex: number,
-    endIndex: number = -1
-  ): number {
+  private findTokenIndex(tokens: Token[], type: TokenType, startIndex: number, endIndex: number = -1): number {
     if (endIndex !== -1) {
-      return tokens.findIndex(
-        (token, index) =>
-          index > startIndex && index < endIndex && token.type === type
-      );
+      return tokens.findIndex((token, index) => index > startIndex && index < endIndex && token.type === type);
     } else {
-      return tokens.findIndex(
-        (token, index) => index > startIndex && token.type === type
-      );
+      return tokens.findIndex((token, index) => index > startIndex && token.type === type);
     }
   }
-  private buildPythonParams(
-    tokens: Token[],
-    paramStartIdx: number,
-    paramEndIdx: number
-  ): Param[] {
+  private buildPythonParams(tokens: Token[], paramStartIdx: number, paramEndIdx: number): Param[] {
     let paramName = '';
     let paramType = '';
     let typevsname = 'name';
@@ -153,10 +106,7 @@ export class BuildFunctionSignatures {
       }
       if (tokens[index].type === TokenType.COLON) {
         typevsname = 'type';
-      } else if (
-        (tokens[index].type === TokenType.COMMA || index === paramEndIdx) &&
-        innerScope <= 0
-      ) {
+      } else if ((tokens[index].type === TokenType.COMMA || index === paramEndIdx) && innerScope <= 0) {
         //HACK: Handles trailing comma before the final closing brace
         if (paramName !== '') {
           let param: Param = { name: paramName, type: paramType };

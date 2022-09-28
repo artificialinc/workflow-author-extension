@@ -6,9 +6,7 @@ import { pathExists } from './utils';
 import { BuildFunctionSignatures } from './buildFunctionSignatures';
 import { ArtificialApollo } from './apollo';
 import { OutputLog } from './outputLog';
-interface AssistantResponse {
-  assistants: [{ name: string }];
-}
+
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
   constructor(private workspaceRoot: string) {}
@@ -21,7 +19,7 @@ export class GenerateActionStubs {
     terminal.sendText('ls');
 
     const client = ArtificialApollo.getInstance();
-    const response: AssistantResponse = await client.queryAssistants();
+    const response = await client.queryAssistants();
     this.outputChannel.log(JSON.stringify(response));
 
     let funcSigs: FunctionSignature[] = [];

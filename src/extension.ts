@@ -6,6 +6,7 @@
 // TODO: Tree for workflows to generate and publish
 // TODO: Type checking and flagging for assistant stubs with no alab, or parameter misalignment
 // TODO: Generate load configs out of the gql data
+// TODO: Change icon based on type mismatch, tooltip?
 
 import * as vscode from 'vscode';
 import { GenerateActionStubs } from './generateActionStubs';
@@ -13,6 +14,7 @@ import { InsertFunctionCall } from './insertFunctionCall';
 import { DropProvider } from './dropProvider';
 import { ArtificialTreeView, Function } from './artificialTreeView';
 import { LoadConfigTreeView } from './loadConfigTreeView';
+import { AssistantByLabTreeView } from './assistantTreeView';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -53,6 +55,15 @@ export async function activate(context: vscode.ExtensionContext) {
   const loadConfigTree: LoadConfigTreeView = new LoadConfigTreeView(rootPath, 'artificial/loadConfigs/', context);
   await loadConfigTree.init();
   vscode.commands.registerCommand('loadConfigs.refreshEntry', () => loadConfigTree.refresh());
+
+  const assistantByLab: AssistantByLabTreeView = new AssistantByLabTreeView(
+    rootPath + '/workflow/stubs_assistants.py',
+    'artificial/assistantByLab/',
+    context
+  );
+  await assistantByLab.init();
+  await assistantByLab.refresh();
+  vscode.commands.registerCommand('assistantsByLab.refreshEntry', () => assistantByLab.refresh());
 
   // Generate Stubs
   const generateProvider = new GenerateActionStubs(rootPath);

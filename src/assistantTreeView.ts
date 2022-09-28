@@ -1,0 +1,162 @@
+import * as vscode from 'vscode';
+import * as path from 'path';
+import { ArtificialApollo, AssistantReply } from './apollo';
+import { BuildAssistantSignatures, AssistantSignature } from './buildAssistantSignatures';
+import { LabTreeElement } from './loadConfigTreeView';
+
+type TreeElement = LabTreeElement | AssistantTreeElement;
+export class AssistantByLabTreeView
+  implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
+{
+  dropMimeTypes = ['application/vnd.code.tree.stubs'];
+  dragMimeTypes = ['text/uri-list'];
+
+  private _onDidChangeTreeData: vscode.EventEmitter<TreeElement | undefined | void> = new vscode.EventEmitter<
+    TreeElement | undefined | void
+  >();
+  private assistantResponse!: AssistantReply | undefined;
+  private assistantSignatures!: AssistantSignature[];
+  readonly onDidChangeTreeData: vscode.Event<TreeElement | undefined | void> = this._onDidChangeTreeData.event;
+  constructor(private stubPath: string, private uriPath: string, context: vscode.ExtensionContext) {
+    const view = vscode.window.createTreeView('assistantsByLab', {
+      treeDataProvider: this,
+      showCollapseAll: true,
+      canSelectMany: true,
+      dragAndDropController: this,
+    });
+    context.subscriptions.push(view);
+    this.treeElements = [];
+  }
+
+  public async init(): Promise<void> {
+    const client = ArtificialApollo.getInstance();
+    this.assistantResponse = await client.queryAssistants();
+    this.assistantSignatures = new BuildAssistantSignatures().build(this.stubPath);
+    this.treeElements = await this.getChildren();
+    return;
+  }
+
+  async refresh(): Promise<void> {
+    this.treeElements = [];
+    const client = ArtificialApollo.getInstance();
+    this.assistantResponse = await client.queryAssistants();
+    this.assistantSignatures = new BuildAssistantSignatures().build(this.stubPath);
+    this.treeElements = await this.getChildren();
+    this._onDidChangeTreeData.fire();
+  }
+  public async handleDrag(
+    source: TreeElement[],
+    treeDataTransfer: vscode.DataTransfer,
+    token: vscode.CancellationToken
+  ): Promise<void> {}
+
+  getTreeItem(element: TreeElement): vscode.TreeItem {
+    return element;
+  }
+  getTreeItemByUri(uri: string): TreeElement | undefined {
+    const element = this.treeElements.find((sig) => {
+      if (sig.resourceUri.toString() === 'file://' + uri) {
+        return sig;
+      }
+    });
+    return element;
+  }
+
+  private treeElements!: TreeElement[];
+  async getChildren(element?: TreeElement): Promise<TreeElement[]> {
+    if (element) {
+      if (element.type === 'lab') {
+        const assistants = await this.getAssistants(element);
+        this.treeElements = this.treeElements.concat(assistants);
+        return assistants;
+      }
+      return [];
+    } else {
+      const labs = await this.getLabs();
+      for (let x = labs.length - 1; x >= 0; x--) {
+        const assistants = await this.getAssistants({ label: labs[x].label, labId: labs[x].labId });
+        if (assistants.length === 0) {
+          labs.splice(x, 1);
+        }
+      }
+      this.treeElements = this.treeElements.concat(labs);
+      return labs;
+    }
+  }
+
+  private async getLabs(): Promise<LabTreeElement[]> {
+    const client = ArtificialApollo.getInstance();
+    const response = await client.queryLabs();
+    if (!response) {
+      return [];
+    }
+    const labs = response.labs.map((lab): LabTreeElement => {
+      return new LabTreeElement(lab.name, lab.id, this.uriPath, 'lab');
+    });
+    labs.push(new LabTreeElement('UNKNOWN', '', this.uriPath, 'lab'));
+    return labs;
+  }
+  private async getAssistants(element: { label: string; labId: string }): Promise<AssistantTreeElement[]> {
+    //const client = ArtificialApollo.getInstance();
+    const response = this.assistantResponse; //await client.queryAssistants();
+    if (!response) {
+      return [];
+    }
+    const treeElements: AssistantTreeElement[] = [];
+    const functionSignatures = this.assistantSignatures; //new BuildAssistantSignatures().build(this.stubPath);
+    // Find the matching assistant ID from stubs to apollo
+    for (const sig of functionSignatures) {
+      const found = response.assistants.find((ele) => ele.id === sig.actionId);
+      if (found) {
+        if (found.constraint.labId === element.labId) {
+          treeElements.push(
+            new AssistantTreeElement(sig.funcdef ? sig.funcdef : '', element.labId, this.uriPath, 'assistant')
+          );
+        }
+      } else if (element.label === 'UNKNOWN') {
+        treeElements.push(
+          new AssistantTreeElementError(sig.funcdef ? sig.funcdef : '', element.labId, this.uriPath, 'assistant')
+        );
+      }
+    }
+    return treeElements;
+    // Check if labID matches
+    // Check types, and create good or bad tree item
+    // For unknown lab, always make bad tree item
+  }
+}
+
+export class AssistantTreeElement extends vscode.TreeItem {
+  constructor(
+    public readonly label: string,
+    public readonly labId: string,
+    public readonly uriPath: string,
+    public readonly type: string
+  ) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.tooltip = `${this.label}`;
+  }
+  resourceUri = vscode.Uri.parse(this.uriPath + 'assistant/' + this.label);
+
+  iconPath = {
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
+  };
+}
+export class AssistantTreeElementError extends vscode.TreeItem {
+  constructor(
+    public readonly label: string,
+    public readonly labId: string,
+    public readonly uriPath: string,
+    public readonly type: string
+  ) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.tooltip = `Assistant stub does not match to any lab in Artificial`;
+  }
+  resourceUri = vscode.Uri.parse(this.uriPath + 'assistant/' + this.label);
+
+  iconPath = {
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'warn.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'warn.svg'),
+  };
+}

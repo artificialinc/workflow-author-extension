@@ -50,6 +50,10 @@
           "name": "Load Configs"
         },
         {
+          "id": "assistantsByLab",
+          "name": "Assistants"
+        },
+        {
           "id": "stubGenerate",
           "name": "Generate Stubs"
         }
@@ -105,6 +109,15 @@
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
         }
+      },
+      {
+        "command": "assistantsByLab.refreshEntry",
+        "title": "Refresh Assistants",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
       }
     ],
     "menus": {
@@ -122,6 +135,11 @@
         {
           "command": "loadConfigs.refreshEntry",
           "when": "view == loadConfigs",
+          "group": "navigation"
+        },
+        {
+          "command": "assistantsByLab.refreshEntry",
+          "when": "view == assistantsByLab",
           "group": "navigation"
         }
       ],
