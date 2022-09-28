@@ -1,11 +1,16 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ArtificialApollo, AssistantReply, Assistant } from './apollo';
+import { ArtificialApollo, AssistantReply, Assistant, AssistantTypeInfo } from './apollo';
 import { BuildAssistantSignatures, AssistantSignature } from './buildAssistantSignatures';
 import { LabTreeElement } from './loadConfigTreeView';
 import * as _ from 'lodash';
+import { Param } from './types';
 
 type TreeElement = LabTreeElement | AssistantTreeElement;
+interface Error {
+  code: number;
+  error: string;
+}
 export class AssistantByLabTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
 {
@@ -114,20 +119,32 @@ export class AssistantByLabTreeView
       const found = response.assistants.find((ele) => ele.id === sig.actionId);
       if (found) {
         if (found.constraint.labId === element.labId) {
-          if (this.validParams(sig, found)) {
+          const result = this.validParams(sig, found);
+          if (result.code === 0) {
             treeElements.push(new AssistantTreeElement(sig.name, element.labId, this.uriPath, 'assistant', sig));
           } else {
-            treeElements.push(new AssistantTreeElementError(sig.name, element.labId, this.uriPath, 'assistant', sig));
+            treeElements.push(
+              new AssistantTreeElementError(sig.name, element.labId, this.uriPath, 'assistant', sig, result.error)
+            );
           }
         }
       } else if (element.label === 'UNKNOWN') {
-        treeElements.push(new AssistantTreeElementError(sig.name, element.labId, this.uriPath, 'assistant', sig));
+        treeElements.push(
+          new AssistantTreeElementError(
+            sig.name,
+            element.labId,
+            this.uriPath,
+            'assistant',
+            sig,
+            'Assistant does not match a known lab in Artificial Cloud'
+          )
+        );
       }
     }
     return treeElements;
   }
 
-  private validParams(stubSignature: AssistantSignature, assistant: Assistant): boolean {
+  private validParams(stubSignature: AssistantSignature, assistant: Assistant): Error {
     const stubNames: string[] = [];
     const assistantParamNames: string[] = [];
     for (const param of stubSignature.parameters) {
@@ -139,9 +156,65 @@ export class AssistantByLabTreeView
     const diff = _.difference(stubNames, assistantParamNames);
     const alabDiff = _.difference(assistantParamNames, stubNames);
     if (diff.length > 0 || alabDiff.length > 0) {
+      return { code: 1, error: 'Param length mismatch between stub & cloud' };
+    }
+    const valid: boolean[] = [];
+    for (const param of stubSignature.parameters) {
+      valid.push(
+        this.typeCheck(
+          param.type,
+          assistant.parameters.find((ele) => ele.typeInfo.name === param.assistantName)?.typeInfo
+        )
+      );
+    }
+    if (valid.every((ele) => ele === true)) {
+      return { code: 0, error: '' };
+    }
+    const indices = valid.flatMap((bool: boolean, index: number) => {
+      return !bool ? index : [];
+    });
+    return { code: 1, error: `Bad param at indices ${indices}` };
+  }
+  private typeCheck(stubParam: string, assistantParam: AssistantTypeInfo | undefined) {
+    if (!assistantParam) {
       return false;
     }
-    return true;
+    if (stubParam.includes('List')) {
+      if (assistantParam.type !== 'ARRAY') {
+        return false;
+      }
+      const startBracket = stubParam.indexOf('[');
+      const endBracket = stubParam.indexOf(']');
+      const simpleType = stubParam.substring(startBracket + 1, endBracket);
+      return this.compareSimpleTypes(simpleType, assistantParam.subTypes[0].type);
+    }
+    return this.compareSimpleTypes(stubParam, assistantParam.type);
+  }
+  private compareSimpleTypes(stubType: string, assistantType: string) {
+    switch (stubType) {
+      case 'str':
+        if (assistantType === 'STRING' || assistantType === 'EQUIPMENT_REF') {
+          return true;
+        }
+        break;
+      case 'int':
+        if (assistantType === 'INT') {
+          return true;
+        }
+        break;
+      case 'float':
+        if (assistantType === 'FLOAT') {
+          return true;
+        }
+        break;
+      case 'bool':
+        if (assistantType === 'BOOLEAN') {
+          return true;
+        }
+        break;
+    }
+
+    return false;
   }
 }
 
@@ -171,10 +244,11 @@ export class AssistantTreeElementError extends vscode.TreeItem {
     public readonly labId: string,
     public readonly uriPath: string,
     public readonly type: string,
-    public readonly functionSignature: AssistantSignature
+    public readonly functionSignature: AssistantSignature,
+    public readonly tooltip: string
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
-    this.tooltip = `Assistant stub does not match to any lab in Artificial`;
+    this.tooltip = tooltip; //`Assistant stub does not match to any lab in Artificial`;
     this.functionSignature = functionSignature;
     this.contextValue = 'ASSISTANT';
   }

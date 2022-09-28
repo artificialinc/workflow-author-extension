@@ -35,13 +35,16 @@ export interface Assistant {
   parameters: [
     {
       input: string;
-      typeInfo: {
-        name: string;
-        type: string;
-        subTypes: {
-          type: string;
-        };
-      };
+      typeInfo: AssistantTypeInfo;
+    }
+  ];
+}
+export interface AssistantTypeInfo {
+  name: string;
+  type: string;
+  subTypes: [
+    {
+      type: string;
     }
   ];
 }
@@ -71,7 +74,7 @@ export class ArtificialApollo {
         jitter: true,
       },
       attempts: {
-        max: 5,
+        max: 1,
         retryIf: (error, _operation) => !!error, // eslint-disable-line
       },
     });
