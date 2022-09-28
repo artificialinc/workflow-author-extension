@@ -3,7 +3,6 @@ import { Python3Parser, Python3Visitor } from 'dt-python-parser';
 import { TokenType } from './tokenTypes';
 import { pathExists } from './utils';
 import { Token, FunctionSignature, Param } from './types';
-import { parse, createVisitor } from 'python-ast';
 
 export class BuildFunctionSignatures {
   build(actionPythonPath: string): FunctionSignature[] {

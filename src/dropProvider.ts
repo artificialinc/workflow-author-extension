@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import { ArtificialTreeView } from './artificialTreeView';
+import { AssistantByLabTreeView, AssistantTreeElement } from './assistantTreeView';
 import { InsertFunctionCall } from './insertFunctionCall';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;
-  private assistantTree;
-
-  constructor(functionTree: ArtificialTreeView, asssistantTree: ArtificialTreeView) {
+  private assistantTreeByLab;
+  constructor(functionTree: ArtificialTreeView, assistantTreeByLab: AssistantByLabTreeView) {
     this.funcTree = functionTree;
-    this.assistantTree = asssistantTree;
+    this.assistantTreeByLab = assistantTreeByLab;
   }
   async provideDocumentDropEdits(
     _document: vscode.TextDocument,
@@ -27,9 +27,9 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
       element = this.funcTree.getTreeItemByUri(text);
     }
     if (text.includes('/assistant/')) {
-      element = this.assistantTree.getTreeItemByUri(text);
+      element = this.assistantTreeByLab.getTreeItemByUri(text);
     }
-    if (element) {
+    if (element && 'functionSignature' in element) {
       const insertFuncCall = new InsertFunctionCall();
       text = insertFuncCall.buildFunctionCall(element.functionSignature);
     }

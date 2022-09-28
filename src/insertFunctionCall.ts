@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Function } from './artificialTreeView';
+import { AssistantSignature } from './buildAssistantSignatures';
 import { FunctionSignature } from './types';
 
 export class InsertFunctionCall {
@@ -12,7 +13,7 @@ export class InsertFunctionCall {
       });
     }
   }
-  buildFunctionCall(signature: FunctionSignature): string {
+  buildFunctionCall(signature: FunctionSignature | AssistantSignature): string {
     let content = 'await ' + signature.name + '(\n';
 
     let functionString = '';

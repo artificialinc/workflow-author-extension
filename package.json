@@ -42,16 +42,12 @@
           "name": "Functions"
         },
         {
-          "id": "assistants",
+          "id": "assistantsByLab",
           "name": "Assistants"
         },
         {
           "id": "loadConfigs",
           "name": "Load Configs"
-        },
-        {
-          "id": "assistantsByLab",
-          "name": "Assistants"
         },
         {
           "id": "stubGenerate",
@@ -84,16 +80,7 @@
         }
       },
       {
-        "command": "assistants.refreshEntry",
-        "title": "Refresh Assistants",
-        "category": "Artificial",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
-        "command": "assistants.addToFile",
+        "command": "assistantsByLab.addToFile",
         "title": "Add Assistant Call to Workflow",
         "category": "Artificial",
         "icon": {
@@ -128,11 +115,6 @@
           "group": "navigation"
         },
         {
-          "command": "assistants.refreshEntry",
-          "when": "view == assistants",
-          "group": "navigation"
-        },
-        {
           "command": "loadConfigs.refreshEntry",
           "when": "view == loadConfigs",
           "group": "navigation"
@@ -150,8 +132,8 @@
           "group": "inline"
         },
         {
-          "command": "assistants.addToFile",
-          "when": "view == assistants",
+          "command": "assistantsByLab.addToFile",
+          "when": "view == assistantsByLab && viewItem == ASSISTANT",
           "group": "inline"
         }
       ]
@@ -180,9 +162,11 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
+    "@types/lodash": "^4.14.185",
     "cross-fetch": "^3.1.5",
     "dt-python-parser": "^0.9.0",
     "graphql": "^16.6.0",
+    "lodash": "^4.17.21",
     "python-ast": "^0.1.0",
     "yaml": "^2.1.1"
   }

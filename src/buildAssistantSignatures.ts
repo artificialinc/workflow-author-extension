@@ -3,14 +3,14 @@ import { pathExists } from './utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
 
 export interface AssistantSignature {
-  actionId?: string;
-  params?: Param[];
-  funcdef?: string;
+  actionId: string;
+  parameters: Param[];
+  name: string;
 }
 interface Param {
-  name?: string;
-  type?: string;
-  assistantName?: string;
+  name: string;
+  type: string;
+  assistantName: string;
 }
 
 export class BuildAssistantSignatures {
@@ -25,26 +25,15 @@ export class BuildAssistantSignatures {
         return createVisitor({
           visitDecorated: (ast) => {
             if (ast.decorators().decorator(0).dotted_name().text === 'assistant') {
-              const signature: AssistantSignature = {};
-              signature.actionId = ast
-                .decorators()
-                .decorator(0)
-                .arglist()
-                ?.argument(0)
-                .test(0)
-                .text.replace(new RegExp("'", 'g'), '');
-              signature.funcdef = ast.async_funcdef()?.funcdef().NAME().text.replace(new RegExp("'", 'g'), '') ?? '';
+              const signature: AssistantSignature = { actionId: '', parameters: [], name: '' };
+              signature.actionId = signature.name = this.findActionId(ast);
+              signature.name = this.findFuncName(ast);
               const paramList: Param[] = [];
               for (let x = 1; x < ast.decorators().decorator().length; x++) {
                 if (ast.decorators().decorator(x).dotted_name().text === 'parameter') {
-                  const paramName = ast
-                    .decorators()
-                    .decorator(x)
-                    .arglist()
-                    ?.argument(0)
-                    .test(0)
-                    .text.replace(new RegExp("'", 'g'), '');
-                  const assistantName = ast.decorators().decorator(x).arglist()?.argument(1).test(1).text;
+                  const paramName = this.findName(ast, x, 0);
+                  const assistantName = this.findName(ast, x, 1);
+
                   let type = '';
                   if (paramName) {
                     type = this.findParamType(paramName, ast);
@@ -52,7 +41,7 @@ export class BuildAssistantSignatures {
                   paramList.push({ type: type, assistantName: assistantName, name: paramName });
                 }
               }
-              signature.params = paramList;
+              signature.parameters = paramList;
               signatureList.push(signature);
             }
           },
@@ -64,6 +53,27 @@ export class BuildAssistantSignatures {
       return [];
     }
   }
+
+  findActionId(ast: DecoratedContext): string {
+    return ast.decorators().decorator(0).arglist()?.argument(0).test(0).text.replace(new RegExp("'", 'g'), '') ?? '';
+  }
+
+  findFuncName(ast: DecoratedContext): string {
+    return ast.async_funcdef()?.funcdef().NAME().text.replace(new RegExp("'", 'g'), '') ?? '';
+  }
+
+  findName(ast: DecoratedContext, index: number, element: number): string {
+    return (
+      ast
+        .decorators()
+        .decorator(index)
+        .arglist()
+        ?.argument(element)
+        .test(element)
+        .text.replace(new RegExp("'", 'g'), '') ?? ''
+    );
+  }
+
   findParamType(paramName: string, ast: DecoratedContext): string {
     const typeList = ast?.async_funcdef()?.funcdef().parameters().typedargslist();
     if (typeList) {

@@ -38,19 +38,6 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('stubs.addToFile', (node: Function) => functionCallProvider.insertFunction(node))
   );
 
-  //Assistant Tree & Related Commands
-  const assistantTree = new ArtificialTreeView(
-    rootPath + '/workflow/stubs_assistants.py',
-    'artificial/assistant/',
-    'assistants',
-    context
-  );
-  vscode.commands.registerCommand('assistants.refreshEntry', () => assistantTree.refresh());
-  context.subscriptions.push(
-    vscode.commands.registerCommand('assistants.addToFile', (node: Function) =>
-      functionCallProvider.insertFunction(node)
-    )
-  );
   //Load Config Tree and related commands
   const loadConfigTree: LoadConfigTreeView = new LoadConfigTreeView(rootPath, 'artificial/loadConfigs/', context);
   await loadConfigTree.init();
@@ -64,7 +51,11 @@ export async function activate(context: vscode.ExtensionContext) {
   await assistantByLab.init();
   await assistantByLab.refresh();
   vscode.commands.registerCommand('assistantsByLab.refreshEntry', () => assistantByLab.refresh());
-
+  context.subscriptions.push(
+    vscode.commands.registerCommand('assistantsByLab.addToFile', (node: Function) =>
+      functionCallProvider.insertFunction(node)
+    )
+  );
   // Generate Stubs
   const generateProvider = new GenerateActionStubs(rootPath);
   context.subscriptions.push(
@@ -74,7 +65,7 @@ export async function activate(context: vscode.ExtensionContext) {
   //Drop handler for document editor
   const selector: vscode.DocumentSelector = { language: 'python' };
   context.subscriptions.push(
-    vscode.languages.registerDocumentDropEditProvider(selector, new DropProvider(funcTree, assistantTree))
+    vscode.languages.registerDocumentDropEditProvider(selector, new DropProvider(funcTree, assistantByLab))
   );
   console.log('Congratulations, your extension "artificial" is now active!');
 }
