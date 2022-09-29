@@ -2,11 +2,8 @@
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
 // TODO: Support for installed pip package actions?  cellario..etc..?
-// TODO: Group Assistants by Lab
 // TODO: Tree for workflows to generate and publish
-// TODO: Type checking and flagging for assistant stubs with no alab, or parameter misalignment
 // TODO: Generate load configs out of the gql data
-// TODO: Change icon based on type mismatch, tooltip?
 
 import * as vscode from 'vscode';
 import { GenerateActionStubs } from './generateActionStubs';

@@ -14,7 +14,6 @@ export interface Param {
   type: string;
 }
 export interface FunctionSignature {
-  keywords: string[];
   name: string;
   parameters: Param[];
   returnType: string;

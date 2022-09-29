@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { BuildFunctionSignatures } from './buildFunctionSignatures';
 import { FunctionSignature } from './types';
 import { pathExists } from './utils';
+import { BuildPythonSignatures } from './buildPythonSignatures';
 
 export class ArtificialTreeView
   implements vscode.TreeDataProvider<Function>, vscode.TreeDragAndDropController<Function>
@@ -73,7 +73,7 @@ export class ArtificialTreeView
   }
 
   private getFuncsInActionPython(actionPythonPath: string): Function[] {
-    const functionSignatures = new BuildFunctionSignatures().build(actionPythonPath);
+    const functionSignatures = new BuildPythonSignatures().build(actionPythonPath);
     const adapterFunctions = functionSignatures.map((funcName: FunctionSignature): Function => {
       return new Function(funcName.name, vscode.TreeItemCollapsibleState.None, funcName, this.uriPath, this.vscodeID);
     });

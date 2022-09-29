@@ -3,11 +3,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FunctionSignature } from './types';
 import { pathExists } from './utils';
-import { BuildFunctionSignatures } from './buildFunctionSignatures';
 import { ArtificialApollo, Assistant, AssistantTypeInfo } from './apollo';
 import { OutputLog } from './outputLog';
 import { snakeCase } from 'lodash';
-import { type } from 'os';
+import { BuildPythonSignatures } from './buildPythonSignatures';
 
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
@@ -96,7 +95,7 @@ export class GenerateActionStubs {
     let funcSigs: FunctionSignature[] = [];
     const actionPythonPath = path.join(this.workspaceRoot, 'adapter', 'actions.py');
     if (pathExists(actionPythonPath)) {
-      funcSigs = new BuildFunctionSignatures().build(actionPythonPath);
+      funcSigs = new BuildPythonSignatures().build(actionPythonPath);
     } else {
       vscode.window.showInformationMessage('Workspace has no actions.py');
       return;
@@ -111,7 +110,7 @@ export class GenerateActionStubs {
       pythonContent = pythonContent.concat("@substrate_action('", sig.name, '\', display_name="', sig.name, '")');
       pythonContent = pythonContent.concat('\n');
       // TODO: loop keywords here, this is assuming always async def
-      let functionString = sig.keywords[0] + ' ' + sig.keywords[1] + ' ' + sig.name + '(';
+      let functionString = 'async def ' + sig.name + '(';
       let iterations = sig.parameters.length;
       for (let param of sig.parameters) {
         --iterations;
