@@ -176,6 +176,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@types/zen-observable": "^0.8.3",
     "apollo-link-timeout": "^4.0.0",
     "cross-fetch": "^3.1.5",
     "graphql": "^16.6.0",
