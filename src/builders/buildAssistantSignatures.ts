@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { pathExists } from './utils';
+import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
 
 export interface AssistantSignature {

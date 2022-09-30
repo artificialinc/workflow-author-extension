@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FunctionSignature } from './types';
-import { pathExists } from './utils';
-import { ArtificialApollo, Assistant, AssistantTypeInfo } from './apollo';
-import { OutputLog } from './outputLog';
+import { FunctionSignature } from '../apis/types';
+import { pathExists } from '../utils';
+import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
+import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase } from 'lodash';
-import { BuildPythonSignatures } from './buildPythonSignatures';
+import { BuildPythonSignatures } from '../builders/buildPythonSignatures';
 
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
@@ -19,7 +19,6 @@ export class GenerateActionStubs {
   private async generateAssistantStubs(): Promise<void> {
     const client = ArtificialApollo.getInstance();
     const response = await client.queryAssistants();
-    this.outputChannel.log(JSON.stringify(response));
 
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';

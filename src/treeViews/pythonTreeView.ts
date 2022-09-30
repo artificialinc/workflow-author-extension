@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { FunctionSignature } from './types';
-import { pathExists } from './utils';
-import { BuildPythonSignatures } from './buildPythonSignatures';
+import { FunctionSignature } from '../apis/types';
+import { pathExists } from '../utils';
+import { BuildPythonSignatures } from '../builders/buildPythonSignatures';
 
-export class ArtificialTreeView
-  implements vscode.TreeDataProvider<Function>, vscode.TreeDragAndDropController<Function>
-{
+export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode.TreeDragAndDropController<Function> {
   dropMimeTypes = ['application/vnd.code.tree.stubs'];
   dragMimeTypes = ['text/uri-list'];
 
@@ -15,14 +13,9 @@ export class ArtificialTreeView
   >();
 
   readonly onDidChangeTreeData: vscode.Event<Function | undefined | void> = this._onDidChangeTreeData.event;
-
-  constructor(
-    private stubPath: string,
-    private uriPath: string,
-    private vscodeID: string,
-    context: vscode.ExtensionContext
-  ) {
-    const view = vscode.window.createTreeView(this.vscodeID, {
+  private uriPath: string;
+  constructor(private stubPath: string, context: vscode.ExtensionContext) {
+    const view = vscode.window.createTreeView('stubs', {
       treeDataProvider: this,
       showCollapseAll: false,
       canSelectMany: false,
@@ -30,6 +23,7 @@ export class ArtificialTreeView
     });
     context.subscriptions.push(view);
     this.treeElements = this.getChildren();
+    this.uriPath = 'artificial/python/';
   }
   refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -75,7 +69,7 @@ export class ArtificialTreeView
   private getFuncsInActionPython(actionPythonPath: string): Function[] {
     const functionSignatures = new BuildPythonSignatures().build(actionPythonPath);
     const adapterFunctions = functionSignatures.map((funcName: FunctionSignature): Function => {
-      return new Function(funcName.name, vscode.TreeItemCollapsibleState.None, funcName, this.uriPath, this.vscodeID);
+      return new Function(funcName.name, vscode.TreeItemCollapsibleState.None, funcName);
     });
 
     return adapterFunctions;
@@ -86,20 +80,16 @@ export class Function extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly functionSignature: FunctionSignature,
-    public readonly uriPath: string,
-    public readonly icon: string
+    public readonly functionSignature: FunctionSignature
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;
     this.functionSignature = functionSignature;
-    this.uriPath = uriPath;
-    this.icon = icon;
   }
-  resourceUri = vscode.Uri.parse(this.uriPath + this.functionSignature.name);
+  resourceUri = vscode.Uri.parse('artificial/python/' + this.functionSignature.name);
 
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', this.icon + '.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', this.icon + '.svg'),
+    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'stubs' + '.svg'),
+    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'stubs' + '.svg'),
   };
 }

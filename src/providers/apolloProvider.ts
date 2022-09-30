@@ -6,6 +6,7 @@ import fetch from 'cross-fetch';
 import { parse } from 'yaml';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import ApolloLinkTimeout from 'apollo-link-timeout';
 export interface LabReply {
   labs: [{ name: string; id: string }];
 }
@@ -67,6 +68,7 @@ export class ArtificialApollo {
     const config = parse(fs.readFileSync(configPath, 'utf-8'));
     this.hostName = 'https://' + config.artificial.host + '/graphql';
     this.apiToken = config.artificial.token;
+
     this.retryLink = new RetryLink({
       delay: {
         initial: 100,
@@ -102,9 +104,11 @@ export class ArtificialApollo {
         },
         fetch,
       });
-
+      const timeoutLink = new ApolloLinkTimeout(3000);
+      const timeoutHttpLink = timeoutLink.concat(httpLink);
+      console.log('Hostname: ', this.hostName);
       this.apollo = new ApolloClient({
-        link: from([this.retryLink, httpLink]),
+        link: from([this.retryLink, timeoutHttpLink]),
         cache: new InMemoryCache({}),
         defaultOptions: {
           query: {
@@ -175,7 +179,6 @@ export class ArtificialApollo {
           }
         `,
       });
-
       if (result && result.data) {
         return result.data;
       }

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { Function } from './artificialTreeView';
-import { AssistantSignature } from './buildAssistantSignatures';
-import { FunctionSignature } from './types';
+import { Function } from '../treeViews/pythonTreeView';
+import { AssistantSignature } from '../builders/buildAssistantSignatures';
+import { FunctionSignature } from '../apis/types';
 
 export class InsertFunctionCall {
   insertFunction(node: Function): void {
@@ -19,13 +19,13 @@ export class InsertFunctionCall {
     let functionString = '';
     for (let param of signature.parameters) {
       if (param.name !== 'self' && param.type !== 'ActionContext') {
-        functionString += '    ';
+        functionString += '\t\t';
         functionString += param.name;
         functionString += '= ,\n';
       }
     }
     content += functionString;
-    content += ')';
+    content += '\t)';
     return content;
   }
 }

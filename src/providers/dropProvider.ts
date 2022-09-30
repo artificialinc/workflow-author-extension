@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { ArtificialTreeView } from './artificialTreeView';
-import { AssistantByLabTreeView, AssistantTreeElement } from './assistantTreeView';
-import { InsertFunctionCall } from './insertFunctionCall';
+import { PythonTreeView } from '../treeViews/pythonTreeView';
+import { AssistantByLabTreeView, AssistantTreeElement } from '../treeViews/assistantTreeView';
+import { InsertFunctionCall } from '../generators/generateFunctionCall';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;
   private assistantTreeByLab;
-  constructor(functionTree: ArtificialTreeView, assistantTreeByLab: AssistantByLabTreeView) {
+  constructor(functionTree: PythonTreeView, assistantTreeByLab: AssistantByLabTreeView) {
     this.funcTree = functionTree;
     this.assistantTreeByLab = assistantTreeByLab;
   }

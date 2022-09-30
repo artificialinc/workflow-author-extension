@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ArtificialApollo, AssistantReply, Assistant, AssistantTypeInfo } from './apollo';
-import { BuildAssistantSignatures, AssistantSignature } from './buildAssistantSignatures';
+import { ArtificialApollo, AssistantReply, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
+import { BuildAssistantSignatures, AssistantSignature } from '../builders/buildAssistantSignatures';
 import { LabTreeElement } from './loadConfigTreeView';
 import * as _ from 'lodash';
-import { Param } from './types';
+import { Param } from '../apis/types';
 
 type TreeElement = LabTreeElement | AssistantTreeElement;
 interface Error {
@@ -20,9 +20,10 @@ export class AssistantByLabTreeView
   private _onDidChangeTreeData: vscode.EventEmitter<TreeElement | undefined | void> = new vscode.EventEmitter<
     TreeElement | undefined | void
   >();
+  readonly onDidChangeTreeData: vscode.Event<TreeElement | undefined | void> = this._onDidChangeTreeData.event;
+
   private assistantResponse!: AssistantReply | undefined;
   private assistantSignatures!: AssistantSignature[];
-  readonly onDidChangeTreeData: vscode.Event<TreeElement | undefined | void> = this._onDidChangeTreeData.event;
 
   constructor(private stubPath: string, private uriPath: string, context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('assistantsByLab', {
@@ -100,20 +101,19 @@ export class AssistantByLabTreeView
       return [];
     }
     const labs = response.labs.map((lab): LabTreeElement => {
-      return new LabTreeElement(lab.name, lab.id, this.uriPath, 'lab');
+      return new LabTreeElement(lab.name, lab.id);
     });
-    labs.push(new LabTreeElement('UNKNOWN', '', this.uriPath, 'lab'));
+    labs.push(new LabTreeElement('UNKNOWN', ''));
     return labs;
   }
 
   private async getAssistants(element: { label: string; labId: string }): Promise<AssistantTreeElement[]> {
-    //const client = ArtificialApollo.getInstance();
-    const response = this.assistantResponse; //await client.queryAssistants();
+    const response = this.assistantResponse;
     if (!response) {
       return [];
     }
     const treeElements: AssistantTreeElement[] = [];
-    const functionSignatures = this.assistantSignatures; //new BuildAssistantSignatures().build(this.stubPath);
+    const functionSignatures = this.assistantSignatures;
     // Find the matching assistant ID from stubs to apollo
     for (const sig of functionSignatures) {
       const found = response.assistants.find((ele) => ele.id === sig.actionId);
@@ -121,11 +121,9 @@ export class AssistantByLabTreeView
         if (found.constraint.labId === element.labId) {
           const result = this.validParams(sig, found);
           if (result.code === 0) {
-            treeElements.push(new AssistantTreeElement(sig.name, element.labId, this.uriPath, 'assistant', sig));
+            treeElements.push(new AssistantTreeElement(sig.name, element.labId, sig));
           } else {
-            treeElements.push(
-              new AssistantTreeElementError(sig.name, element.labId, this.uriPath, 'assistant', sig, result.error)
-            );
+            treeElements.push(new AssistantTreeElementError(sig.name, element.labId, sig, result.error));
           }
         }
       } else if (element.label === 'UNKNOWN') {
@@ -133,8 +131,6 @@ export class AssistantByLabTreeView
           new AssistantTreeElementError(
             sig.name,
             element.labId,
-            this.uriPath,
-            'assistant',
             sig,
             'Assistant does not match a known lab in Artificial Cloud'
           )
@@ -222,8 +218,6 @@ export class AssistantTreeElement extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly labId: string,
-    public readonly uriPath: string,
-    public readonly type: string,
     public readonly functionSignature: AssistantSignature
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
@@ -231,31 +225,29 @@ export class AssistantTreeElement extends vscode.TreeItem {
     this.functionSignature = functionSignature;
     this.contextValue = 'ASSISTANT';
   }
-  resourceUri = vscode.Uri.parse(this.uriPath + 'assistant/' + this.label);
-
+  resourceUri = vscode.Uri.parse('artificial/assistantByLab/assistant/' + this.label);
+  type = 'assistant';
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
+    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'assistants.svg'),
+    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'assistants.svg'),
   };
 }
 export class AssistantTreeElementError extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly labId: string,
-    public readonly uriPath: string,
-    public readonly type: string,
     public readonly functionSignature: AssistantSignature,
     public readonly tooltip: string
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
-    this.tooltip = tooltip; //`Assistant stub does not match to any lab in Artificial`;
+    this.tooltip = tooltip;
     this.functionSignature = functionSignature;
     this.contextValue = 'ASSISTANT';
   }
-  resourceUri = vscode.Uri.parse(this.uriPath + 'assistant/' + this.functionSignature.name);
-
+  resourceUri = vscode.Uri.parse('artificial/!/assistantByLab/assistant/' + this.functionSignature.name);
+  type = 'assistant';
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'warn.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'warn.svg'),
+    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'assistants.svg'),
+    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'assistants.svg'),
   };
 }

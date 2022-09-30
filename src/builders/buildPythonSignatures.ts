@@ -1,7 +1,7 @@
 import * as fs from 'fs';
-import { pathExists } from './utils';
+import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
-import { FunctionSignature, Param } from './types';
+import { FunctionSignature, Param } from '../apis/types';
 
 export class BuildPythonSignatures {
   build(actionPythonPath: string): FunctionSignature[] {

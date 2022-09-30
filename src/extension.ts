@@ -6,13 +6,16 @@
 // TODO: Generate load configs out of the gql data
 
 import * as vscode from 'vscode';
-import { GenerateActionStubs } from './generateActionStubs';
-import { InsertFunctionCall } from './insertFunctionCall';
-import { DropProvider } from './dropProvider';
-import { ArtificialTreeView, Function } from './artificialTreeView';
-import { LoadConfigTreeView } from './loadConfigTreeView';
-import { AssistantByLabTreeView } from './assistantTreeView';
+import { GenerateActionStubs } from './generators/generateActionStubs';
+import { InsertFunctionCall } from './generators/generateFunctionCall';
+import { DropProvider } from './providers/dropProvider';
+import { PythonTreeView, Function } from './treeViews/pythonTreeView';
+import { LoadConfigTreeView } from './treeViews/loadConfigTreeView';
+import { AssistantByLabTreeView } from './treeViews/assistantTreeView';
+import * as fs from 'fs';
+import { ViewFileDecorationProvider } from './decorationProvider';
 
+const deco = new ViewFileDecorationProvider();
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
     vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
@@ -22,13 +25,16 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
+
+  const actionPath = rootPath + '/adapter';
+  fs.readdir(actionPath, (err, files: string[]) => {
+    files.forEach((file: any) => {
+      const uri = vscode.Uri.file(file);
+      console.log(uri);
+    });
+  });
   //Function Tree and related commands
-  const funcTree = new ArtificialTreeView(
-    rootPath + '/workflow/stubs_actions.py',
-    'artificial/python/',
-    'stubs',
-    context
-  );
+  const funcTree = new PythonTreeView(rootPath + '/workflow/stubs_actions.py', context);
   vscode.commands.registerCommand('stubs.refreshEntry', () => funcTree.refresh());
   const functionCallProvider = new InsertFunctionCall();
   context.subscriptions.push(
@@ -36,7 +42,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   //Load Config Tree and related commands
-  const loadConfigTree: LoadConfigTreeView = new LoadConfigTreeView(rootPath, 'artificial/loadConfigs/', context);
+  const loadConfigTree: LoadConfigTreeView = new LoadConfigTreeView(rootPath, context);
   await loadConfigTree.init();
   vscode.commands.registerCommand('loadConfigs.refreshEntry', () => loadConfigTree.refresh());
 
