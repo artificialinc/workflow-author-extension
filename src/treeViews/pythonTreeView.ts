@@ -32,12 +32,7 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
     source: Function[],
     treeDataTransfer: vscode.DataTransfer,
     token: vscode.CancellationToken
-  ): Promise<void> {
-    // treeDataTransfer.set(
-    //   'application/vnd.code.tree.stubs',
-    //   new vscode.DataTransferItem(source)
-    // );
-  }
+  ): Promise<void> {}
 
   getTreeItem(element: Function): vscode.TreeItem {
     return element;

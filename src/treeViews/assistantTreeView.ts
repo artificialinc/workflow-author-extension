@@ -29,7 +29,7 @@ export class AssistantByLabTreeView
     const view = vscode.window.createTreeView('assistantsByLab', {
       treeDataProvider: this,
       showCollapseAll: true,
-      canSelectMany: true,
+      canSelectMany: false,
       dragAndDropController: this,
     });
     context.subscriptions.push(view);
@@ -243,8 +243,9 @@ export class AssistantTreeElementError extends vscode.TreeItem {
     this.tooltip = tooltip;
     this.functionSignature = functionSignature;
     this.contextValue = 'ASSISTANT';
+    this.description = tooltip;
   }
-  resourceUri = vscode.Uri.parse('artificial/!/assistantByLab/assistant/' + this.functionSignature.name);
+  resourceUri = vscode.Uri.parse('artificial/typeError/assistantByLab/assistant/' + this.functionSignature.name);
   type = 'assistant';
   iconPath = {
     light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'assistants.svg'),

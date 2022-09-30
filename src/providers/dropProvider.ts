@@ -34,6 +34,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
       text = insertFuncCall.buildFunctionCall(element.functionSignature);
     }
 
+    // TODO: Move this into tree provider or own generator??
     if (text.includes('/loadConfigs/')) {
       if (text.includes('/lab/')) {
         const splitText = text.split('/');

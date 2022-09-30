@@ -12,10 +12,9 @@ import { DropProvider } from './providers/dropProvider';
 import { PythonTreeView, Function } from './treeViews/pythonTreeView';
 import { LoadConfigTreeView } from './treeViews/loadConfigTreeView';
 import { AssistantByLabTreeView } from './treeViews/assistantTreeView';
-import * as fs from 'fs';
 import { ViewFileDecorationProvider } from './decorationProvider';
+import { WorkflowTreeView } from './treeViews/workflowTreeView';
 
-const deco = new ViewFileDecorationProvider();
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
     vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
@@ -26,13 +25,11 @@ export async function activate(context: vscode.ExtensionContext) {
     return;
   }
 
-  const actionPath = rootPath + '/adapter';
-  fs.readdir(actionPath, (err, files: string[]) => {
-    files.forEach((file: any) => {
-      const uri = vscode.Uri.file(file);
-      console.log(uri);
-    });
-  });
+  //Provides Type Error Decoration
+  new ViewFileDecorationProvider();
+
+  const workflowTree = new WorkflowTreeView(rootPath, context);
+
   //Function Tree and related commands
   const funcTree = new PythonTreeView(rootPath + '/workflow/stubs_actions.py', context);
   vscode.commands.registerCommand('stubs.refreshEntry', () => funcTree.refresh());
@@ -46,6 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await loadConfigTree.init();
   vscode.commands.registerCommand('loadConfigs.refreshEntry', () => loadConfigTree.refresh());
 
+  //Assistant Tree and Commands
   const assistantByLab: AssistantByLabTreeView = new AssistantByLabTreeView(
     rootPath + '/workflow/stubs_assistants.py',
     'artificial/assistantByLab/',
@@ -59,6 +57,7 @@ export async function activate(context: vscode.ExtensionContext) {
       functionCallProvider.insertFunction(node)
     )
   );
+
   // Generate Stubs
   const generateProvider = new GenerateActionStubs(rootPath);
   context.subscriptions.push(
@@ -70,7 +69,15 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerDocumentDropEditProvider(selector, new DropProvider(funcTree, assistantByLab))
   );
+
   console.log('Congratulations, your extension "artificial" is now active!');
 }
 
 export function deactivate() {}
+
+// let terminal = vscode.window.activeTerminal;
+// if (!terminal) {
+//   terminal = vscode.window.createTerminal(`Ext Terminal`);
+// }
+// terminal.sendText('cd workflow');
+// terminal.sendText('ls');

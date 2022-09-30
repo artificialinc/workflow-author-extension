@@ -15,7 +15,7 @@ export class ViewFileDecorationProvider implements FileDecorationProvider {
     const [, , status] = uri.path.split('/');
 
     switch (status) {
-      case '!':
+      case 'typeError':
         return {
           badge: '!!',
           color: new ThemeColor('artificial.typeError'),

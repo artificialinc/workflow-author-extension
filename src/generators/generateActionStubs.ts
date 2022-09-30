@@ -143,10 +143,3 @@ export class GenerateActionStubs {
     });
   }
 }
-
-// let terminal = vscode.window.activeTerminal;
-// if (!terminal) {
-//   terminal = vscode.window.createTerminal(`Ext Terminal`);
-// }
-// terminal.sendText('cd workflow');
-// terminal.sendText('ls');
