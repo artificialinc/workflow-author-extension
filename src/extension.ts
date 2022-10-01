@@ -13,7 +13,7 @@ import { PythonTreeView, Function } from './treeViews/pythonTreeView';
 import { LoadConfigTreeView } from './treeViews/loadConfigTreeView';
 import { AssistantByLabTreeView } from './treeViews/assistantTreeView';
 import { ViewFileDecorationProvider } from './decorationProvider';
-import { WorkflowTreeView } from './treeViews/workflowTreeView';
+import { WorkflowTreeElement, WorkflowTreeView } from './treeViews/workflowTreeView';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -29,7 +29,16 @@ export async function activate(context: vscode.ExtensionContext) {
   new ViewFileDecorationProvider();
 
   const workflowTree = new WorkflowTreeView(rootPath, context);
-
+  vscode.commands.registerCommand('workflows.refreshEntry', () => workflowTree.refresh());
+  vscode.commands.registerCommand('workflows.publish', (node: WorkflowTreeElement) =>
+    workflowTree.publishWorkflow(node)
+  );
+  vscode.commands.registerCommand('workflows.generateBinary', (node: WorkflowTreeElement) =>
+    workflowTree.generateWorkflow(node, false)
+  );
+  vscode.commands.registerCommand('workflows.generateJson', (node: WorkflowTreeElement) =>
+    workflowTree.generateWorkflow(node, true)
+  );
   //Function Tree and related commands
   const funcTree = new PythonTreeView(rootPath + '/workflow/stubs_actions.py', context);
   vscode.commands.registerCommand('stubs.refreshEntry', () => funcTree.refresh());
@@ -74,10 +83,3 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
-
-// let terminal = vscode.window.activeTerminal;
-// if (!terminal) {
-//   terminal = vscode.window.createTerminal(`Ext Terminal`);
-// }
-// terminal.sendText('cd workflow');
-// terminal.sendText('ls');

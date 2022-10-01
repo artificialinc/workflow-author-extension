@@ -97,6 +97,34 @@
         }
       },
       {
+        "command": "workflows.refreshEntry",
+        "title": "Refresh Workflows",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "workflows.publish",
+        "title": "Publish Workflow",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/dark/upload.svg",
+          "dark": "resources/dark/upload.svg"
+        }
+      },
+      {
+        "command": "workflows.generateBinary",
+        "title": "Generate workflow binary file",
+        "category": "Artificial"
+      },
+      {
+        "command": "workflows.generateJson",
+        "title": "Generate workflow JSON file",
+        "category": "Artificial"
+      },
+      {
         "command": "assistantsByLab.addToFile",
         "title": "Add Assistant Call to Workflow",
         "category": "Artificial",
@@ -140,6 +168,11 @@
           "command": "assistantsByLab.refreshEntry",
           "when": "view == assistantsByLab",
           "group": "navigation"
+        },
+        {
+          "command": "workflows.refreshEntry",
+          "when": "view == workflows",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -152,6 +185,19 @@
           "command": "assistantsByLab.addToFile",
           "when": "view == assistantsByLab && viewItem == ASSISTANT",
           "group": "inline"
+        },
+        {
+          "command": "workflows.publish",
+          "when": "view == workflows",
+          "group": "inline"
+        },
+        {
+          "command": "workflows.generateBinary",
+          "when": "view == workflows"
+        },
+        {
+          "command": "workflows.generateJson",
+          "when": "view == workflows"
         }
       ]
     }
@@ -165,8 +211,8 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@apollo/client": "^3.6.9",
     "@types/glob": "^7.2.0",
+    "@types/zen-observable": "^0.8.3",
     "@types/lodash": "^4.14.185",
     "@types/mocha": "^9.1.1",
     "@types/node": "16.x",
@@ -175,12 +221,12 @@
     "@typescript-eslint/parser": "^5.31.0",
     "@vscode/test-electron": "^2.1.5",
     "eslint": "^8.20.0",
-    "glob": "^8.0.3",
     "mocha": "^10.0.0",
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@types/zen-observable": "^0.8.3",
+    "@apollo/client": "^3.6.9",
+    "glob": "^8.0.3",
     "apollo-link-timeout": "^4.0.0",
     "cross-fetch": "^3.1.5",
     "graphql": "^16.6.0",

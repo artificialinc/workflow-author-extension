@@ -49,6 +49,9 @@ export interface AssistantTypeInfo {
     }
   ];
 }
+export interface ActionReply {
+  action: { id: string };
+}
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
   private hostName;
@@ -150,6 +153,7 @@ export class ArtificialApollo {
       console.log(JSON.stringify(err, null, 2));
     }
   }
+
   public async queryAssistants(): Promise<AssistantReply | undefined> {
     try {
       if (!this.apollo) {
@@ -231,6 +235,58 @@ export class ArtificialApollo {
                 labId
               }
             }
+          }
+        `,
+      });
+
+      if (result && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
+    }
+  }
+
+  public async queryAction(actionId: string): Promise<ActionReply | undefined> {
+    try {
+      if (!this.apollo) {
+        console.error('ApolloClient missing.');
+        return;
+      }
+      const result = await this.apollo.query({
+        variables: {
+          actionId,
+        },
+        query: gql`
+          query action($actionId: ID!) {
+            action(id: $actionId) {
+              id
+            }
+          }
+        `,
+      });
+
+      if (result && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
+    }
+  }
+
+  public async deleteAction(actionId: string): Promise<ActionReply | undefined> {
+    try {
+      if (!this.apollo) {
+        console.error('ApolloClient missing.');
+        return;
+      }
+      const result = await this.apollo.mutate({
+        variables: {
+          actionId,
+        },
+        mutation: gql`
+          mutation deleteAction($actionId: ID!) {
+            deleteAction(id: $actionId)
           }
         `,
       });
