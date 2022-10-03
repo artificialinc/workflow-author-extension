@@ -38,7 +38,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
       }
     }
-    //await this.importWorkflows(element.path);
+    await this.importWorkflow(element.path + '.json');
   }
   // async importWorkflows(actions: File) {
   //   const fd = new FormData();
@@ -49,12 +49,21 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   //   });
   // }
 
+  // TODO: dump output to text file and parse it to check for success?
+  async importWorkflow(path: string) {
+    let terminal = vscode.window.activeTerminal;
+    if (!terminal) {
+      terminal = vscode.window.createTerminal(`Artificial-Terminal`);
+    }
+    terminal.sendText(`wfupload ${path}`);
+  }
+
   //TODO: Throw errors to vscode notification
   generateWorkflow(element: WorkflowTreeElement, json: boolean): boolean {
     let terminal = vscode.window.activeTerminal;
     let path;
     if (!terminal) {
-      terminal = vscode.window.createTerminal(`Terminal`);
+      terminal = vscode.window.createTerminal(`Artificial-Terminal`);
     }
     if (json) {
       path = element.path + '.json';

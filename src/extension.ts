@@ -2,7 +2,6 @@
 // TODO: Config for different filenames for actions
 // TODO: Multiple modules with action support
 // TODO: Support for installed pip package actions?  cellario..etc..?
-// TODO: Tree for workflows to generate and publish
 // TODO: Generate load configs out of the gql data
 
 import * as vscode from 'vscode';

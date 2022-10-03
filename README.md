@@ -9,18 +9,11 @@ Generate function calls for adapter and assistant actions inside the workflow
 ## Requirements
 
 Must have a config.yaml in your root project
+Config.yaml must specify host and token.
+
+Must have workflow and adapter folder
+Currently for adapter actions, just looks for an actions.py file
 Must be inside a dev container with access to wfgen, etc..
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
 
 ## Known Issues
 
@@ -29,3 +22,11 @@ This extension contributes the following settings:
 ### 0.0.1
 
 Initial version of extension
+
+#### Blocking Features
+
+Can't import assistant stubs from outside local folder
+wfgen/upload/update terminal commands, cant fetch results. Would be nice if these were an API/service
+Could clean up assistant pane if we had an api to fetch assistants by lab
+Load config needs actual BE or apollo queries, slow to fetch all assets in every lab and build it myself
+Need a-c 16 to clean up return values & types

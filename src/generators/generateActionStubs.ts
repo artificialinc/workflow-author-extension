@@ -33,7 +33,7 @@ export class GenerateActionStubs {
       pythonContent += `async def assistant_${snakeCase(sig.name)}(\n`;
       pythonContent += this.buildAssistantParams(sig);
       pythonContent += `) -> None:\n`;
-      pythonContent += `\tpass\n\n`;
+      pythonContent += `\tpass\n\n\n`;
     }
 
     fs.writeFile(path.join(this.workspaceRoot, 'workflow', 'stubs_assistants.py'), pythonContent, (err) => {
