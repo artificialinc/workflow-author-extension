@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ArtificialApollo } from '../providers/apolloProvider';
+import { LabTreeElement } from './loadConfigTreeView';
 
-type TreeItem = OrgTreeItem | ConfigTreeItem;
+type TreeItem = OrgTreeItem | ConfigTreeItem | LabTreeElement | LabHeaderTreeItem;
 
 export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode.TreeDragAndDropController<TreeItem> {
   dropMimeTypes = ['application/vnd.code.tree.stubs'];
@@ -41,23 +42,58 @@ export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode
   async getChildren(element?: TreeItem): Promise<TreeItem[]> {
     if (element) {
       if (element.type === 'org') {
-        const apolloClient = ArtificialApollo.getInstance();
-
-        const orgConfigResponse = await apolloClient.queryOrgConfig();
-        const parsed = JSON.parse(orgConfigResponse?.getCurrentOrgConfiguration.configValuesDocument ?? '');
-        const items: ConfigTreeItem[] = [];
-        Object.entries(parsed.configuration).forEach((entry) => {
-          const [key, value] = entry;
-          if (typeof value === 'string' && value !== null) {
-            items.push(new ConfigTreeItem(key, value, vscode.TreeItemCollapsibleState.None));
-          }
-        });
-        return items;
+        return this.getOrgConfig();
+      } else if (element.type === 'labheader') {
+        return this.getLabs();
+      } else if (element.type === 'lab') {
+        if ('labId' in element && element.labId) {
+          return this.getLabConfig(element);
+        }
       }
       return [];
     } else {
-      return [new OrgTreeItem('Artificial')];
+      return [new OrgTreeItem('Artificial'), new LabHeaderTreeItem('Labs')];
     }
+  }
+
+  private async getOrgConfig(): Promise<ConfigTreeItem[]> {
+    const apolloClient = ArtificialApollo.getInstance();
+    const orgConfigResponse = await apolloClient.queryOrgConfig();
+    const parsed = JSON.parse(orgConfigResponse?.getCurrentOrgConfiguration.configValuesDocument ?? '');
+    return this.getConfigItems(parsed);
+  }
+
+  private async getLabs(): Promise<LabTreeElement[]> {
+    const client = ArtificialApollo.getInstance();
+    const response = await client.queryLabs();
+    if (!response) {
+      return [];
+    }
+    const labs = response.labs.map((lab): LabTreeElement => {
+      return new LabTreeElement(lab.name, lab.id);
+    });
+    return labs;
+  }
+
+  private async getLabConfig(element: LabTreeElement): Promise<ConfigTreeItem[]> {
+    const client = ArtificialApollo.getInstance();
+    const response = await client.queryLabConfigs(element.labId);
+    if (response) {
+      const parsed = JSON.parse(response?.getCurrentLabConfiguration.configValuesDocument ?? '');
+      return this.getConfigItems(parsed);
+    }
+    return [];
+  }
+
+  private getConfigItems(config: any): ConfigTreeItem[] {
+    const items: ConfigTreeItem[] = [];
+    Object.entries(config.configuration).forEach((entry) => {
+      const [key, value] = entry;
+      if (typeof value === 'string' && value !== null) {
+        items.push(new ConfigTreeItem(key, value, vscode.TreeItemCollapsibleState.None));
+      }
+    });
+    return items;
   }
 }
 
@@ -68,9 +104,24 @@ export class OrgTreeItem extends vscode.TreeItem {
     this.tooltip = `${this.label}`;
     this.type = 'org';
   }
-  resourceUri = vscode.Uri.parse('artificial/configs/' + this.label);
+  resourceUri = vscode.Uri.parse('artificial/configs/org' + this.label);
 
   iconPath = new vscode.ThemeIcon('organization');
+}
+
+export class LabHeaderTreeItem extends vscode.TreeItem {
+  readonly type: string;
+  constructor(public readonly label: string) {
+    super(label, vscode.TreeItemCollapsibleState.Collapsed);
+    this.tooltip = `${this.label}`;
+    this.type = 'labheader';
+  }
+  resourceUri = vscode.Uri.parse('artificial/configs/lab' + this.label);
+
+  iconPath = {
+    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'labs.svg'),
+    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'labs.svg'),
+  };
 }
 
 export class ConfigTreeItem extends vscode.TreeItem {

@@ -58,6 +58,14 @@ export interface OrgConfigReply {
     schemaDocument: string;
   };
 }
+
+export interface LabConfigReply {
+  getCurrentLabConfiguration: {
+    configValuesDocument: string;
+    schemaDocument: string;
+  };
+}
+
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
   private hostName;
@@ -314,6 +322,34 @@ export class ArtificialApollo {
         query: gql`
           query orgConfig {
             getCurrentOrgConfiguration {
+              configValuesDocument
+              schemaDocument
+            }
+          }
+        `,
+      });
+
+      if (result && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
+    }
+  }
+
+  public async queryLabConfigs(labId: string): Promise<LabConfigReply | undefined> {
+    try {
+      if (!this.apollo) {
+        console.error('ApolloClient missing.');
+        return;
+      }
+      const result = await this.apollo.query({
+        variables: {
+          labId,
+        },
+        query: gql`
+          query labConfigs($labId: ID!) {
+            getCurrentLabConfiguration(labId: $labId) {
               configValuesDocument
               schemaDocument
             }
