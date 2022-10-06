@@ -6,7 +6,7 @@ import { pathExists } from '../utils';
 import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
 import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase } from 'lodash';
-import { BuildPythonSignatures } from '../builders/buildPythonSignatures';
+import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
@@ -108,7 +108,6 @@ export class GenerateActionStubs {
       pythonContent = pythonContent.concat('\n');
       pythonContent = pythonContent.concat("@substrate_action('", sig.name, '\', display_name="', sig.name, '")');
       pythonContent = pythonContent.concat('\n');
-      // TODO: loop keywords here, this is assuming always async def
       let functionString = 'async def ' + sig.name + '(';
       let iterations = sig.parameters.length;
       for (let param of sig.parameters) {

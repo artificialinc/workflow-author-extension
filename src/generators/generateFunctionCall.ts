@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { Function } from '../treeViews/pythonTreeView';
-import { AssistantSignature } from '../builders/buildAssistantSignatures';
+import { Function } from '../views/pythonTreeView';
+import { AssistantSignature } from '../parsers/parseAssistantSignatures';
 import { FunctionSignature } from '../apis/types';
 
 export class InsertFunctionCall {

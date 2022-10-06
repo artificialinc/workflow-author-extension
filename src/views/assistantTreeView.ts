@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ArtificialApollo, AssistantReply, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
-import { BuildAssistantSignatures, AssistantSignature } from '../builders/buildAssistantSignatures';
+import { BuildAssistantSignatures, AssistantSignature } from '../parsers/parseAssistantSignatures';
 import { LabTreeElement } from './loadConfigTreeView';
 import * as _ from 'lodash';
-import { Param } from '../apis/types';
 
 type TreeElement = LabTreeElement | AssistantTreeElement;
 interface Error {
@@ -171,6 +170,7 @@ export class AssistantByLabTreeView
     });
     return { code: 1, error: `Bad param at indices ${indices}` };
   }
+
   private typeCheck(stubParam: string, assistantParam: AssistantTypeInfo | undefined) {
     if (!assistantParam) {
       return false;
@@ -186,6 +186,7 @@ export class AssistantByLabTreeView
     }
     return this.compareSimpleTypes(stubParam, assistantParam.type);
   }
+
   private compareSimpleTypes(stubType: string, assistantType: string) {
     switch (stubType) {
       case 'str':

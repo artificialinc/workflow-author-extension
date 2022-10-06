@@ -8,11 +8,12 @@ import * as vscode from 'vscode';
 import { GenerateActionStubs } from './generators/generateActionStubs';
 import { InsertFunctionCall } from './generators/generateFunctionCall';
 import { DropProvider } from './providers/dropProvider';
-import { PythonTreeView, Function } from './treeViews/pythonTreeView';
-import { LoadConfigTreeView } from './treeViews/loadConfigTreeView';
-import { AssistantByLabTreeView } from './treeViews/assistantTreeView';
-import { ViewFileDecorationProvider } from './decorationProvider';
-import { WorkflowTreeElement, WorkflowTreeView } from './treeViews/workflowTreeView';
+import { PythonTreeView, Function } from './views/pythonTreeView';
+import { LoadConfigTreeView } from './views/loadConfigTreeView';
+import { AssistantByLabTreeView } from './views/assistantTreeView';
+import { ViewFileDecorationProvider } from './providers/decorationProvider';
+import { WorkflowTreeElement, WorkflowTreeView } from './views/workflowTreeView';
+import { ConfigTreeView } from './views/configTreeView';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -27,6 +28,7 @@ export async function activate(context: vscode.ExtensionContext) {
   //Provides Type Error Decoration
   new ViewFileDecorationProvider();
 
+  // Workflow Publishing view
   const workflowTree = new WorkflowTreeView(rootPath, context);
   vscode.commands.registerCommand('workflows.refreshEntry', () => workflowTree.refresh());
   vscode.commands.registerCommand('workflows.publish', (node: WorkflowTreeElement) =>
@@ -38,6 +40,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand('workflows.generateJson', (node: WorkflowTreeElement) =>
     workflowTree.generateWorkflow(node, true)
   );
+
   //Function Tree and related commands
   const funcTree = new PythonTreeView(rootPath + '/workflow/stubs_actions.py', context);
   vscode.commands.registerCommand('stubs.refreshEntry', () => funcTree.refresh());
@@ -65,6 +68,10 @@ export async function activate(context: vscode.ExtensionContext) {
       functionCallProvider.insertFunction(node)
     )
   );
+
+  //Config Tree and Commands
+  const configTree: ConfigTreeView = new ConfigTreeView(context);
+  vscode.commands.registerCommand('configs.refreshEntry', () => configTree.refresh());
 
   // Generate Stubs
   const generateProvider = new GenerateActionStubs(rootPath);

@@ -69,6 +69,10 @@
         {
           "id": "workflows",
           "name": "Workflows"
+        },
+        {
+          "id": "configs",
+          "name": "Configs"
         }
       ]
     },
@@ -134,6 +138,15 @@
         }
       },
       {
+        "command": "assistantsByLab.refreshEntry",
+        "title": "Refresh Assistants",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
         "command": "loadConfigs.refreshEntry",
         "title": "Refresh Load Configs",
         "category": "Artificial",
@@ -143,8 +156,8 @@
         }
       },
       {
-        "command": "assistantsByLab.refreshEntry",
-        "title": "Refresh Assistants",
+        "command": "configs.refreshEntry",
+        "title": "Refresh Configs",
         "category": "Artificial",
         "icon": {
           "light": "resources/light/refresh.svg",
@@ -172,6 +185,11 @@
         {
           "command": "workflows.refreshEntry",
           "when": "view == workflows",
+          "group": "navigation"
+        },
+        {
+          "command": "configs.refreshEntry",
+          "when": "view == configs",
           "group": "navigation"
         }
       ],

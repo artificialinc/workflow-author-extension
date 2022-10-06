@@ -35,6 +35,7 @@ export class LoadConfigTreeView
     this.treeElements = [];
     this._onDidChangeTreeData.fire();
   }
+
   public async handleDrag(
     source: TreeElement[],
     treeDataTransfer: vscode.DataTransfer,
@@ -44,6 +45,7 @@ export class LoadConfigTreeView
   getTreeItem(element: TreeElement): vscode.TreeItem {
     return element;
   }
+
   getTreeItemByUri(uri: string): TreeElement | undefined {
     const element = this.treeElements.find((sig) => {
       if (sig.resourceUri.toString() === 'file://' + uri) {
@@ -85,6 +87,7 @@ export class LoadConfigTreeView
 
     return labs;
   }
+
   private async getConfigs(element: string): Promise<LoadConfigTreeElement[]> {
     const client = ArtificialApollo.getInstance();
     const response = await client.queryConfigs(element);
@@ -100,6 +103,7 @@ export class LoadConfigTreeView
 
     return configs;
   }
+
   private async getAssets(element: LoadConfigTreeElement): Promise<AssetTreeElement[]> {
     const client = ArtificialApollo.getInstance();
     const response = await client.queryConfigs(element.labId);

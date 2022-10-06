@@ -20,6 +20,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     });
     context.subscriptions.push(view);
   }
+
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
@@ -27,6 +28,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   getTreeItem(element: WorkflowTreeElement): vscode.TreeItem {
     return element;
   }
+
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
     const success = this.generateWorkflow(element, true);
     if (success) {

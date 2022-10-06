@@ -52,6 +52,12 @@ export interface AssistantTypeInfo {
 export interface ActionReply {
   action: { id: string };
 }
+export interface OrgConfigReply {
+  getCurrentOrgConfiguration: {
+    configValuesDocument: string;
+    schemaDocument: string;
+  };
+}
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
   private hostName;
@@ -287,6 +293,30 @@ export class ArtificialApollo {
         mutation: gql`
           mutation deleteAction($actionId: ID!) {
             deleteAction(id: $actionId)
+          }
+        `,
+      });
+
+      if (result && result.data) {
+        return result.data;
+      }
+    } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
+    }
+  }
+  public async queryOrgConfig(): Promise<OrgConfigReply | undefined> {
+    try {
+      if (!this.apollo) {
+        console.error('ApolloClient missing.');
+        return;
+      }
+      const result = await this.apollo.query({
+        query: gql`
+          query orgConfig {
+            getCurrentOrgConfiguration {
+              configValuesDocument
+              schemaDocument
+            }
           }
         `,
       });

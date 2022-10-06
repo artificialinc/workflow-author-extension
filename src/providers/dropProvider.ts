@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { PythonTreeView } from '../treeViews/pythonTreeView';
-import { AssistantByLabTreeView, AssistantTreeElement } from '../treeViews/assistantTreeView';
+import { PythonTreeView } from '../views/pythonTreeView';
+import { AssistantByLabTreeView, AssistantTreeElement } from '../views/assistantTreeView';
 import { InsertFunctionCall } from '../generators/generateFunctionCall';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;

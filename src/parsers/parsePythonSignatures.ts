@@ -6,7 +6,7 @@ import { FunctionSignature, Param } from '../apis/types';
 export class BuildPythonSignatures {
   build(actionPythonPath: string): FunctionSignature[] {
     if (pathExists(actionPythonPath)) {
-      const packageJson = fs.readFileSync(actionPythonPath, 'utf-8');
+      const pythonStubs = fs.readFileSync(actionPythonPath, 'utf-8');
       const signatureList: FunctionSignature[] = [];
 
       const buildSignature = (source: string) => {
@@ -18,27 +18,25 @@ export class BuildPythonSignatures {
             if (decoratorName === 'action' || decoratorName === 'substrate_action') {
               const signature: FunctionSignature = { parameters: [], name: '', returnType: '' };
               signature.name = this.findFuncName(ast);
-              const paramList = this.findParamNameAndType(ast);
-
-              signature.parameters = paramList;
-              signatureList.push(signature);
+              signature.parameters = this.findParamNameAndType(ast);
               signature.returnType = ast?.async_funcdef()?.funcdef().test()?.text ?? '';
+              signatureList.push(signature);
             }
           },
         }).visit(ast);
       };
-      buildSignature(packageJson);
+      buildSignature(pythonStubs);
       return signatureList;
     } else {
       return [];
     }
   }
 
-  findFuncName(ast: DecoratedContext): string {
+  private findFuncName(ast: DecoratedContext): string {
     return ast.async_funcdef()?.funcdef().NAME().text.replace(new RegExp("'", 'g'), '') ?? '';
   }
 
-  findParamNameAndType(ast: DecoratedContext): Param[] {
+  private findParamNameAndType(ast: DecoratedContext): Param[] {
     const typeList = ast?.async_funcdef()?.funcdef().parameters().typedargslist();
 
     const params: Param[] = [];

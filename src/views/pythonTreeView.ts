@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { FunctionSignature } from '../apis/types';
 import { pathExists } from '../utils';
-import { BuildPythonSignatures } from '../builders/buildPythonSignatures';
+import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 
 export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode.TreeDragAndDropController<Function> {
   dropMimeTypes = ['application/vnd.code.tree.stubs'];
@@ -25,9 +25,11 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
     this.treeElements = this.getChildren();
     this.uriPath = 'artificial/python/';
   }
+
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
+
   public async handleDrag(
     source: Function[],
     treeDataTransfer: vscode.DataTransfer,
@@ -37,6 +39,7 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
   getTreeItem(element: Function): vscode.TreeItem {
     return element;
   }
+
   getTreeItemByUri(uri: string): Function | undefined {
     const element = this.treeElements.find((sig) => {
       if (sig.resourceUri.toString() === 'file://' + uri) {

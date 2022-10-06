@@ -16,7 +16,7 @@ interface Param {
 export class BuildAssistantSignatures {
   build(actionPythonPath: string): AssistantSignature[] {
     if (pathExists(actionPythonPath)) {
-      const packageJson = fs.readFileSync(actionPythonPath, 'utf-8');
+      const asstStubs = fs.readFileSync(actionPythonPath, 'utf-8');
       const signatureList: AssistantSignature[] = [];
 
       const buildSignature = (source: string) => {
@@ -28,41 +28,45 @@ export class BuildAssistantSignatures {
               const signature: AssistantSignature = { actionId: '', parameters: [], name: '' };
               signature.actionId = signature.name = this.findActionId(ast);
               signature.name = this.findFuncName(ast);
-              const paramList: Param[] = [];
-              for (let x = 1; x < ast.decorators().decorator().length; x++) {
-                if (ast.decorators().decorator(x).dotted_name().text === 'parameter') {
-                  const paramName = this.findName(ast, x, 0);
-                  const assistantName = this.findName(ast, x, 1);
-
-                  let type = '';
-                  if (paramName) {
-                    type = this.findParamType(paramName, ast);
-                  }
-                  paramList.push({ type: type, assistantName: assistantName, name: paramName });
-                }
-              }
-              signature.parameters = paramList;
+              signature.parameters = this.findAssistantParams(ast);
               signatureList.push(signature);
             }
           },
         }).visit(ast);
       };
-      buildSignature(packageJson);
+      buildSignature(asstStubs);
       return signatureList;
     } else {
       return [];
     }
   }
 
-  findActionId(ast: DecoratedContext): string {
+  private findAssistantParams(ast: DecoratedContext): Param[] {
+    const paramList: Param[] = [];
+    for (let x = 1; x < ast.decorators().decorator().length; x++) {
+      if (ast.decorators().decorator(x).dotted_name().text === 'parameter') {
+        const paramName = this.findName(ast, x, 0);
+        const assistantName = this.findName(ast, x, 1);
+
+        let type = '';
+        if (paramName) {
+          type = this.findParamType(paramName, ast);
+        }
+        paramList.push({ type: type, assistantName: assistantName, name: paramName });
+      }
+    }
+    return paramList;
+  }
+
+  private findActionId(ast: DecoratedContext): string {
     return ast.decorators().decorator(0).arglist()?.argument(0).test(0).text.replace(new RegExp("'", 'g'), '') ?? '';
   }
 
-  findFuncName(ast: DecoratedContext): string {
+  private findFuncName(ast: DecoratedContext): string {
     return ast.async_funcdef()?.funcdef().NAME().text.replace(new RegExp("'", 'g'), '') ?? '';
   }
 
-  findName(ast: DecoratedContext, index: number, element: number): string {
+  private findName(ast: DecoratedContext, index: number, element: number): string {
     return (
       ast
         .decorators()
@@ -74,7 +78,7 @@ export class BuildAssistantSignatures {
     );
   }
 
-  findParamType(paramName: string, ast: DecoratedContext): string {
+  private findParamType(paramName: string, ast: DecoratedContext): string {
     const typeList = ast?.async_funcdef()?.funcdef().parameters().typedargslist();
     if (typeList) {
       for (let x = 0; x < typeList?.tfpdef().length; x++) {
