@@ -36,23 +36,28 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
 
     // TODO: Move this into tree provider or own generator??
     if (text.includes('/loadConfigs/')) {
+      const splitText = text.split('/');
       if (text.includes('/lab/')) {
-        const splitText = text.split('/');
         text = splitText[splitText.length - 1];
       } else if (text.includes('/asset/')) {
-        const splitText = text.split('/');
         const loadConfigId = splitText[splitText.length - 2];
         const loadConfigOrder = splitText[splitText.length - 1];
         text = `assets = await load_assets(start_idx=${
           parseFloat(loadConfigOrder) + 1
         }, number_to_load = 1, '${loadConfigId}')`;
       } else {
-        const splitText = text.split('/');
         const loadConfigId = splitText[splitText.length - 1];
         text = `assets = await load_assets(start_idx= , number_to_load = , '${loadConfigId}')`;
       }
     }
-
+    if (text.includes('/configs/')) {
+      const splitText = text.split('/');
+      if (text.includes('/org/')) {
+        text = `config_value = get_org_config().configuration['${splitText[splitText.length - 1]}']`;
+      } else if (text.includes('/lab/')) {
+        text = `config_value = get_lab_config().configuration['${splitText[splitText.length - 1]}']`;
+      }
+    }
     if (token.isCancellationRequested) {
       return undefined;
     }

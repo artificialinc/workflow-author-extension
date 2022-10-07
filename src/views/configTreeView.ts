@@ -47,7 +47,7 @@ export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode
         return this.getLabs();
       } else if (element.type === 'lab') {
         if ('labId' in element && element.labId) {
-          return this.getLabConfig(element);
+          return this.getLabConfig(element as LabTreeElement);
         }
       }
       return [];
@@ -60,7 +60,7 @@ export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode
     const apolloClient = ArtificialApollo.getInstance();
     const orgConfigResponse = await apolloClient.queryOrgConfig();
     const parsed = JSON.parse(orgConfigResponse?.getCurrentOrgConfiguration.configValuesDocument ?? '');
-    return this.getConfigItems(parsed);
+    return this.getConfigItems(parsed, 'org');
   }
 
   private async getLabs(): Promise<LabTreeElement[]> {
@@ -80,17 +80,17 @@ export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode
     const response = await client.queryLabConfigs(element.labId);
     if (response) {
       const parsed = JSON.parse(response?.getCurrentLabConfiguration.configValuesDocument ?? '');
-      return this.getConfigItems(parsed);
+      return this.getConfigItems(parsed, 'lab', element.labId);
     }
     return [];
   }
 
-  private getConfigItems(config: any): ConfigTreeItem[] {
+  private getConfigItems(config: any, configType: string, labId: string = ''): ConfigTreeItem[] {
     const items: ConfigTreeItem[] = [];
     Object.entries(config.configuration).forEach((entry) => {
       const [key, value] = entry;
       if (typeof value === 'string' && value !== null) {
-        items.push(new ConfigTreeItem(key, value, vscode.TreeItemCollapsibleState.None));
+        items.push(new ConfigTreeItem(key, value, configType, labId, vscode.TreeItemCollapsibleState.None));
       }
     });
     return items;
@@ -129,13 +129,22 @@ export class ConfigTreeItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly description: string,
+    public readonly configType: string,
+    public readonly labId: string = '',
     public readonly collapsibleState: vscode.TreeItemCollapsibleState
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;
     this.type = 'config';
   }
-  resourceUri = vscode.Uri.parse('artificial/configs/' + this.label);
+  private buildURI() {
+    if (!this.labId) {
+      return vscode.Uri.parse('artificial/configs/' + this.configType + '/' + this.label);
+    } else {
+      return vscode.Uri.parse('artificial/configs/' + this.configType + '/' + this.labId + '/' + this.label);
+    }
+  }
+  resourceUri = this.buildURI();
 
   iconPath = new vscode.ThemeIcon('symbol-property');
 }
