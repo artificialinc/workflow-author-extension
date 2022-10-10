@@ -151,7 +151,7 @@ export class AssistantByLabTreeView
     const diff = _.difference(stubNames, assistantParamNames);
     const alabDiff = _.difference(assistantParamNames, stubNames);
     if (diff.length > 0 || alabDiff.length > 0) {
-      return { code: 1, error: 'Param length mismatch between stub & cloud' };
+      return { code: 1, error: 'Param length or naming mismatch between stub & cloud' };
     }
     const valid: boolean[] = [];
     for (const param of stubSignature.parameters) {
@@ -168,7 +168,7 @@ export class AssistantByLabTreeView
     const indices = valid.flatMap((bool: boolean, index: number) => {
       return !bool ? index : [];
     });
-    return { code: 1, error: `Bad param at indices ${indices}` };
+    return { code: 1, error: `Bad type on param at indices ${indices}` };
   }
 
   private typeCheck(stubParam: string, assistantParam: AssistantTypeInfo | undefined) {
