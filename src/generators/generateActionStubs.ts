@@ -7,13 +7,16 @@ import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apo
 import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase } from 'lodash';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
+import { AssistantByLabTreeView } from '../views/assistantTreeView';
 
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
-  constructor(private workspaceRoot: string) {}
+  constructor(private workspaceRoot: string, private assistantByLab: AssistantByLabTreeView) {}
   async generateStubs(): Promise<any> {
-    this.generatePythonStubs();
+    //this.generatePythonStubs();
     await this.generateAssistantStubs();
+    await this.assistantByLab.refresh();
+    vscode.window.showInformationMessage('Created boilerplate files');
   }
 
   private async generateAssistantStubs(): Promise<void> {
@@ -40,7 +43,6 @@ export class GenerateActionStubs {
       if (err) {
         return vscode.window.showErrorMessage('Failed to create boilerplate file!');
       }
-      vscode.window.showInformationMessage('Created boilerplate files');
     });
   }
 
@@ -138,7 +140,6 @@ export class GenerateActionStubs {
       if (err) {
         return vscode.window.showErrorMessage('Failed to create boilerplate file!');
       }
-      vscode.window.showInformationMessage('Created boilerplate files');
     });
   }
 }

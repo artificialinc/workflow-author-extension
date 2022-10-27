@@ -58,7 +58,7 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
         this.treeElements = this.getFuncsInActionPython(this.stubPath);
         return this.treeElements;
       } else {
-        vscode.window.showInformationMessage('Workspace has no stubs');
+        //vscode.window.showInformationMessage('Workspace has no stubs');
         return [];
       }
     }

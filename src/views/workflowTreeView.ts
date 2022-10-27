@@ -104,7 +104,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
         return elements;
       } else {
-        vscode.window.showInformationMessage('Workspace has no stubs');
+        //vscode.window.showInformationMessage('Workspace has no workflows');
         return [];
       }
     }

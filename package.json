@@ -2,6 +2,11 @@
   "name": "artificial",
   "displayName": "artificial",
   "description": "Does things",
+  "publisher": "Artificial",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/artificial-smahon/extension"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.71.0"
@@ -12,7 +17,9 @@
   "activationEvents": [
     "onView:stubs",
     "onView:assistantsByLab",
-    "onView:loadConfigs"
+    "onView:loadConfigs",
+    "onView:workflows",
+    "onView:configs"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -52,7 +59,8 @@
       "artificial-workflows": [
         {
           "id": "stubs",
-          "name": "Adapter Functions"
+          "name": "Adapter Functions",
+          "when": "devMode"
         },
         {
           "id": "assistantsByLab",
@@ -60,7 +68,8 @@
         },
         {
           "id": "loadConfigs",
-          "name": "Load Configs"
+          "name": "Labware Load Configurations",
+          "when": "devMode"
         },
         {
           "id": "stubGenerate",
@@ -68,15 +77,20 @@
         },
         {
           "id": "workflows",
-          "name": "Workflows"
+          "name": "Workflow Publishing"
         },
         {
           "id": "configs",
-          "name": "Configs"
+          "name": "Configuration"
         }
       ]
     },
     "commands": [
+      {
+        "command": "artificial-workflows.toggleDevMode",
+        "title": "Toggle Dev Mode",
+        "category": "Artificial"
+      },
       {
         "command": "stubs.generateStubs",
         "title": "Generate Stubs",
@@ -221,32 +235,38 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
+    "vscode:prepublish2": "yarn run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "yarn run compile && yarn run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "test-compile": "tsc -p ./"
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
-    "@types/zen-observable": "^0.8.3",
     "@types/lodash": "^4.14.185",
     "@types/mocha": "^9.1.1",
     "@types/node": "16.x",
     "@types/vscode": "^1.71.0",
+    "@types/zen-observable": "^0.8.3",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "@vscode/test-electron": "^2.1.5",
+    "esbuild": "^0.15.12",
     "eslint": "^8.20.0",
     "mocha": "^10.0.0",
     "typescript": "^4.7.4"
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
-    "glob": "^8.0.3",
     "apollo-link-timeout": "^4.0.0",
     "cross-fetch": "^3.1.5",
+    "glob": "^8.0.3",
     "graphql": "^16.6.0",
     "lodash": "^4.17.21",
     "python-ast": "^0.1.0",

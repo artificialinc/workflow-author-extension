@@ -30,3 +30,10 @@ wfgen/upload/update terminal commands, cant fetch results. Would be nice if thes
 Could clean up assistant pane if we had an api to fetch assistants by lab
 Load config needs actual BE or apollo queries, slow to fetch all assets in every lab and build it myself
 Need a-c 16 to clean up return values & types
+
+##### TODO
+
+Handle Type imports for python actions
+Handle discovering actions in different files/modules
+Multiple modules support
+Support for installed pip package actions? cellario..etc..?

@@ -7,6 +7,7 @@ import { parse } from 'yaml';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import ApolloLinkTimeout from 'apollo-link-timeout';
+import { pathExists } from '../utils';
 export interface LabReply {
   labs: [{ name: string; id: string }];
 }
@@ -81,7 +82,12 @@ export class ArtificialApollo {
       vscode.window.showInformationMessage('No Root Path Found');
       rootPath = '';
     }
+
     const configPath = path.join(rootPath, 'config.yaml');
+    if (!pathExists(configPath)) {
+      vscode.window.showErrorMessage('No config.yaml found for host & token');
+    }
+
     const config = parse(fs.readFileSync(configPath, 'utf-8'));
     this.hostName = 'https://' + config.artificial.host + '/graphql';
     this.apiToken = config.artificial.token;

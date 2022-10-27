@@ -1,9 +1,3 @@
-// TODO: Type imports
-// TODO: Config for different filenames for actions
-// TODO: Multiple modules with action support
-// TODO: Support for installed pip package actions?  cellario..etc..?
-// TODO: Generate load configs out of the gql data
-
 import * as vscode from 'vscode';
 import { GenerateActionStubs } from './generators/generateActionStubs';
 import { InsertFunctionCall } from './generators/generateFunctionCall';
@@ -24,6 +18,10 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
+  let devMode = false;
+  vscode.commands.registerCommand('artificial-workflows.toggleDevMode', () =>
+    vscode.commands.executeCommand('setContext', 'devMode', (devMode = !devMode))
+  );
 
   //Provides Type Error Decoration
   new ViewFileDecorationProvider();
@@ -74,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand('configs.refreshEntry', () => configTree.refresh());
 
   // Generate Stubs
-  const generateProvider = new GenerateActionStubs(rootPath);
+  const generateProvider = new GenerateActionStubs(rootPath, assistantByLab);
   context.subscriptions.push(
     vscode.commands.registerCommand('stubs.generateStubs', () => generateProvider.generateStubs())
   );
