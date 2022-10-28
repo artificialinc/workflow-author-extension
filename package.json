@@ -67,12 +67,12 @@
           "when": "devMode"
         },
         {
-          "id": "workflows",
-          "name": "Workflow Publishing"
-        },
-        {
           "id": "configs",
           "name": "Configuration"
+        },
+        {
+          "id": "workflows",
+          "name": "Workflow Publishing"
         }
       ]
     },

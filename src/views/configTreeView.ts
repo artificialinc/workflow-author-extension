@@ -52,7 +52,8 @@ export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode
       }
       return [];
     } else {
-      return [new OrgTreeItem('Artificial'), new LabHeaderTreeItem('Labs')];
+      // TODO: Fetch ORG ID for name
+      return [new OrgTreeItem('Organization'), new LabHeaderTreeItem('Labs')];
     }
   }
 
