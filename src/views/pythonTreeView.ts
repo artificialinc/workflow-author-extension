@@ -5,7 +5,7 @@ import { pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 
 export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode.TreeDragAndDropController<Function> {
-  dropMimeTypes = ['application/vnd.code.tree.stubs'];
+  dropMimeTypes = ['application/vnd.code.tree.pythonActions'];
   dragMimeTypes = ['text/uri-list'];
 
   private _onDidChangeTreeData: vscode.EventEmitter<Function | undefined | void> = new vscode.EventEmitter<
@@ -15,7 +15,7 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
   readonly onDidChangeTreeData: vscode.Event<Function | undefined | void> = this._onDidChangeTreeData.event;
   private uriPath: string;
   constructor(private stubPath: string, context: vscode.ExtensionContext) {
-    const view = vscode.window.createTreeView('stubs', {
+    const view = vscode.window.createTreeView('pythonActions', {
       treeDataProvider: this,
       showCollapseAll: false,
       canSelectMany: false,
@@ -87,7 +87,7 @@ export class Function extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/python/' + this.functionSignature.name);
 
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'stubs' + '.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'stubs' + '.svg'),
+    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pythonActions' + '.svg'),
+    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pythonActions' + '.svg'),
   };
 }

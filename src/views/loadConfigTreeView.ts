@@ -6,7 +6,7 @@ type TreeElement = LoadConfigTreeElement | LabTreeElement | AssetTreeElement;
 export class LoadConfigTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
 {
-  dropMimeTypes = ['application/vnd.code.tree.stubs'];
+  dropMimeTypes = ['application/vnd.code.tree.loadConfigs'];
   dragMimeTypes = ['text/uri-list'];
 
   private _onDidChangeTreeData: vscode.EventEmitter<TreeElement | undefined | void> = new vscode.EventEmitter<

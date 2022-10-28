@@ -13,7 +13,7 @@ interface Error {
 export class AssistantByLabTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
 {
-  dropMimeTypes = ['application/vnd.code.tree.stubs'];
+  dropMimeTypes = ['application/vnd.code.tree.assistantsByLab'];
   dragMimeTypes = ['text/uri-list'];
 
   private _onDidChangeTreeData: vscode.EventEmitter<TreeElement | undefined | void> = new vscode.EventEmitter<

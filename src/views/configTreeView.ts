@@ -6,7 +6,7 @@ import { LabTreeElement } from './loadConfigTreeView';
 type TreeItem = OrgTreeItem | ConfigTreeItem | LabTreeElement | LabHeaderTreeItem;
 
 export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode.TreeDragAndDropController<TreeItem> {
-  dropMimeTypes = ['application/vnd.code.tree.stubs'];
+  dropMimeTypes = ['application/vnd.code.tree.configs'];
   dragMimeTypes = ['text/uri-list'];
 
   private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | void> = new vscode.EventEmitter<

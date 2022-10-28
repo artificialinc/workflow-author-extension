@@ -1,13 +1,13 @@
 {
   "name": "artificial",
-  "displayName": "artificial",
-  "description": "Does things",
+  "displayName": "Artificial",
+  "description": "Extension to help author Artificial workflows in Orchestration Python",
   "publisher": "Artificial",
   "repository": {
     "type": "git",
     "url": "https://github.com/artificial-smahon/extension"
   },
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.71.0"
   },
@@ -15,7 +15,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:stubs",
+    "onView:pythonActions",
     "onView:assistantsByLab",
     "onView:loadConfigs",
     "onView:workflows",
@@ -40,12 +40,7 @@
         "path": "./snippets.json"
       }
     ],
-    "viewsWelcome": [
-      {
-        "view": "stubGenerate",
-        "contents": "[Generate Stubs](command:stubs.generateStubs)"
-      }
-    ],
+    "viewsWelcome": [],
     "viewsContainers": {
       "activitybar": [
         {
@@ -58,7 +53,7 @@
     "views": {
       "artificial-workflows": [
         {
-          "id": "stubs",
+          "id": "pythonActions",
           "name": "Adapter Functions",
           "when": "devMode"
         },
@@ -70,10 +65,6 @@
           "id": "loadConfigs",
           "name": "Labware Load Configurations",
           "when": "devMode"
-        },
-        {
-          "id": "stubGenerate",
-          "name": "Generate Stubs"
         },
         {
           "id": "workflows",
@@ -92,12 +83,12 @@
         "category": "Artificial"
       },
       {
-        "command": "stubs.generateStubs",
+        "command": "assistantsByLab.generateStubs",
         "title": "Generate Stubs",
         "category": "Artificial"
       },
       {
-        "command": "stubs.addToFile",
+        "command": "pythonActions.addToFile",
         "title": "Add Action Function Call to Workflow",
         "category": "Artificial",
         "icon": {
@@ -106,7 +97,7 @@
         }
       },
       {
-        "command": "stubs.refreshEntry",
+        "command": "pythonActions.refreshEntry",
         "title": "Refresh Python Functions",
         "category": "Artificial",
         "icon": {
@@ -182,8 +173,8 @@
     "menus": {
       "view/title": [
         {
-          "command": "stubs.refreshEntry",
-          "when": "view == stubs",
+          "command": "pythonActions.refreshEntry",
+          "when": "view == pythonActions",
           "group": "navigation"
         },
         {
@@ -193,6 +184,11 @@
         },
         {
           "command": "assistantsByLab.refreshEntry",
+          "when": "view == assistantsByLab",
+          "group": "navigation"
+        },
+        {
+          "command": "assistantsByLab.generateStubs",
           "when": "view == assistantsByLab",
           "group": "navigation"
         },
@@ -209,8 +205,8 @@
       ],
       "view/item/context": [
         {
-          "command": "stubs.addToFile",
-          "when": "view == stubs",
+          "command": "pythonActions.addToFile",
+          "when": "view == pythonActions",
           "group": "inline"
         },
         {
