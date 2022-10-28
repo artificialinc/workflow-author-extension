@@ -1,6 +1,6 @@
 {
-    "Workflow": {
-        "prefix": "workflow",
+    "WorkflowWithConfig": {
+        "prefix": "workflowwithconfig",
         "body": [
             "from artificial.workflows.decorators import config_type, field, parameter, workflow",
             "from artificial.workflows.util import get_workflow_config",
@@ -18,13 +18,26 @@
             "async def ${4:wf_func_name}(${7:param_name}: int) -> None:",
             "\tjob_config_ref: WorkflowConfigType = get_workflow_config()"
         ],
-        "description": "Workflow stub"
+        "description": "Workflow with configuration"
+    },
+    "Workflow": {
+        "prefix": "workflow",
+        "body": [
+            "from artificial.workflows.decorators import config_type, field, parameter, workflow",
+            "from dataclasses import dataclass",
+            "",
+            "",
+            "@parameter('${5:param_name}', {'required': True, 'uiTitle': '${6:Display Name}'})",
+            "@workflow(\"${1:wf_name}\", \"${2:wf_id}\", \"${3:lab_id}\")",
+            "async def ${4:wf_func_name}(${5:param_name}: int) -> None:"
+        ],
+        "description": "Workflow"
     },
     "Parameter": {
         "prefix": "parameter",
         "body": [
             "@parameter('${1:param_name}', {'required': True, 'uiTitle': '${2:Display Name}'})"
         ],
-        "description": "Parameter stub"
+        "description": "Request UI Parameter"
     }
 }
