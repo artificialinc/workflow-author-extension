@@ -2,6 +2,9 @@
 
 ## Features
 
+![](https://github.com/artificial-smahon/extension/blob/main/resources/readme/assistant_errors.png)
+![](https://github.com/artificial-smahon/extension/blob/main/resources/readme/wfgen.gif)
+![](https://github.com/artificial-smahon/extension/blob/main/resources/readme/drag_drop.gif)
 Generate adapter action stubs for workflows
 Generate assistant action stubs for workflows
 Generate function calls for adapter and assistant actions inside the workflow
