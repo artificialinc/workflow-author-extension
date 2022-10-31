@@ -26,7 +26,7 @@ export class GenerateActionStubs {
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
     pythonContent += 'from typing import List\n\n';
-    pythonContent += 'from artificial.workflows.decorators import assistant, parameter\n\n';
+    pythonContent += 'from artificial.workflows.decorators import assistant, parameter\n\n\n';
     if (!response?.assistants) {
       return;
     }
@@ -36,7 +36,7 @@ export class GenerateActionStubs {
       pythonContent += `async def assistant_${snakeCase(sig.name)}(\n`;
       pythonContent += this.buildAssistantParams(sig);
       pythonContent += `) -> None:\n`;
-      pythonContent += `\tpass\n\n\n`;
+      pythonContent += `    pass\n\n\n`;
     }
 
     fs.writeFile(path.join(this.workspaceRoot, 'workflow', 'stubs_assistants.py'), pythonContent, (err) => {
@@ -49,7 +49,7 @@ export class GenerateActionStubs {
   private buildAssistantParams(sig: Assistant): string {
     let returnString = '';
     for (const parm of sig.parameters) {
-      returnString += `\targ_${snakeCase(parm.typeInfo.name)}: ${this.convertToPythonType(parm.typeInfo)},\n`;
+      returnString += `    arg_${snakeCase(parm.typeInfo.name)}: ${this.convertToPythonType(parm.typeInfo)},\n`;
     }
     return returnString;
   }
