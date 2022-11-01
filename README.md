@@ -3,11 +3,11 @@
 ## Features
 
 Generate workflow binary and json, and one button press publish to namespace.<br/>
-![](https://github.com/artificial-smahon/extension/blob/main/resources/readme/wfgen.gif)<br/>
+![](https://github.com/artificialinc/workflow-author-extension/blob/main/resources/readme/wfgen.gif)<br/>
 Drag and drop config, lab id's, assistant function calls into your workflow.<br/>
-![](https://github.com/artificial-smahon/extension/blob/main/resources/readme/drag_drop.gif)<br/>
+![](https://github.com/artificialinc/workflow-author-extension/blob/main/resources/readme/drag_drop.gif)<br/>
 ID, Type, Param checking for assistants with errors.<br/>
-![](https://github.com/artificial-smahon/extension/blob/main/resources/readme/assistant_errors.png)<br/>
+![](https://github.com/artificialinc/workflow-author-extension/blob/main/resources/readme/assistant_errors.png)<br/>
 Ability to generate assistant stub file<br/>
 
 ## Requirements
