@@ -1,0 +1,69 @@
+name: Artificial, Inc. Workflow Author Extension (Publish)
+on:
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - main
+jobs:
+  tag:
+    name: Tag Build
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup_id.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Versioning
+        id: versioning
+        uses: paulhatch/semantic-version@v5.0.0-alpha2
+        with:
+          tag_prefix: "v"
+          major_pattern: "(MAJOR)"
+          minor_pattern: "(MINOR)"
+          format: "${major}.${minor}.${patch}"
+          short_tags: false
+          bump_each_commit: false
+
+      - name: Set output
+        id: setup_id
+        run: |
+          VERSION=${{ steps.versioning.outputs.major }}.${{ steps.versioning.outputs.minor }}.${{ steps.versioning.outputs.patch }}
+          echo VERSION=$VERSION
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Tag Build
+        continue-on-error: true
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/v${{steps.setup_id.outputs.version}}",
+              sha: context.sha
+            })
+
+  release:
+    runs-on: ubuntu-latest
+    needs: tag
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install the dependencies
+        run: npm i
+
+      - name: Install vsce
+        run: npm i -g vsce
+
+      - name: Publish
+        run: vsce publish -p ${{ secrets.AZURE_MARKETPLACE_TOKEN }}
