@@ -24,26 +24,10 @@ Hand edits to the stubs file will be over-written the next time you generate.<br
 
 ## Known Issues
 
+Generation and publishing of workflows throws errors to the terminal.  User has to be aware and open the terminal to ensure the operation completed successfully.
+
 ## Release Notes
 
 ### 1.0.0
 
 Initial version of extension
-
-#### Blocking Features
-
-Can't import assistant stubs from outside local folder<br/>
-wfgen/upload/update terminal commands, cant fetch results. Would be nice if these were an API/service<br/>
-Could clean up assistant pane if we had an api to fetch assistants by lab<br/>
-Load config needs actual BE or apollo queries, slow to fetch all assets in every lab and build it myself<br/>
-Need a-c 16 to clean up return values & types<br/>
-
-##### TODO
-
-Handle Type imports for python actions<br/>
-Handle discovering actions in different files/modules<br/>
-Multiple modules support<br/>
-Support for installed pip package actions? cellario..etc..?<br/>
-Workflow Config<br/>
-Adapter Config<br/>
-Loading Config<br/>
