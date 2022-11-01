@@ -1,5 +1,3 @@
-Copyright (c) Microsoft Corporation
-
 Copyright (c) Artificial, Inc.
 
 All rights reserved.
