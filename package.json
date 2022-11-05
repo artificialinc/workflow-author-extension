@@ -3,7 +3,11 @@
   "displayName": "Artificial Inc. Workflow Authoring VSCode Extension",
   "description": "Extension to help author Artificial workflows in Orchestration Python",
   "publisher": "artificial",
+  "license": "apache-2.0",
   "private": false,
+  "author": {
+    "name": "Artificial, Inc."
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"

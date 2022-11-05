@@ -1,4 +1,8 @@
-# Artificial-Workflows README
+# Artificial, Inc. Workflow Authoring VSCode Extension
+This extension is not standalone. The Artificial, Inc. devcontainer should be installed to take full advantage of this extension.
+
+The Artificial, Inc. devcontainer, SDK and documentation are available to licensed SDK customers from Artificial, Inc. Please contact an Artificial, Inc. representative to learn more!
+
 
 ## Features
 
@@ -16,7 +20,7 @@ Must have a config.yaml in your root project<br/>
 Config.yaml must specify host and token.<br/>
 
 Must have workflow and adapter folder<br/>
-Must be inside a dev container with access to wfgen and wfupload.<br/>
+Must be inside a dev container with access to `wfgen` and `wfupload`.<br/>
 
 Assistant Stubs are put in the root of the workflows directory in a file named stubs_assistants.py<br/>
 The tool does not find or use hand-made stubs, it assumes it is the sole owner of assistant stubs.<br/>
