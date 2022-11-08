@@ -271,6 +271,7 @@
     "@apollo/client": "^3.6.9",
     "apollo-link-timeout": "^4.0.0",
     "cross-fetch": "^3.1.5",
+    "dotenv": "^16.0.3",
     "glob": "^8.0.3",
     "graphql": "^16.6.0",
     "lodash": "^4.17.21",

@@ -105,8 +105,20 @@ export class ArtificialApollo {
     }
 
     const config = parse(fs.readFileSync(configPath, 'utf-8'));
-    this.hostName = 'https://' + config.artificial.host + '/graphql';
-    this.apiToken = config.artificial.token;
+
+    this.hostName = process.env.ARTIFICIAL_HOST
+      ? 'https://' + process.env.ARTIFICIAL_HOST + '/graphql'
+      : 'https://' + config.artificial.host + '/graphql';
+    //this.hostName = 'https://' + config.artificial.host + '/graphql';
+
+    this.apiToken = process.env.ARTIFICIAL_TOKEN ? process.env.ARTIFICIAL_TOKEN : config.artificial.token;
+
+    if (!this.hostName) {
+      vscode.window.showErrorMessage('Host Name not found in config.yaml');
+    }
+    if (!this.apiToken) {
+      vscode.window.showErrorMessage('API Token not found in artificial.env');
+    }
 
     this.retryLink = new RetryLink({
       delay: {
