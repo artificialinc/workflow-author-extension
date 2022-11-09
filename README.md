@@ -17,10 +17,11 @@ Ability to generate assistant stub file<br/>
 ## Requirements
 
 Must have a config.yaml in your root project<br/>
-Config.yaml must specify host.<br/>
+Config.yaml must specify host, org, and prefix<br/>
 
 Must have a artificial.env in your root project<br/>
 artificial.env must specify ARTIFICIAL_TOKEN=.<br/>
+artificial.env may optionally override host with ARTIFICIAL_HOST=.<br/>
 
 Must have workflow and adapter folder<br/>
 Must be inside a dev container with access to `wfgen` and `wfupload`.<br/>
