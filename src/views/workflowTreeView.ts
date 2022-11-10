@@ -21,6 +21,7 @@ import * as fs from 'fs';
 import { glob } from 'glob';
 import { createVisitor, parse } from 'python-ast';
 import { ArtificialApollo } from '../providers/apolloProvider';
+import { ConfigValues } from '../providers/configProvider';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
   private _onDidChangeTreeData: vscode.EventEmitter<WorkflowTreeElement | undefined | void> = new vscode.EventEmitter<
@@ -78,30 +79,33 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
 
   //TODO: Throw errors to vscode notification
   generateWorkflow(element: WorkflowTreeElement, json: boolean): boolean {
+    const configVals = ConfigValues.getInstance();
     let terminal = vscode.window.activeTerminal;
-    let path;
+    let workflowPath;
     if (!terminal) {
       terminal = vscode.window.createTerminal(`Artificial-Terminal`);
     }
     if (json) {
-      path = element.path + '.json';
+      workflowPath = element.path + '.json';
     } else {
-      path = element.path + '.bin';
+      workflowPath = element.path + '.bin';
     }
-    if (pathExists(path)) {
-      fs.unlink(path, (err) => {
+    if (pathExists(workflowPath)) {
+      fs.unlink(workflowPath, (err) => {
         if (err) {
           console.error(err);
           return;
         }
       });
     }
+    terminal.sendText(`export ARTIFICIAL_HOST=${configVals.getHost()}`);
+    terminal.sendText(`export ARTIFICIAL_TOKEN=${configVals.getToken()}`);
     if (json) {
       terminal.sendText(`wfgen ${element.path} -j`);
     } else {
       terminal.sendText(`wfgen ${element.path}`);
     }
-    if (pathExists(path)) {
+    if (pathExists(workflowPath)) {
       return true;
     }
     return false;

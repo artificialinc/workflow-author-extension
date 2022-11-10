@@ -15,15 +15,11 @@ See the License for the specific language governing permissions and
 */
 
 import { ApolloClient, HttpLink, from, gql } from '@apollo/client/core';
-import * as fs from 'fs';
 import { RetryLink } from '@apollo/client/link/retry';
 import { InMemoryCache } from '@apollo/client/cache/';
 import fetch from 'cross-fetch';
-import { parse } from 'yaml';
-import * as path from 'path';
-import * as vscode from 'vscode';
 import ApolloLinkTimeout from 'apollo-link-timeout';
-import { pathExists } from '../utils';
+import { ConfigValues } from './configProvider';
 export interface LabReply {
   labs: [{ name: string; id: string }];
 }
@@ -90,23 +86,9 @@ export class ArtificialApollo {
   private retryLink;
   public apollo;
   constructor() {
-    let rootPath =
-      vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
-        ? vscode.workspace.workspaceFolders[0].uri.fsPath
-        : undefined;
-    if (!rootPath) {
-      vscode.window.showInformationMessage('No Root Path Found');
-      rootPath = '';
-    }
-
-    const configPath = path.join(rootPath, 'config.yaml');
-    if (!pathExists(configPath)) {
-      vscode.window.showErrorMessage('No config.yaml found for host & token');
-    }
-
-    const config = parse(fs.readFileSync(configPath, 'utf-8'));
-    this.hostName = 'https://' + config.artificial.host + '/graphql';
-    this.apiToken = config.artificial.token;
+    const configVals = ConfigValues.getInstance();
+    this.hostName = 'https://' + configVals.getHost() + '/graphql';
+    this.apiToken = configVals.getToken();
 
     this.retryLink = new RetryLink({
       delay: {

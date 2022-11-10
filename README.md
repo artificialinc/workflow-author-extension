@@ -1,8 +1,8 @@
 # Artificial, Inc. Workflow Authoring VSCode Extension
+
 This extension is not standalone. The Artificial, Inc. devcontainer should be installed to take full advantage of this extension.
 
 The Artificial, Inc. devcontainer, SDK and documentation are available to licensed SDK customers from Artificial, Inc. Please contact an Artificial, Inc. representative to learn more!
-
 
 ## Features
 
@@ -17,7 +17,11 @@ Ability to generate assistant stub file<br/>
 ## Requirements
 
 Must have a config.yaml in your root project<br/>
-Config.yaml must specify host and token.<br/>
+Config.yaml must specify host, org, and prefix<br/>
+
+Must have a artificial.env in your root project<br/>
+artificial.env must specify ARTIFICIAL_TOKEN=.<br/>
+artificial.env may optionally override host with ARTIFICIAL_HOST=.<br/>
 
 Must have workflow and adapter folder<br/>
 Must be inside a dev container with access to `wfgen` and `wfupload`.<br/>
@@ -28,10 +32,4 @@ Hand edits to the stubs file will be over-written the next time you generate.<br
 
 ## Known Issues
 
-Generation and publishing of workflows throws errors to the terminal.  User has to be aware and open the terminal to ensure the operation completed successfully.
-
-## Release Notes
-
-### 1.0.0
-
-Initial version of extension
+Generation and publishing of workflows throws errors to the terminal. User has to be aware and open the terminal to ensure the operation completed successfully.

@@ -24,6 +24,7 @@ import { AssistantByLabTreeView } from './views/assistantTreeView';
 import { ViewFileDecorationProvider } from './providers/decorationProvider';
 import { WorkflowTreeElement, WorkflowTreeView } from './views/workflowTreeView';
 import { ConfigTreeView } from './views/configTreeView';
+import * as dotenv from 'dotenv';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -34,6 +35,7 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
+  dotenv.config({ path: rootPath + '/artificial.env' });
   let devMode = false;
   vscode.commands.registerCommand('artificial-workflows.toggleDevMode', () =>
     vscode.commands.executeCommand('setContext', 'devMode', (devMode = !devMode))
