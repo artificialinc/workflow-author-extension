@@ -41,6 +41,7 @@ export class GenerateActionStubs {
 
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
+    pythonContent += '# flake8: noqa\n';
     pythonContent += 'from typing import List\n\n';
     pythonContent += 'from artificial.workflows.decorators import assistant, parameter\n\n\n';
     if (!response?.assistants) {
