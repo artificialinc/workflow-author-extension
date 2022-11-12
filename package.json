@@ -49,7 +49,12 @@
         "path": "./snippets.json"
       }
     ],
-    "viewsWelcome": [],
+    "viewsWelcome": [
+      {
+        "view": "assistantsByLab",
+        "contents": "No Assistant Stubs found, hit generate to get started.\n[Generate Stubs](command:assistantsByLab.generateStubs)"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
