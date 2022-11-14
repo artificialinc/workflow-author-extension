@@ -20,6 +20,7 @@ import { InMemoryCache } from '@apollo/client/cache/';
 import fetch from 'cross-fetch';
 import ApolloLinkTimeout from 'apollo-link-timeout';
 import { ConfigValues } from './configProvider';
+import * as vscode from 'vscode';
 export interface LabReply {
   labs: [{ name: string; id: string }];
 }
@@ -78,6 +79,8 @@ export interface LabConfigReply {
     schemaDocument: string;
   };
 }
+
+// TODO: This spams vscode error notifications for each query on startup if there is an issue.
 
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
@@ -143,8 +146,7 @@ export class ArtificialApollo {
 
       return this.apollo;
     } catch (err) {
-      console.error('Exception creating apollo client.');
-      console.log(JSON.stringify(err, null, 2));
+      vscode.window.showErrorMessage(`Exception creating apollo client ${err}`);
     }
   }
 
@@ -167,8 +169,10 @@ export class ArtificialApollo {
       if (result && result.data) {
         return result.data;
       }
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 2));
+    } catch (err: any) {
+      vscode.window.showErrorMessage(
+        `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
+      );
     }
   }
 
@@ -204,8 +208,10 @@ export class ArtificialApollo {
       if (result && result.data) {
         return result.data;
       }
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 2));
+    } catch (err: any) {
+      vscode.window.showErrorMessage(
+        `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
+      );
     }
   }
   public async queryLabs(): Promise<LabReply | undefined> {
@@ -228,8 +234,10 @@ export class ArtificialApollo {
       if (result && result.data) {
         return result.data;
       }
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 2));
+    } catch (err: any) {
+      vscode.window.showErrorMessage(
+        `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
+      );
     }
   }
   public async queryConfigs(labId: string): Promise<ConfigReply | undefined> {
@@ -260,8 +268,10 @@ export class ArtificialApollo {
       if (result && result.data) {
         return result.data;
       }
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 2));
+    } catch (err: any) {
+      vscode.window.showErrorMessage(
+        `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
+      );
     }
   }
 
@@ -287,8 +297,10 @@ export class ArtificialApollo {
       if (result && result.data) {
         return result.data;
       }
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 2));
+    } catch (err: any) {
+      vscode.window.showErrorMessage(
+        `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
+      );
     }
   }
 
@@ -312,8 +324,10 @@ export class ArtificialApollo {
       if (result && result.data) {
         return result.data;
       }
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 2));
+    } catch (err: any) {
+      vscode.window.showErrorMessage(
+        `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
+      );
     }
   }
   public async queryOrgConfig(): Promise<OrgConfigReply | undefined> {
@@ -336,8 +350,10 @@ export class ArtificialApollo {
       if (result && result.data) {
         return result.data;
       }
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 2));
+    } catch (err: any) {
+      vscode.window.showErrorMessage(
+        `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
+      );
     }
   }
 
@@ -364,8 +380,10 @@ export class ArtificialApollo {
       if (result && result.data) {
         return result.data;
       }
-    } catch (err) {
-      console.log(JSON.stringify(err, null, 2));
+    } catch (err: any) {
+      vscode.window.showErrorMessage(
+        `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
+      );
     }
   }
 }
