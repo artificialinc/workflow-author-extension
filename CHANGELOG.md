@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1.2]
+
+- Suppress timeout notifications, allow apollo to retry more times.
+
 ## [1.1.1]
 
 - Allow extension to override env variables with artificial.env on activation
