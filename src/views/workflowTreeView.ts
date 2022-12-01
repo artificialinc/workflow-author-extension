@@ -47,7 +47,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
-    const success = this.generateWorkflow(element, true);
+    const success = this.generateWorkflow(element, false);
     if (success) {
       const client = ArtificialApollo.getInstance();
       for (const id in element.workflowIds) {
@@ -57,7 +57,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
       }
     }
-    await this.importWorkflow(element.path + '.json');
+    await this.importWorkflow(element.path + '.bin');
   }
   // async importWorkflows(actions: File) {
   //   const fd = new FormData();

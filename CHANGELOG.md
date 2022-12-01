@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1.3]
+
+- Generate binary workflow for publishing by default
+
 ## [1.1.2]
 
 - Suppress timeout notifications, allow apollo to retry more times.
