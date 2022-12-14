@@ -46,6 +46,20 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     return element;
   }
 
+  findOrCreateTerminal(): vscode.Terminal {
+    let terminal = undefined;
+    for (const term of vscode.window.terminals) {
+      if (term.name === 'Artificial-WF-Terminal') {
+        terminal = term;
+      }
+    }
+    if (!terminal) {
+      terminal = vscode.window.createTerminal(`Artificial-WF-Terminal`);
+    }
+    terminal.show();
+    return terminal;
+  }
+
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
     const success = this.generateWorkflow(element, false);
     if (success) {
@@ -59,32 +73,18 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     }
     await this.importWorkflow(element.path + '.bin');
   }
-  // async importWorkflows(actions: File) {
-  //   const fd = new FormData();
-  //   fd.append('workflows', actions);
-  //   return axios.post(hostname(process.env.VUE_APP_DATA_SERVICE_URL) + '/import-workflows', fd, {
-  //     withCredentials: true,
-  //     headers: { 'content-type': 'application/octet-stream' },
-  //   });
-  // }
 
   // TODO: dump output to text file and parse it to check for success?
   async importWorkflow(path: string) {
-    let terminal = vscode.window.activeTerminal;
-    if (!terminal) {
-      terminal = vscode.window.createTerminal(`Artificial-Terminal`);
-    }
+    const terminal = this.findOrCreateTerminal();
     terminal.sendText(`wfupload ${path}`);
   }
 
   //TODO: Throw errors to vscode notification
   generateWorkflow(element: WorkflowTreeElement, json: boolean): boolean {
     const configVals = ConfigValues.getInstance();
-    let terminal = vscode.window.activeTerminal;
+    const terminal = this.findOrCreateTerminal();
     let workflowPath;
-    if (!terminal) {
-      terminal = vscode.window.createTerminal(`Artificial-Terminal`);
-    }
     if (json) {
       workflowPath = element.path + '.json';
     } else {
