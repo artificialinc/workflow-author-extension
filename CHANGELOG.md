@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1.4]
+
+- Better handling of terminal creation and display while generating or publishing workflows
+
 ## [1.1.3]
 
 - Generate binary workflow for publishing by default
