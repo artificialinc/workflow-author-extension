@@ -37,7 +37,7 @@
       "properties": {
         "artificialWorkflows.assistantStubPath": {
           "type": "string",
-          "default": "workflows/assistant_stubs.py",
+          "default": "workflow/stubs_assistants.py",
           "description": "Path to generate assistant stubs"
         },
         "artificialWorkflows.configPath": {
