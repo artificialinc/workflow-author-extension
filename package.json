@@ -32,6 +32,21 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Artificial Workflow Authoring",
+      "properties": {
+        "artificialWorkflows.assistantStubPath": {
+          "type": "string",
+          "default": "workflows/assistant_stubs.py",
+          "description": "Path to generate assistant stubs"
+        },
+        "artificialWorkflows.configPath": {
+          "type": "string",
+          "default": "config.yaml",
+          "description": "Path to config.yaml"
+        }
+      }
+    },
     "colors": [
       {
         "id": "artificial.typeError",

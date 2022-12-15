@@ -31,7 +31,9 @@ export class ConfigValues {
       vscode.window.showInformationMessage('No Root Path Found');
       rootPath = '';
     }
-    const configPath = path.join(rootPath, 'config.yaml');
+    const customConfigPath = vscode.workspace.getConfiguration('artificialWorkflows').configPath;
+    const configPath = path.join(rootPath, customConfigPath);
+
     if (!pathExists(configPath)) {
       vscode.window.showErrorMessage('No config.yaml found for host & token');
     }

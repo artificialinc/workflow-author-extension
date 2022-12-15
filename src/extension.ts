@@ -25,6 +25,7 @@ import { ViewFileDecorationProvider } from './providers/decorationProvider';
 import { WorkflowTreeElement, WorkflowTreeView } from './views/workflowTreeView';
 import { ConfigTreeView } from './views/configTreeView';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -72,9 +73,11 @@ export async function activate(context: vscode.ExtensionContext) {
   await loadConfigTree.init();
   vscode.commands.registerCommand('loadConfigs.refreshEntry', () => loadConfigTree.refresh());
 
+  const customAssistantStubPath = vscode.workspace.getConfiguration('artificialWorkflows').assistantStubPath;
+  const fullAssistantStubPath = path.join(rootPath, customAssistantStubPath);
   //Assistant Tree and Commands
   const assistantByLab: AssistantByLabTreeView = new AssistantByLabTreeView(
-    rootPath + '/workflow/stubs_assistants.py',
+    fullAssistantStubPath,
     'artificial/assistantByLab/',
     context
   );
