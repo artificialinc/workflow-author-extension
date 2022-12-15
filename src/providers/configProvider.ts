@@ -31,7 +31,7 @@ export class ConfigValues {
       vscode.window.showInformationMessage('No Root Path Found');
       rootPath = '';
     }
-    const customConfigPath = vscode.workspace.getConfiguration('artificialWorkflows').configPath;
+    const customConfigPath = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
     const configPath = path.join(rootPath, customConfigPath);
 
     if (!pathExists(configPath)) {

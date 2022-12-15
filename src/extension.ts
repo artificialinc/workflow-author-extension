@@ -73,7 +73,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await loadConfigTree.init();
   vscode.commands.registerCommand('loadConfigs.refreshEntry', () => loadConfigTree.refresh());
 
-  const customAssistantStubPath = vscode.workspace.getConfiguration('artificialWorkflows').assistantStubPath;
+  const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
   const fullAssistantStubPath = path.join(rootPath, customAssistantStubPath);
   //Assistant Tree and Commands
   const assistantByLab: AssistantByLabTreeView = new AssistantByLabTreeView(

@@ -55,7 +55,7 @@ export class GenerateActionStubs {
       pythonContent += `) -> None:\n`;
       pythonContent += `    pass\n\n\n`;
     }
-    const customAssistantStubPath = vscode.workspace.getConfiguration('artificialWorkflows').assistantStubPath;
+    const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
     fs.writeFile(path.join(this.workspaceRoot, customAssistantStubPath), pythonContent, (err) => {
       if (err) {
         return vscode.window.showErrorMessage('Failed to create boilerplate file!');
