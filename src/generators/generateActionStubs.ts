@@ -19,12 +19,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FunctionSignature } from '../apis/types';
 import { pathExists } from '../utils';
-import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
+import { ArtificialApollo, Assistant, AssistantReply, AssistantTypeInfo } from '../providers/apolloProvider';
 import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase } from 'lodash';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
-import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
+import { AssistantSignature, BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
 import _ = require('lodash');
 
 export class GenerateActionStubs {
@@ -52,8 +52,26 @@ export class GenerateActionStubs {
     if (!response?.assistants) {
       return;
     }
-    let allParamsSorted: string[] = [];
+    let allParamsSorted = this.getAllParamsSorted(response, stubs);
     for (const sig of response?.assistants) {
+      pythonContent += `@assistant('${sig.id}')\n`;
+      pythonContent += this.buildAssistantParmDec(sig, allParamsSorted);
+      pythonContent += `async def assistant_${snakeCase(sig.name)}(\n`;
+      pythonContent += this.buildAssistantParams(sig, allParamsSorted);
+      pythonContent += `) -> None:\n`;
+      pythonContent += `    pass\n\n\n`;
+    }
+
+    fs.writeFile(fullPath, pythonContent, (err) => {
+      if (err) {
+        return vscode.window.showErrorMessage('Failed to create boilerplate file!');
+      }
+    });
+  }
+
+  private getAllParamsSorted(apolloResponse: AssistantReply, stubs: AssistantSignature[]): string[] {
+    let allParamsSorted: string[] = [];
+    for (const sig of apolloResponse?.assistants) {
       let stubParams = [];
       let alabParams = [];
       if (stubs) {
@@ -69,20 +87,8 @@ export class GenerateActionStubs {
         const sortedParams = _.intersection(stubParams, alabParams);
         allParamsSorted = _.concat(sortedParams, _.difference(alabParams, sortedParams));
       }
-
-      pythonContent += `@assistant('${sig.id}')\n`;
-      pythonContent += this.buildAssistantParmDec(sig, allParamsSorted);
-      pythonContent += `async def assistant_${snakeCase(sig.name)}(\n`;
-      pythonContent += this.buildAssistantParams(sig, allParamsSorted);
-      pythonContent += `) -> None:\n`;
-      pythonContent += `    pass\n\n\n`;
     }
-
-    fs.writeFile(fullPath, pythonContent, (err) => {
-      if (err) {
-        return vscode.window.showErrorMessage('Failed to create boilerplate file!');
-      }
-    });
+    return allParamsSorted;
   }
 
   private buildAssistantParams(sig: Assistant, allParamsSorted: string[]): string {
