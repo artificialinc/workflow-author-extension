@@ -52,8 +52,9 @@ export class GenerateActionStubs {
     if (!response?.assistants) {
       return;
     }
-    let allParamsSorted = this.getAllParamsSorted(response, stubs);
+
     for (const sig of response?.assistants) {
+      let allParamsSorted = this.getAllParamsSorted(sig, stubs);
       pythonContent += `@assistant('${sig.id}')\n`;
       pythonContent += this.buildAssistantParmDec(sig, allParamsSorted);
       pythonContent += `async def assistant_${snakeCase(sig.name)}(\n`;
@@ -69,25 +70,25 @@ export class GenerateActionStubs {
     });
   }
 
-  private getAllParamsSorted(apolloResponse: AssistantReply, stubs: AssistantSignature[]): string[] {
+  private getAllParamsSorted(apolloSignature: Assistant, stubs: AssistantSignature[]): string[] {
     let allParamsSorted: string[] = [];
-    for (const sig of apolloResponse?.assistants) {
-      let stubParams = [];
-      let alabParams = [];
-      if (stubs) {
-        const stubSignature = stubs.find((element) => element.actionId === sig.id);
-        if (stubSignature) {
-          for (let param of stubSignature?.parameters) {
-            stubParams.push(param.assistantName);
-          }
+
+    let stubParams = [];
+    let alabParams = [];
+    if (stubs) {
+      const stubSignature = stubs.find((element) => element.actionId === apolloSignature.id);
+      if (stubSignature) {
+        for (let param of stubSignature?.parameters) {
+          stubParams.push(param.assistantName);
         }
-        for (let param of sig.parameters) {
-          alabParams.push(param.typeInfo.name);
-        }
-        const sortedParams = _.intersection(stubParams, alabParams);
-        allParamsSorted = _.concat(sortedParams, _.difference(alabParams, sortedParams));
       }
+      for (let param of apolloSignature.parameters) {
+        alabParams.push(param.typeInfo.name);
+      }
+      const sortedParams = _.intersection(stubParams, alabParams);
+      allParamsSorted = _.concat(sortedParams, _.difference(alabParams, sortedParams));
     }
+
     return allParamsSorted;
   }
 
