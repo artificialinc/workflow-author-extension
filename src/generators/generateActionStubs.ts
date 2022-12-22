@@ -24,6 +24,8 @@ import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase } from 'lodash';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
+import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
+import _ = require('lodash');
 
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
@@ -38,6 +40,9 @@ export class GenerateActionStubs {
   private async generateAssistantStubs(): Promise<void> {
     const client = ArtificialApollo.getInstance();
     const response = await client.queryAssistants();
+    const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
+    const fullPath = path.join(this.workspaceRoot, customAssistantStubPath);
+    const stubs = new BuildAssistantSignatures().build(fullPath);
 
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
@@ -47,26 +52,49 @@ export class GenerateActionStubs {
     if (!response?.assistants) {
       return;
     }
+    let allParamsSorted: string[] = [];
     for (const sig of response?.assistants) {
+      let stubParams = [];
+      let alabParams = [];
+      if (stubs) {
+        const stubSignature = stubs.find((element) => element.actionId === sig.id);
+        if (stubSignature) {
+          for (let param of stubSignature?.parameters) {
+            stubParams.push(param.assistantName);
+          }
+        }
+        for (let param of sig.parameters) {
+          alabParams.push(param.typeInfo.name);
+        }
+        const sortedParams = _.intersection(stubParams, alabParams);
+        allParamsSorted = _.concat(sortedParams, _.difference(alabParams, sortedParams));
+      }
+
       pythonContent += `@assistant('${sig.id}')\n`;
-      pythonContent += this.buildAssistantParmDec(sig);
+      pythonContent += this.buildAssistantParmDec(sig, allParamsSorted);
       pythonContent += `async def assistant_${snakeCase(sig.name)}(\n`;
-      pythonContent += this.buildAssistantParams(sig);
+      pythonContent += this.buildAssistantParams(sig, allParamsSorted);
       pythonContent += `) -> None:\n`;
       pythonContent += `    pass\n\n\n`;
     }
-    const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
-    fs.writeFile(path.join(this.workspaceRoot, customAssistantStubPath), pythonContent, (err) => {
+
+    fs.writeFile(fullPath, pythonContent, (err) => {
       if (err) {
         return vscode.window.showErrorMessage('Failed to create boilerplate file!');
       }
     });
   }
 
-  private buildAssistantParams(sig: Assistant): string {
+  private buildAssistantParams(sig: Assistant, allParamsSorted: string[]): string {
     let returnString = '';
-    for (const parm of sig.parameters) {
-      returnString += `    arg_${snakeCase(parm.typeInfo.name)}: ${this.convertToPythonType(parm.typeInfo)},\n`;
+
+    for (const param of allParamsSorted) {
+      const paramSig = sig.parameters.find((element) => element.typeInfo.name === param);
+      if (paramSig) {
+        returnString += `    arg_${snakeCase(paramSig.typeInfo.name)}: ${this.convertToPythonType(
+          paramSig.typeInfo
+        )},\n`;
+      }
     }
     return returnString;
   }
@@ -99,12 +127,15 @@ export class GenerateActionStubs {
     return returnString;
   }
 
-  private buildAssistantParmDec(sig: Assistant): string {
+  private buildAssistantParmDec(sig: Assistant, allParamsSorted: string[]): string {
     let returnString = '';
-    for (const parm of sig.parameters) {
-      returnString += `@parameter('arg_${snakeCase(parm.typeInfo.name)}', action_parameter_name='${
-        parm.typeInfo.name
-      }')\n`;
+    for (const param of allParamsSorted) {
+      const paramSig = sig.parameters.find((element) => element.typeInfo.name === param);
+      if (paramSig) {
+        returnString += `@parameter('arg_${snakeCase(paramSig.typeInfo.name)}', action_parameter_name='${
+          paramSig.typeInfo.name
+        }')\n`;
+      }
     }
     return returnString;
   }
