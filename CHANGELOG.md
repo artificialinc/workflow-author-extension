@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.3.0]
+
+- Stub generation will maintain assistant parameter ordering
+  - It currently uses the param decorators as the order, not the params themselves as a stop-gap
+
 ## [1.2.0]
 
 - Add configuration to point to:
