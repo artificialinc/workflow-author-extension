@@ -19,7 +19,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FunctionSignature } from '../apis/types';
 import { pathExists } from '../utils';
-import { ArtificialApollo, Assistant, AssistantReply, AssistantTypeInfo } from '../providers/apolloProvider';
+import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
 import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase } from 'lodash';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
