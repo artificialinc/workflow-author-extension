@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "1.1.4",
+  "version": "1.2.0",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -32,6 +32,21 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Artificial Workflow Authoring",
+      "properties": {
+        "artificial.workflow.author.assistantStubPath": {
+          "type": "string",
+          "default": "workflow/stubs_assistants.py",
+          "description": "Path to generate assistant stubs"
+        },
+        "artificial.workflow.author.configPath": {
+          "type": "string",
+          "default": "config.yaml",
+          "description": "Path to config.yaml"
+        }
+      }
+    },
     "colors": [
       {
         "id": "artificial.typeError",

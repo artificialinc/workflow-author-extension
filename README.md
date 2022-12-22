@@ -16,7 +16,7 @@ Ability to generate assistant stub file<br/>
 
 ## Requirements
 
-Must have a config.yaml in your root project<br/>
+Must have a config.yaml in your root project or specify a path to your config.yaml in VS Code extension settings<br/>
 Config.yaml must specify host, org, and prefix<br/>
 
 Must have a artificial.env in your root project<br/>
@@ -27,6 +27,7 @@ Must have workflow and adapter folder<br/>
 Must be inside a dev container with access to `wfgen` and `wfupload`.<br/>
 
 Assistant Stubs are put in the root of the workflows directory in a file named stubs_assistants.py<br/>
+Optionally assistant stubs can have a custom path and file name configured in VS Code extension settings<br/>
 The tool does not find or use hand-made stubs, it assumes it is the sole owner of assistant stubs.<br/>
 Hand edits to the stubs file will be over-written the next time you generate.<br/>
 

@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.2.0]
+
+- Add configuration to point to:
+  1. Assistant stub path: Where to read and generate the assistant stubs
+  2. config.yaml path: Where to read config values from
+
 ## [1.1.4]
 
 - Better handling of terminal creation and display while generating or publishing workflows
