@@ -163,26 +163,42 @@ export class GenerateActionStubs {
       });
     }
     getFilesRecursive(actionPythonPath);
-    let allFunctionSigs = [];
+    let allPythonData = [];
     for (const file of files) {
       if (pathExists(actionPythonPath)) {
-        allFunctionSigs.push(new BuildPythonSignatures().build(file));
+        allPythonData.push(new BuildPythonSignatures().build(file));
       }
     }
 
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
-    pythonContent += 'from typing import List, Tuple\n';
+    pythonContent += 'from typing import Dict, List, Tuple\n';
     pythonContent += 'from dataclasses import dataclass\n';
     pythonContent += 'from artificial.workflows.decorators import action, return_parameter\n\n';
 
-    for (const funcSig of allFunctionSigs) {
-      for (const sig of funcSig.signatures) {
+    for (const singleFileData of allPythonData) {
+      for (const dataclass of singleFileData.sigsAndTypes.dataclasses) {
+        // TODO: Return Parameter decorator
+        // TODO: does not handle nested types eg. t.List[t.List[foo]]
+        // TODO: Need to kill off dataclasses that arent used as a type in @actions
+        // TODO: Capability Support
+        // TODO: TreeView by module
+        // TODO: Separate Generate stubs from generate asssistant stubs
+        // TODO: Progress meter for generating python stubs
+        pythonContent = pythonContent.concat('\n');
+        pythonContent = pythonContent.concat('@dataclass\n');
+        pythonContent = pythonContent.concat('class ' + dataclass.name + ':');
+        pythonContent = pythonContent.concat('\n');
+        for (const member of dataclass.members) {
+          pythonContent = pythonContent.concat('\t' + member.name + member.type + '\n');
+        }
+      }
+      for (const sig of singleFileData.sigsAndTypes.functions) {
         let actionName = '';
         let functionName = '';
-        if (funcSig.module !== '') {
-          actionName = funcSig.module + '/' + sig.name;
-          functionName = funcSig.module + '_' + sig.name;
+        if (singleFileData.module !== '') {
+          actionName = singleFileData.module + '/' + sig.name;
+          functionName = singleFileData.module + '_' + sig.name;
         } else {
           actionName = sig.name;
           functionName = sig.name;

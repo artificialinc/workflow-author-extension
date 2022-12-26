@@ -16,22 +16,15 @@ See the License for the specific language governing permissions and
 
 import * as fs from 'fs';
 import { pathExists } from '../utils';
-import {
-  parse,
-  createVisitor,
-  DecoratedContext,
-  SuiteContext,
-  StmtContext,
-  FuncdefContext,
-  ParseTree,
-} from 'python-ast';
-import { FunctionSignature, Param } from '../apis/types';
+import { parse, createVisitor, DecoratedContext } from 'python-ast';
+import { FunctionSignature, Param, FunctionsAndDataclasses, Dataclass } from '../apis/types';
 
 export class BuildPythonSignatures {
-  build(actionPythonPath: string): { signatures: FunctionSignature[]; module: string } {
+  build(actionPythonPath: string): { sigsAndTypes: FunctionsAndDataclasses; module: string } {
     if (pathExists(actionPythonPath)) {
       const pythonStubs = fs.readFileSync(actionPythonPath, 'utf-8');
       const signatureList: FunctionSignature[] = [];
+      const dataclassList: Dataclass[] = [];
       let adapterModule = '';
 
       const buildSignature = (source: string) => {
@@ -39,44 +32,36 @@ export class BuildPythonSignatures {
 
         return createVisitor({
           visitDecorated: (ast) => {
-            const signature: FunctionSignature = { parameters: [], name: '', returnType: '', moduleName: '' };
+            const signature: FunctionSignature = { parameters: [], name: '', returnType: '' };
             const decoratorName = ast.decorators().decorator(0).dotted_name().text;
             if (decoratorName === 'action' || decoratorName === 'substrate_action') {
               signature.name = this.findFuncName(ast);
               signature.parameters = this.findParamNameAndType(ast);
               signature.returnType = ast?.async_funcdef()?.funcdef().test()?.text ?? '';
+              // TODO: Hacky
+              if (signature.returnType.indexOf('.') !== -1) {
+                signature.returnType = signature.returnType.split('.')[1];
+              }
               signatureList.push(signature);
+            } else if (decoratorName === 'dataclass') {
+              const dataclass: Dataclass = { members: [], name: '' };
+              dataclass.members = this.findDataClassMembers(ast);
+              // TODO: Hacky, must be a better way to fetch class name
+              dataclass.name = ast.classdef()?.getChild(1).text ?? '';
+              dataclassList.push(dataclass);
             }
           },
-          // visitVarargslist: (ast) => {
-          //   console.log(ast.text);
-          // },
           visitFuncdef: (ast) => {
+            // TODO: Hacky, maybe better way to specify and/or find module name
             const funcName = ast.NAME().text;
             if (funcName === '__init__') {
-              // const findModule = (ast: ParseTree) => {
-              //   return createVisitor({
-              //     // eslint-disable-next-line @typescript-eslint/naming-convention
-              //     visitArglist: (ast) => {
-              //       signature.moduleName = ast.text;
-              //     },
-              //   });
-              // };
-              // findModule(ast);
-
-              for (let x = 0; x < ast.childCount; x++) {
-                if (ast.getChild(x) instanceof SuiteContext) {
-                  const body = ast.getChild(x) as SuiteContext;
-                  for (let y = 0; y < body.childCount; y++) {
-                    if (body.getChild(y) instanceof StmtContext) {
-                      const text = body.getChild(y).text.replace(new RegExp("'", 'g'), '');
-                      if (text.match('super')) {
-                        const module = text.split('"')[1];
-                        if (module !== undefined) {
-                          adapterModule = module;
-                        }
-                      }
-                    }
+              const stmts = ast.suite().stmt();
+              for (const stmt of stmts) {
+                const text = stmt.text.replace(new RegExp("'", 'g'), '');
+                if (text.match('super')) {
+                  const module = text.split('"')[1];
+                  if (module !== undefined) {
+                    adapterModule = module;
                   }
                 }
               }
@@ -86,9 +71,9 @@ export class BuildPythonSignatures {
       };
       buildSignature(pythonStubs);
 
-      return { signatures: signatureList, module: adapterModule };
+      return { sigsAndTypes: { functions: signatureList, dataclasses: dataclassList }, module: adapterModule };
     } else {
-      return { signatures: [], module: '' };
+      return { sigsAndTypes: { functions: [], dataclasses: [] }, module: '' };
     }
   }
 
@@ -103,11 +88,48 @@ export class BuildPythonSignatures {
     if (typeList) {
       for (let x = 0; x < typeList?.tfpdef().length; x++) {
         const argName = typeList?.tfpdef(x).NAME().text;
-        const argType = typeList?.tfpdef(x).test()?.text ?? '';
+        let argType = typeList?.tfpdef(x).test()?.text ?? '';
+
+        // TODO: Hacky split to just tear off t.
+        if (argType.indexOf('.') !== -1) {
+          argType = argType.split('.')[1];
+        }
 
         params.push({ name: argName, type: argType });
       }
     }
     return params;
+  }
+
+  private findDataClassMembers(ast: DecoratedContext): Param[] {
+    const statements = ast.classdef()?.suite().stmt();
+    const params: Param[] = [];
+    if (statements) {
+      for (const statement of statements) {
+        const name = statement.simple_stmt()?.small_stmt()[0].expr_stmt()?.testlist_star_expr()[0].text ?? '';
+        let type = statement.simple_stmt()?.small_stmt()[0].expr_stmt()?.annassign()?.text ?? '';
+        //Splits off the t.
+        if (type.indexOf('.') !== -1) {
+          type = type.split('.')[1];
+          type = ': ' + type;
+        }
+        //Splits off the default values
+        if (type.indexOf('=') !== -1) {
+          type = type.split('=')[0];
+        }
+        params.push({ name: name, type: type });
+      }
+    }
+    return params;
+  }
+
+  private findNodeOfType<Type>(ast: any, type: any): Type[] {
+    const nodes = [];
+    for (let x = 0; x < ast.childCount; x++) {
+      if (ast.getChild(x) instanceof type) {
+        nodes.push(ast.getChild(x));
+      }
+    }
+    return nodes;
   }
 }
