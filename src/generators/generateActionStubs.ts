@@ -25,13 +25,13 @@ import { snakeCase } from 'lodash';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { AssistantSignature, BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
   constructor(private workspaceRoot: string, private assistantByLab: AssistantByLabTreeView) {}
   async generateStubs(): Promise<any> {
-    //this.generatePythonStubs();
+    this.generatePythonStubs();
     await this.generateAssistantStubs();
     await this.assistantByLab.refresh();
     vscode.window.showInformationMessage('Created boilerplate files');
@@ -149,46 +149,78 @@ export class GenerateActionStubs {
 
   private generatePythonStubs(): void {
     let funcSigs: FunctionSignature[] = [];
-    const actionPythonPath = path.join(this.workspaceRoot, 'adapter', 'actions.py');
-    if (pathExists(actionPythonPath)) {
-      funcSigs = new BuildPythonSignatures().build(actionPythonPath);
-    } else {
-      vscode.window.showInformationMessage('Workspace has no actions.py');
-      return;
+    const actionPythonPath = path.join(this.workspaceRoot, 'adapter');
+
+    let files: string[] = [];
+    function getFilesRecursive(directory: string) {
+      fs.readdirSync(directory).forEach((file) => {
+        const absolute = path.join(directory, file);
+        if (fs.statSync(absolute).isDirectory()) {
+          return getFilesRecursive(absolute);
+        } else if (absolute.endsWith('.py')) {
+          return files.push(absolute);
+        }
+      });
+    }
+    getFilesRecursive(actionPythonPath);
+    let allFunctionSigs = [];
+    for (const file of files) {
+      if (pathExists(actionPythonPath)) {
+        allFunctionSigs.push(new BuildPythonSignatures().build(file));
+      }
     }
 
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
-    pythonContent += 'from artificial.workflows.decorators import substrate_action\n\n';
+    pythonContent += 'from typing import List, Tuple\n';
+    pythonContent += 'from dataclasses import dataclass\n';
+    pythonContent += 'from artificial.workflows.decorators import action, return_parameter\n\n';
 
-    for (const sig of funcSigs) {
-      pythonContent = pythonContent.concat('\n');
-      pythonContent = pythonContent.concat("@substrate_action('", sig.name, '\', display_name="', sig.name, '")');
-      pythonContent = pythonContent.concat('\n');
-      let functionString = 'async def ' + sig.name + '(';
-      let iterations = sig.parameters.length;
-      for (let param of sig.parameters) {
-        --iterations;
-        if (param.name !== 'self' && param.type !== 'ActionContext' && !param.name.includes('ioraw_')) {
-          functionString += param.name;
-          functionString += ': ';
-          functionString += param.type;
-          // This takes care of trailing comma after last param
-          if (iterations) {
-            functionString += ', ';
+    for (const funcSig of allFunctionSigs) {
+      for (const sig of funcSig.signatures) {
+        let actionName = '';
+        let functionName = '';
+        if (funcSig.module !== '') {
+          actionName = funcSig.module + '/' + sig.name;
+          functionName = funcSig.module + '_' + sig.name;
+        } else {
+          actionName = sig.name;
+          functionName = sig.name;
+        }
+        pythonContent = pythonContent.concat('\n');
+        pythonContent = pythonContent.concat(
+          "@action(capability='', name='",
+          actionName,
+          '\', display_name="',
+          sig.name,
+          '")'
+        );
+        pythonContent = pythonContent.concat('\n');
+        let functionString = 'async def ' + functionName + '(';
+        let iterations = sig.parameters.length;
+        for (let param of sig.parameters) {
+          --iterations;
+          if (param.name !== 'self' && param.type !== 'ActionContext' && !param.name.includes('ioraw_')) {
+            functionString += param.name;
+            functionString += ': ';
+            functionString += param.type;
+            // This takes care of trailing comma after last param
+            if (iterations) {
+              functionString += ', ';
+            }
           }
         }
-      }
 
-      functionString += ')';
-      if (sig.returnType !== '') {
-        functionString += ' -> ';
-        functionString += sig.returnType;
+        functionString += ')';
+        if (sig.returnType !== '') {
+          functionString += ' -> ';
+          functionString += sig.returnType;
+        }
+        functionString += ':';
+        pythonContent = pythonContent.concat(functionString);
+        pythonContent = pythonContent.concat('\n');
+        pythonContent = pythonContent.concat('    pass\n\n');
       }
-      functionString += ':';
-      pythonContent = pythonContent.concat(functionString);
-      pythonContent = pythonContent.concat('\n');
-      pythonContent = pythonContent.concat('    pass\n\n');
     }
 
     fs.writeFile(path.join(this.workspaceRoot, 'workflow', 'stubs_actions.py'), pythonContent, (err) => {

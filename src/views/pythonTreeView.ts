@@ -82,7 +82,7 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
 
   private getFuncsInActionPython(actionPythonPath: string): Function[] {
     const functionSignatures = new BuildPythonSignatures().build(actionPythonPath);
-    const adapterFunctions = functionSignatures.map((funcName: FunctionSignature): Function => {
+    const adapterFunctions = functionSignatures.signatures.map((funcName: FunctionSignature): Function => {
       return new Function(funcName.name, vscode.TreeItemCollapsibleState.None, funcName);
     });
 
