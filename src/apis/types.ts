@@ -23,3 +23,13 @@ export interface FunctionSignature {
   parameters: Param[];
   returnType: string;
 }
+
+export interface FunctionsAndDataclasses {
+  functions: FunctionSignature[];
+  dataclasses: Dataclass[];
+}
+
+export interface Dataclass {
+  name: string;
+  members: Param[];
+}
