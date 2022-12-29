@@ -44,6 +44,11 @@
           "type": "string",
           "default": "config.yaml",
           "description": "Path to config.yaml"
+        },
+        "artificial.workflow.author.adapterActionStubPath": {
+          "type": "string",
+          "default": "workflow/stubs_actions.py",
+          "description": "Path to generate adapter action stubs"
         }
       }
     },
@@ -67,7 +72,11 @@
     "viewsWelcome": [
       {
         "view": "assistantsByLab",
-        "contents": "No Assistant Stubs found, hit generate to get started.\n[Generate Stubs](command:assistantsByLab.generateStubs)"
+        "contents": "No Assistant Stubs found, hit generate to get started.\n[Generate Stubs](command:assistantsByLab.generateAssistantStubs)"
+      },
+      {
+        "view": "pythonActions",
+        "contents": "No Adapter Action Stubs found, hit generate to get started.\n[Generate Stubs](command:pythonActions.generateAdapterStubs)"
       }
     ],
     "viewsContainers": {
@@ -112,8 +121,13 @@
         "category": "Artificial"
       },
       {
-        "command": "assistantsByLab.generateStubs",
-        "title": "Generate Stubs",
+        "command": "assistantsByLab.generateAssistantStubs",
+        "title": "Generate Assistant Stubs",
+        "category": "Artificial"
+      },
+      {
+        "command": "pythonActions.generateAdapterStubs",
+        "title": "Generate Adapter Action Stubs",
         "category": "Artificial"
       },
       {
@@ -217,8 +231,13 @@
           "group": "navigation"
         },
         {
-          "command": "assistantsByLab.generateStubs",
+          "command": "assistantsByLab.generateAssistantStubs",
           "when": "view == assistantsByLab",
+          "group": "navigation"
+        },
+        {
+          "command": "pythonActions.generateAdapterStubs",
+          "when": "view == pythonActions",
           "group": "navigation"
         },
         {

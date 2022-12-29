@@ -20,9 +20,12 @@ import { parse, createVisitor, DecoratedContext } from 'python-ast';
 import { FunctionSignature, Param, FunctionsAndDataclasses, Dataclass } from '../apis/types';
 
 export class BuildPythonSignatures {
-  build(actionPythonPath: string): { sigsAndTypes: FunctionsAndDataclasses; module: string } {
+  build(actionPythonPath: string): { sigsAndTypes: FunctionsAndDataclasses; module: string } | null {
     if (pathExists(actionPythonPath)) {
       const pythonStubs = fs.readFileSync(actionPythonPath, 'utf-8');
+      if (!pythonStubs) {
+        return null;
+      }
       const signatureList: FunctionSignature[] = [];
       const dataclassList: Dataclass[] = [];
       let adapterModule = '';
@@ -70,10 +73,12 @@ export class BuildPythonSignatures {
         }).visit(ast);
       };
       buildSignature(pythonStubs);
-
+      if (signatureList.length === 0 && dataclassList.length === 0 && adapterModule === '') {
+        return null;
+      }
       return { sigsAndTypes: { functions: signatureList, dataclasses: dataclassList }, module: adapterModule };
     } else {
-      return { sigsAndTypes: { functions: [], dataclasses: [] }, module: '' };
+      return null;
     }
   }
 
