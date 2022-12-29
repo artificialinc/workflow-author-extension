@@ -59,7 +59,10 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   //Function Tree and related commands
-  const funcTree = new PythonTreeView(rootPath + '/workflow/stubs_actions.py', context);
+  const customAdapterActionStubPath =
+    vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubPath;
+  const fullAdapterActionStubPath = path.join(rootPath, customAdapterActionStubPath);
+  const funcTree = new PythonTreeView(fullAdapterActionStubPath, context);
   vscode.commands.registerCommand('pythonActions.refreshEntry', () => funcTree.refresh());
   const functionCallProvider = new InsertFunctionCall();
   context.subscriptions.push(
@@ -97,9 +100,15 @@ export async function activate(context: vscode.ExtensionContext) {
   // Generate Stubs
   const generateProvider = new GenerateActionStubs(rootPath, assistantByLab);
   context.subscriptions.push(
-    vscode.commands.registerCommand('assistantsByLab.generateStubs', () => generateProvider.generateStubs())
+    vscode.commands.registerCommand('assistantsByLab.generateAssistantStubs', () =>
+      generateProvider.generateAssistantStubsCommand()
+    )
   );
-
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pythonActions.generateAdapterStubs', () =>
+      generateProvider.generateAdapterActionStubsCommand()
+    )
+  );
   //Drop handler for document editor
   const selector: vscode.DocumentSelector = { language: 'python' };
   context.subscriptions.push(

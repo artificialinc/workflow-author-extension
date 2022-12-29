@@ -30,11 +30,15 @@ import * as _ from 'lodash';
 export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
   constructor(private workspaceRoot: string, private assistantByLab: AssistantByLabTreeView) {}
-  async generateStubs(): Promise<any> {
+  async generateAdapterActionStubsCommand(): Promise<any> {
     this.generatePythonStubs();
+    vscode.window.showInformationMessage('Created Adapter Action Stub File');
+  }
+
+  async generateAssistantStubsCommand(): Promise<any> {
     await this.generateAssistantStubs();
     await this.assistantByLab.refresh();
-    vscode.window.showInformationMessage('Created boilerplate files');
+    vscode.window.showInformationMessage('Created Assistant Stub File');
   }
 
   private async generateAssistantStubs(): Promise<void> {
@@ -169,7 +173,7 @@ export class GenerateActionStubs {
         allPythonData.push(new BuildPythonSignatures().build(file));
       }
     }
-
+    allPythonData = _.compact(allPythonData);
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
     pythonContent += 'from typing import Dict, List, Tuple\n';
@@ -179,18 +183,32 @@ export class GenerateActionStubs {
     for (const singleFileData of allPythonData) {
       for (const dataclass of singleFileData.sigsAndTypes.dataclasses) {
         // TODO: Return Parameter decorator
-        // TODO: does not handle nested types eg. t.List[t.List[foo]]
-        // TODO: Need to kill off dataclasses that arent used as a type in @actions
         // TODO: Capability Support
+        // TODO: does not handle nested types eg. t.List[t.List[foo]]
         // TODO: TreeView by module
         // TODO: Separate Generate stubs from generate asssistant stubs
         // TODO: Progress meter for generating python stubs
-        pythonContent = pythonContent.concat('\n');
-        pythonContent = pythonContent.concat('@dataclass\n');
-        pythonContent = pythonContent.concat('class ' + dataclass.name + ':');
-        pythonContent = pythonContent.concat('\n');
-        for (const member of dataclass.members) {
-          pythonContent = pythonContent.concat('\t' + member.name + member.type + '\n');
+        // TODO: figure out which files are throwing errors when parsed
+
+        let matches = [];
+        for (const findClass of allPythonData) {
+          for (const func of findClass.sigsAndTypes.functions) {
+            matches.push(func.parameters.filter((s) => s.type.includes(dataclass.name)));
+          }
+          // TODO: This needs to also ensure the dataclass referencing it is included in an action stub
+          for (const dataClass of findClass.sigsAndTypes.dataclasses) {
+            matches.push(dataClass.members.filter((s) => s.type.includes(dataclass.name)));
+          }
+        }
+
+        if (_.flatten(matches).length > 0) {
+          pythonContent = pythonContent.concat('\n');
+          pythonContent = pythonContent.concat('@dataclass\n');
+          pythonContent = pythonContent.concat('class ' + dataclass.name + ':');
+          pythonContent = pythonContent.concat('\n');
+          for (const member of dataclass.members) {
+            pythonContent = pythonContent.concat('\t' + member.name + member.type + '\n');
+          }
         }
       }
       for (const sig of singleFileData.sigsAndTypes.functions) {
