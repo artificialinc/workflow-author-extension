@@ -38,8 +38,11 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
       dragAndDropController: this,
     });
     context.subscriptions.push(view);
-    this.treeElements = this.getChildren();
     this.uriPath = 'artificial/python/';
+  }
+
+  async init() {
+    this.treeElements = await this.getChildren();
   }
 
   refresh(): void {
@@ -65,13 +68,13 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
     return element;
   }
 
-  private treeElements: Function[];
-  getChildren(element?: Function): Function[] {
+  private treeElements!: Function[];
+  async getChildren(element?: Function): Promise<Function[]> {
     if (element) {
       return [];
     } else {
       if (pathExists(this.stubPath)) {
-        this.treeElements = this.getFuncsInActionPython(this.stubPath);
+        this.treeElements = await this.getFuncsInActionPython(this.stubPath);
         return this.treeElements;
       } else {
         //vscode.window.showInformationMessage('Workspace has no stubs');
@@ -80,13 +83,15 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
     }
   }
 
-  private getFuncsInActionPython(actionPythonPath: string): Function[] {
-    const pythonData = new BuildPythonSignatures().build(actionPythonPath);
-    const adapterFunctions = pythonData.sigsAndTypes.functions.map((funcName: FunctionSignature): Function => {
-      return new Function(funcName.name, vscode.TreeItemCollapsibleState.None, funcName);
-    });
-
-    return adapterFunctions;
+  private async getFuncsInActionPython(actionPythonPath: string): Promise<Function[]> {
+    const pythonData = await new BuildPythonSignatures().build(actionPythonPath);
+    if (pythonData) {
+      const adapterFunctions = pythonData.sigsAndTypes.functions.map((funcName: FunctionSignature): Function => {
+        return new Function(funcName.name, vscode.TreeItemCollapsibleState.None, funcName);
+      });
+      return adapterFunctions;
+    }
+    return [];
   }
 }
 

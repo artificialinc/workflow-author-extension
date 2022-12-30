@@ -33,3 +33,8 @@ export interface Dataclass {
   name: string;
   members: Param[];
 }
+
+export interface FileData {
+  module: string;
+  sigsAndTypes: FunctionsAndDataclasses;
+}

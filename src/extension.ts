@@ -61,8 +61,10 @@ export async function activate(context: vscode.ExtensionContext) {
   //Function Tree and related commands
   const customAdapterActionStubPath =
     vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubPath;
+
   const fullAdapterActionStubPath = path.join(rootPath, customAdapterActionStubPath);
   const funcTree = new PythonTreeView(fullAdapterActionStubPath, context);
+  funcTree.init();
   vscode.commands.registerCommand('pythonActions.refreshEntry', () => funcTree.refresh());
   const functionCallProvider = new InsertFunctionCall();
   context.subscriptions.push(
