@@ -92,8 +92,7 @@
       "artificial-workflows": [
         {
           "id": "pythonActions",
-          "name": "Adapter Functions",
-          "when": "devMode"
+          "name": "Adapter Functions"
         },
         {
           "id": "assistantsByLab",

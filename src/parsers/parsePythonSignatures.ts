@@ -17,10 +17,10 @@ See the License for the specific language governing permissions and
 import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
-import { FunctionSignature, Param, FunctionsAndDataclasses, Dataclass } from '../apis/types';
+import { FunctionSignature, Param, Dataclass, FileData } from '../apis/types';
 
 export class BuildPythonSignatures {
-  build(actionPythonPath: string): { sigsAndTypes: FunctionsAndDataclasses; module: string } | null {
+  async build(actionPythonPath: string): Promise<FileData | null> {
     if (pathExists(actionPythonPath)) {
       const pythonStubs = fs.readFileSync(actionPythonPath, 'utf-8');
       if (!pythonStubs) {

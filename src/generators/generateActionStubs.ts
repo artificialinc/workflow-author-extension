@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FunctionSignature } from '../apis/types';
+import { FileData } from '../apis/types';
 import { pathExists } from '../utils';
 import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
 import { OutputLog } from '../providers/outputLogProvider';
@@ -31,8 +31,7 @@ export class GenerateActionStubs {
   outputChannel = OutputLog.getInstance();
   constructor(private workspaceRoot: string, private assistantByLab: AssistantByLabTreeView) {}
   async generateAdapterActionStubsCommand(): Promise<any> {
-    this.generatePythonStubs();
-    vscode.window.showInformationMessage('Created Adapter Action Stub File');
+    await this.generatePythonStubs();
   }
 
   async generateAssistantStubsCommand(): Promise<any> {
@@ -151,47 +150,82 @@ export class GenerateActionStubs {
     return returnString;
   }
 
-  private generatePythonStubs(): void {
-    let funcSigs: FunctionSignature[] = [];
-    const actionPythonPath = path.join(this.workspaceRoot, 'adapter');
-
-    let files: string[] = [];
-    function getFilesRecursive(directory: string) {
-      fs.readdirSync(directory).forEach((file) => {
-        const absolute = path.join(directory, file);
-        if (fs.statSync(absolute).isDirectory()) {
-          return getFilesRecursive(absolute);
-        } else if (absolute.endsWith('.py')) {
-          return files.push(absolute);
+  private async generatePythonStubs(): Promise<void> {
+    vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: 'Stub Generation', cancellable: false },
+      async (progress) => {
+        progress.report({ increment: 0 });
+        const actionPythonPath = path.join(this.workspaceRoot, 'adapter');
+        let files: string[] = [];
+        function getFilesRecursive(directory: string) {
+          fs.readdirSync(directory).forEach((file) => {
+            const absolute = path.join(directory, file);
+            if (fs.statSync(absolute).isDirectory()) {
+              return getFilesRecursive(absolute);
+            } else if (absolute.endsWith('.py')) {
+              return files.push(absolute);
+            }
+          });
         }
-      });
-    }
-    getFilesRecursive(actionPythonPath);
-    let allPythonData = [];
-    for (const file of files) {
-      if (pathExists(actionPythonPath)) {
-        allPythonData.push(new BuildPythonSignatures().build(file));
+        getFilesRecursive(actionPythonPath);
+        let allPythonData: (FileData | null)[] = [];
+        for (const [index, file] of files.entries()) {
+          if (pathExists(actionPythonPath)) {
+            const increment = (1 / files.length) * 100;
+            progress.report({ increment: increment });
+            allPythonData.push(await new BuildPythonSignatures().build(file));
+            await new Promise<void>((r) => setTimeout(r, 50));
+          }
+        }
+        const compactedData = _.compact(allPythonData);
+        await this.printStubs(compactedData);
       }
-    }
-    allPythonData = _.compact(allPythonData);
+    );
+  }
+
+  private async printStubs(compactedData: FileData[]) {
+    // const actionPythonPath = path.join(this.workspaceRoot, 'adapter');
+    // let files: string[] = [];
+    // function getFilesRecursive(directory: string) {
+    //   fs.readdirSync(directory).forEach((file) => {
+    //     const absolute = path.join(directory, file);
+    //     if (fs.statSync(absolute).isDirectory()) {
+    //       return getFilesRecursive(absolute);
+    //     } else if (absolute.endsWith('.py')) {
+    //       return files.push(absolute);
+    //     }
+    //   });
+    // }
+    // getFilesRecursive(actionPythonPath);
+    // let allPythonData: (FileData | null)[] = [];
+    // for (const [index, file] of files.entries()) {
+    //   if (pathExists(actionPythonPath)) {
+    //     allPythonData.push(await new BuildPythonSignatures().build(file));
+    //     await new Promise<void>((r) => setTimeout(r, 50));
+    //   }
+    // }
+    // const compactedData = _.compact(allPythonData);
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
     pythonContent += 'from typing import Dict, List, Tuple\n';
     pythonContent += 'from dataclasses import dataclass\n';
     pythonContent += 'from artificial.workflows.decorators import action, return_parameter\n\n';
 
-    for (const singleFileData of allPythonData) {
+    for (const singleFileData of compactedData) {
       for (const dataclass of singleFileData.sigsAndTypes.dataclasses) {
+        // High Prio
         // TODO: Return Parameter decorator
         // TODO: Capability Support
-        // TODO: does not handle nested types eg. t.List[t.List[foo]]
+
+        // Medium Prio
         // TODO: TreeView by module
-        // TODO: Separate Generate stubs from generate asssistant stubs
-        // TODO: Progress meter for generating python stubs
-        // TODO: figure out which files are throwing errors when parsed
+
+        // Low priority
+        // TODO: python-AST throws on walrus operator
+        // TODO: does not handle nested types eg. t.List[t.List[foo]]
 
         let matches = [];
-        for (const findClass of allPythonData) {
+        for (const findClass of compactedData) {
           for (const func of findClass.sigsAndTypes.functions) {
             matches.push(func.parameters.filter((s) => s.type.includes(dataclass.name)));
           }
@@ -256,8 +290,10 @@ export class GenerateActionStubs {
         pythonContent = pythonContent.concat('    pass\n\n');
       }
     }
-
-    fs.writeFile(path.join(this.workspaceRoot, 'workflow', 'stubs_actions.py'), pythonContent, (err) => {
+    const customPythonStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubPath;
+    const fullPath = path.join(this.workspaceRoot, customPythonStubPath);
+    fs.writeFile(path.join(fullPath), pythonContent, (err) => {
+      vscode.window.showInformationMessage('Created Adapter Action Stub File');
       if (err) {
         return vscode.window.showErrorMessage('Failed to create boilerplate file!');
       }
