@@ -127,14 +127,4 @@ export class BuildPythonSignatures {
     }
     return params;
   }
-
-  private findNodeOfType<Type>(ast: any, type: any): Type[] {
-    const nodes = [];
-    for (let x = 0; x < ast.childCount; x++) {
-      if (ast.getChild(x) instanceof type) {
-        nodes.push(ast.getChild(x));
-      }
-    }
-    return nodes;
-  }
 }
