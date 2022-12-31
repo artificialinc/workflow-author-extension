@@ -35,9 +35,18 @@ export class BuildPythonSignatures {
 
         return createVisitor({
           visitDecorated: (ast) => {
-            const signature: FunctionSignature = { parameters: [], name: '', returnType: '' };
+            const signature: FunctionSignature = { parameters: [], name: '', returnType: '', module: 'Default' };
             const decoratorName = ast.decorators().decorator(0).dotted_name().text;
+            // TODO: Can we remove substrate action here?
             if (decoratorName === 'action' || decoratorName === 'substrate_action') {
+              const args = ast?.decorators()?.decorator(0)?.arglist()?.argument() ?? [];
+              for (const arg of args) {
+                if (arg.test(0).text === 'name') {
+                  if (arg.test(1).text.indexOf('/') !== -1) {
+                    signature.module = arg.test(1).text.split('/')[0].replace(new RegExp("'", 'g'), '');
+                  }
+                }
+              }
               signature.name = this.findFuncName(ast);
               signature.parameters = this.findParamNameAndType(ast);
               signature.returnType = ast?.async_funcdef()?.funcdef().test()?.text ?? '';
@@ -49,8 +58,7 @@ export class BuildPythonSignatures {
             } else if (decoratorName === 'dataclass') {
               const dataclass: Dataclass = { members: [], name: '' };
               dataclass.members = this.findDataClassMembers(ast);
-              // TODO: Hacky, must be a better way to fetch class name
-              dataclass.name = ast.classdef()?.getChild(1).text ?? '';
+              dataclass.name = ast.classdef()?.NAME().text ?? '';
               dataclassList.push(dataclass);
             }
           },

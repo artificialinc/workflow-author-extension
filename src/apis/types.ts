@@ -22,6 +22,7 @@ export interface FunctionSignature {
   name: string;
   parameters: Param[];
   returnType: string;
+  module: string;
 }
 
 export interface FunctionsAndDataclasses {
