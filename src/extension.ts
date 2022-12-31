@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { GenerateAssistantStubs } from './generators/generateAssistantStubs';
 import { InsertFunctionCall } from './generators/generateFunctionCall';
 import { DropProvider } from './providers/dropProvider';
-import { PythonTreeView, Function } from './views/pythonTreeView';
+import { PythonTreeView, Function } from './views/adapterActionTreeView';
 import { LoadConfigTreeView } from './views/loadConfigTreeView';
 import { AssistantByLabTreeView } from './views/assistantTreeView';
 import { ViewFileDecorationProvider } from './providers/decorationProvider';
@@ -107,7 +107,7 @@ export async function activate(context: vscode.ExtensionContext) {
       generateAssistantsProvider.generateAssistantStubsCommand()
     )
   );
-  const generateAdapterActionsProvider = new GenerateAdapterActionStubs(rootPath);
+  const generateAdapterActionsProvider = new GenerateAdapterActionStubs(rootPath, funcTree);
   context.subscriptions.push(
     vscode.commands.registerCommand('pythonActions.generateAdapterStubs', () =>
       generateAdapterActionsProvider.generateAdapterActionStubsCommand()

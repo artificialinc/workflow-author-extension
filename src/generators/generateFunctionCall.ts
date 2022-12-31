@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { Function } from '../views/pythonTreeView';
+import { Function } from '../views/adapterActionTreeView';
 import { AssistantSignature } from '../parsers/parseAssistantSignatures';
 import { FunctionSignature } from '../apis/types';
 

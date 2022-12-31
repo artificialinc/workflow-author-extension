@@ -33,10 +33,11 @@ import { pathExists } from '../utils';
 import { OutputLog } from '../providers/outputLogProvider';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 import * as _ from 'lodash';
+import { PythonTreeView } from '../views/adapterActionTreeView';
 
 export class GenerateAdapterActionStubs {
   outputChannel = OutputLog.getInstance();
-  constructor(private workspaceRoot: string) {}
+  constructor(private workspaceRoot: string, private adapterActionTree: PythonTreeView) {}
 
   async generateAdapterActionStubsCommand(): Promise<any> {
     await this.generatePythonStubs();
@@ -95,6 +96,7 @@ export class GenerateAdapterActionStubs {
     const fullPath = path.join(this.workspaceRoot, customPythonStubPath);
     fs.writeFile(path.join(fullPath), pythonContent, (err) => {
       vscode.window.showInformationMessage('Created Adapter Action Stub File');
+      this.adapterActionTree.refresh();
       if (err) {
         return vscode.window.showErrorMessage('Failed to create boilerplate file!');
       }

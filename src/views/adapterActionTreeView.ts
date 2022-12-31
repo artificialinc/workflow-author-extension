@@ -45,7 +45,8 @@ export class PythonTreeView implements vscode.TreeDataProvider<Function>, vscode
     this.treeElements = await this.getChildren();
   }
 
-  refresh(): void {
+  async refresh(): Promise<void> {
+    this.treeElements = await this.getChildren();
     this._onDidChangeTreeData.fire();
   }
 
