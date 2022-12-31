@@ -31,7 +31,7 @@ import * as path from 'path';
 import { FileData } from '../apis/types';
 import { pathExists } from '../utils';
 import { OutputLog } from '../providers/outputLogProvider';
-import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
+import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
 import { PythonTreeView } from '../views/adapterActionTreeView';
 
