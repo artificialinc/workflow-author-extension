@@ -18,12 +18,10 @@ See the License for the specific language governing permissions and
 // TODO: Return Parameter decorator
 // TODO: Capability Support
 
-// Medium Prio
-// TODO: TreeView by module
-
 // Low priority
 // TODO: python-AST throws on walrus operator
 // TODO: does not handle nested types eg. t.List[t.List[foo]]
+// TODO: Display name for adapter action stubs
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
