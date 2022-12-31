@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { GenerateActionStubs } from './generators/generateActionStubs';
+import { GenerateAssistantStubs } from './generators/generateAssistantStubs';
 import { InsertFunctionCall } from './generators/generateFunctionCall';
 import { DropProvider } from './providers/dropProvider';
 import { PythonTreeView, Function } from './views/pythonTreeView';
@@ -26,6 +26,7 @@ import { WorkflowTreeElement, WorkflowTreeView } from './views/workflowTreeView'
 import { ConfigTreeView } from './views/configTreeView';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { GenerateAdapterActionStubs } from './generators/generateAdapterActionStubs';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -100,15 +101,16 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand('configs.refreshEntry', () => configTree.refresh());
 
   // Generate Stubs
-  const generateProvider = new GenerateActionStubs(rootPath, assistantByLab);
+  const generateAssistantsProvider = new GenerateAssistantStubs(rootPath, assistantByLab);
   context.subscriptions.push(
     vscode.commands.registerCommand('assistantsByLab.generateAssistantStubs', () =>
-      generateProvider.generateAssistantStubsCommand()
+      generateAssistantsProvider.generateAssistantStubsCommand()
     )
   );
+  const generateAdapterActionsProvider = new GenerateAdapterActionStubs(rootPath);
   context.subscriptions.push(
     vscode.commands.registerCommand('pythonActions.generateAdapterStubs', () =>
-      generateProvider.generateAdapterActionStubsCommand()
+      generateAdapterActionsProvider.generateAdapterActionStubsCommand()
     )
   );
   //Drop handler for document editor
