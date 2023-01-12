@@ -25,7 +25,7 @@ import { ConfigValues } from '../providers/configProvider';
 import { OutputLog } from '../providers/outputLogProvider';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
-  private oututLog!: OutputLog;
+  private outputLog!: OutputLog;
   private _onDidChangeTreeData: vscode.EventEmitter<WorkflowTreeElement | undefined | void> = new vscode.EventEmitter<
     WorkflowTreeElement | undefined | void
   >();
@@ -37,7 +37,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       showCollapseAll: false,
       canSelectMany: false,
     });
-    this.oututLog = OutputLog.getInstance();
+    this.outputLog = OutputLog.getInstance();
     context.subscriptions.push(view);
   }
 
@@ -70,9 +70,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       for (const id in element.workflowIds) {
         const reply = await client.queryAction(element.workflowIds[id]);
         if (reply) {
-          this.oututLog.log(`Deleting wf ID: ${element.workflowIds[id]}`);
+          this.outputLog.log(`Deleting wf ID: ${element.workflowIds[id]}`);
           await client.deleteAction(element.workflowIds[id]);
-          this.oututLog.log('Deleted');
+          this.outputLog.log('Deleted');
         }
       }
     }
