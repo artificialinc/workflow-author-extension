@@ -317,7 +317,7 @@ export class ArtificialApollo {
           }
         `,
       });
-
+      // TODO: Catch if a bad id is passed and nothing gets deleted
       if (result && result.data) {
         return result.data;
       }

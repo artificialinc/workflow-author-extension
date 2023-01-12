@@ -71,7 +71,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       for (const id in element.workflowIds) {
         const reply = await client.queryAction(element.workflowIds[id]);
         if (reply) {
-          this.oututLog.log(`Deleting wf ID: ${id}`);
+          this.oututLog.log(`Deleting wf ID: ${element.workflowIds[id]}`);
           await client.deleteAction(element.workflowIds[id]);
           this.oututLog.log('Deleted');
         }
