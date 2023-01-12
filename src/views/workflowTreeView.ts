@@ -23,7 +23,6 @@ import { createVisitor, parse } from 'python-ast';
 import { ArtificialApollo } from '../providers/apolloProvider';
 import { ConfigValues } from '../providers/configProvider';
 import { OutputLog } from '../providers/outputLogProvider';
-import { cleanQuotes } from '../utils';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
   private oututLog!: OutputLog;
@@ -158,7 +157,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
             const decoratorName = ast.decorators().decorator(0).dotted_name().text;
             if (decoratorName === 'workflow') {
               isWorkflow = true;
-              workflowIds.push(cleanQuotes(ast.decorators().decorator(0).arglist()?.argument(1).test(0).text ?? ''));
+              workflowIds.push(ast.decorators().decorator(0).arglist()?.argument(1).test(0).text.cleanQuotes() ?? '');
             }
           },
         }).visit(ast);

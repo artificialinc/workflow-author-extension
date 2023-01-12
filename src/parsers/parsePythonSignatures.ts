@@ -18,7 +18,6 @@ import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
 import { FunctionSignature, Param } from '../apis/types';
-import { cleanQuotes } from '../utils';
 
 export class BuildPythonSignatures {
   build(actionPythonPath: string): FunctionSignature[] {
@@ -50,7 +49,7 @@ export class BuildPythonSignatures {
   }
 
   private findFuncName(ast: DecoratedContext): string {
-    return cleanQuotes(ast.async_funcdef()?.funcdef().NAME().text ?? '');
+    return ast.async_funcdef()?.funcdef().NAME().text.cleanQuotes() ?? '';
   }
 
   private findParamNameAndType(ast: DecoratedContext): Param[] {

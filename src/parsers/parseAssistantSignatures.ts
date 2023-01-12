@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
-import { cleanQuotes } from '../utils';
 
 export interface AssistantSignature {
   actionId: string;
@@ -76,15 +75,15 @@ export class BuildAssistantSignatures {
   }
 
   private findActionId(ast: DecoratedContext): string {
-    return cleanQuotes(ast.decorators().decorator(0).arglist()?.argument(0).test(0).text ?? '');
+    return ast.decorators().decorator(0).arglist()?.argument(0).test(0).text.cleanQuotes() ?? '';
   }
 
   private findFuncName(ast: DecoratedContext): string {
-    return cleanQuotes(ast.async_funcdef()?.funcdef().NAME().text ?? '');
+    return ast.async_funcdef()?.funcdef().NAME().text.cleanQuotes() ?? '';
   }
 
   private findName(ast: DecoratedContext, index: number, element: number): string {
-    return cleanQuotes(ast.decorators().decorator(index).arglist()?.argument(element).test(element).text ?? '');
+    return ast.decorators().decorator(index).arglist()?.argument(element).test(element).text.cleanQuotes() ?? '';
   }
 
   private findParamType(paramName: string, ast: DecoratedContext): string {
