@@ -22,8 +22,11 @@ import { glob } from 'glob';
 import { createVisitor, parse } from 'python-ast';
 import { ArtificialApollo } from '../providers/apolloProvider';
 import { ConfigValues } from '../providers/configProvider';
+import { OutputLog } from '../providers/outputLogProvider';
+import { cleanQuotes } from '../utils';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
+  private oututLog!: OutputLog;
   private _onDidChangeTreeData: vscode.EventEmitter<WorkflowTreeElement | undefined | void> = new vscode.EventEmitter<
     WorkflowTreeElement | undefined | void
   >();
@@ -35,6 +38,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       showCollapseAll: false,
       canSelectMany: false,
     });
+    this.oututLog = OutputLog.getInstance();
     context.subscriptions.push(view);
   }
 
@@ -67,7 +71,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       for (const id in element.workflowIds) {
         const reply = await client.queryAction(element.workflowIds[id]);
         if (reply) {
+          this.oututLog.log(`Deleting wf ID: ${id}`);
           await client.deleteAction(element.workflowIds[id]);
+          this.oututLog.log('Deleted');
         }
       }
     }
@@ -152,10 +158,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
             const decoratorName = ast.decorators().decorator(0).dotted_name().text;
             if (decoratorName === 'workflow') {
               isWorkflow = true;
-              workflowIds.push(
-                ast.decorators().decorator(0).arglist()?.argument(1).test(0).text.replace(new RegExp("'", 'g'), '') ??
-                  ''
-              );
+              workflowIds.push(cleanQuotes(ast.decorators().decorator(0).arglist()?.argument(1).test(0).text ?? ''));
             }
           },
         }).visit(ast);
@@ -181,7 +184,7 @@ export class WorkflowTreeElement extends vscode.TreeItem {
   }
   path: string;
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'workflow' + '.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'workflow' + '.svg'),
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'workflow' + '.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'workflow' + '.svg'),
   };
 }

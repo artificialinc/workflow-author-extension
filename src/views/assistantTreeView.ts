@@ -56,6 +56,7 @@ export class AssistantByLabTreeView
     this.assistantResponse = await client.queryAssistants();
     this.assistantSignatures = new BuildAssistantSignatures().build(this.stubPath);
     this.treeElements = await this.getChildren();
+    // setInterval(() => this.refresh(), 60000); TODO: Turn on auto refresh of tree?
     return;
   }
 
@@ -245,8 +246,8 @@ export class AssistantTreeElement extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/assistantByLab/assistant/' + this.label);
   type = 'assistant';
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'assistants.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'assistants.svg'),
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
   };
 }
 export class AssistantTreeElementError extends vscode.TreeItem {
@@ -265,7 +266,7 @@ export class AssistantTreeElementError extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/typeError/assistantByLab/assistant/' + this.functionSignature.name);
   type = 'assistant';
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'assistants.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'assistants.svg'),
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
   };
 }

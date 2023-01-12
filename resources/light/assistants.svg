@@ -1,0 +1,14 @@
+<svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M5.50615 3.57786C6.05702 2.62371 7.27708 2.2968 8.23123 2.84768C9.18537 3.39855 9.51228 4.61861 8.96141 5.57276L5.12911 12.2105C4.57823 13.1646 3.35817 13.4916 2.40403 12.9407C1.44989 12.3898 1.12297 11.1697 1.67385 10.2156L5.50615 3.57786Z" stroke="#BDBDBD" stroke-width="0.819633"/>
+<path d="M8.96065 3.5759C8.40978 2.62176 7.18972 2.29485 6.23557 2.84572C5.28143 3.3966 4.95452 4.61666 5.50539 5.5708L9.33769 12.2085C9.88857 13.1627 11.1086 13.4896 12.0628 12.9387C13.0169 12.3878 13.3438 11.1678 12.793 10.2136L8.96065 3.5759Z" stroke="#BDBDBD" stroke-width="0.819633"/>
+<g clip-path="url(#clip0_4729_40656)">
+<path d="M14.1811 6.58092C15.3735 6.58092 16.3402 5.61425 16.3402 4.42181C16.3402 3.22936 15.3735 2.2627 14.1811 2.2627C12.9886 2.2627 12.022 3.22936 12.022 4.42181C12.022 5.61425 12.9886 6.58092 14.1811 6.58092Z" stroke="#BDBDBD" stroke-width="0.637615" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.1802 3.50487V5.33693" stroke="#BDBDBD" stroke-width="0.637615" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M13.2642 4.4209H15.0962" stroke="#BDBDBD" stroke-width="0.637615" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip0_4729_40656">
+<rect width="5.18187" height="5.18187" fill="white" transform="translate(11.5898 1.83008)"/>
+</clipPath>
+</defs>
+</svg>

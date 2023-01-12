@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.3.1]
+
+- Bug fix for regex on finding workflow ID's and various other elements which caused workflow publishing to fail
+- Fix for icons in tree views
 
 ## [1.3.0]
 
