@@ -75,23 +75,15 @@ export class BuildAssistantSignatures {
   }
 
   private findActionId(ast: DecoratedContext): string {
-    return ast.decorators().decorator(0).arglist()?.argument(0).test(0).text.replace(new RegExp("'", 'g'), '') ?? '';
+    return ast.decorators().decorator(0).arglist()?.argument(0).test(0).text.cleanQuotes() ?? '';
   }
 
   private findFuncName(ast: DecoratedContext): string {
-    return ast.async_funcdef()?.funcdef().NAME().text.replace(new RegExp("'", 'g'), '') ?? '';
+    return ast.async_funcdef()?.funcdef().NAME().text.cleanQuotes() ?? '';
   }
 
   private findName(ast: DecoratedContext, index: number, element: number): string {
-    return (
-      ast
-        .decorators()
-        .decorator(index)
-        .arglist()
-        ?.argument(element)
-        .test(element)
-        .text.replace(new RegExp("'", 'g'), '') ?? ''
-    );
+    return ast.decorators().decorator(index).arglist()?.argument(element).test(element).text.cleanQuotes() ?? '';
   }
 
   private findParamType(paramName: string, ast: DecoratedContext): string {

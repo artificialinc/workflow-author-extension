@@ -51,6 +51,7 @@ export interface Assistant {
   parameters: [
     {
       input: string;
+      index: number;
       typeInfo: AssistantTypeInfo;
     }
   ];
@@ -200,6 +201,7 @@ export class ArtificialApollo {
               }
               parameters {
                 input
+                index
                 typeInfo {
                   name
                   type
@@ -315,7 +317,7 @@ export class ArtificialApollo {
           }
         `,
       });
-
+      // TODO: Catch if a bad id is passed and nothing gets deleted
       if (result && result.data) {
         return result.data;
       }

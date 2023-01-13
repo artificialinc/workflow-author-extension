@@ -165,8 +165,8 @@ export class LabTreeElement extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/loadConfigs/' + 'lab/' + this.labId);
   type = 'lab';
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'labs.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'labs.svg'),
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg'),
   };
 }
 
@@ -184,7 +184,7 @@ export class AssetTreeElement extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/loadConfigs/' + 'asset/' + this.loadConfigId + '/' + this.loadConfigOrder);
   type = 'asset';
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'assets.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'assets.svg'),
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'assets.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assets.svg'),
   };
 }

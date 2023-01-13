@@ -49,7 +49,7 @@ export class BuildPythonSignatures {
   }
 
   private findFuncName(ast: DecoratedContext): string {
-    return ast.async_funcdef()?.funcdef().NAME().text.replace(new RegExp("'", 'g'), '') ?? '';
+    return ast.async_funcdef()?.funcdef().NAME().text.cleanQuotes() ?? '';
   }
 
   private findParamNameAndType(ast: DecoratedContext): Param[] {

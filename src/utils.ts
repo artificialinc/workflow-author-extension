@@ -24,3 +24,7 @@ export function pathExists(p: string): boolean {
   }
   return true;
 }
+
+String.prototype.cleanQuotes = function (): string {
+  return this.replace(new RegExp('\'|"', 'g'), '');
+};

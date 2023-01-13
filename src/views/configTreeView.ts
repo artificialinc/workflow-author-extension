@@ -136,8 +136,8 @@ export class LabHeaderTreeItem extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/configs/lab' + this.label);
 
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'labs.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'labs.svg'),
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg'),
   };
 }
 

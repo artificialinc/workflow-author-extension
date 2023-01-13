@@ -103,7 +103,7 @@ export class Function extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/python/' + this.functionSignature.name);
 
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pythonActions' + '.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pythonActions' + '.svg'),
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'pythonActions' + '.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'pythonActions' + '.svg'),
   };
 }
