@@ -1,6 +1,6 @@
 # Change Log
 
-## [1.3.1]
+## [1.3.2]
 
 - Fix to always generate workflows from within workflow folder
 - Fix to always wfupload from dir with config.yaml
