@@ -20,13 +20,12 @@ jobs:
 
       - name: Versioning
         id: versioning
-        uses: paulhatch/semantic-version@v5.0.0-alpha2
+        uses: paulhatch/semantic-version@v5.0.3
         with:
           tag_prefix: "v"
           major_pattern: "BREAKING CHANGE:"
           minor_pattern: "feat:"
-          format: "${major}.${minor}.${patch}"
-          short_tags: false
+          version_format: "${major}.${minor}.${patch}"
           bump_each_commit: false
 
       - name: Set output

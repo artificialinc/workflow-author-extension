@@ -80,9 +80,12 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   // TODO: dump output to text file and parse it to check for success?
-  async importWorkflow(path: string) {
+  async importWorkflow(filePath: string) {
     const terminal = this.findOrCreateTerminal();
-    terminal.sendText(`wfupload ${path}`);
+    const customConfigPath: string = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
+    const customConfigDir: string = customConfigPath.split('config.yaml')[0];
+    const configPath = path.join(this.stubPath, customConfigDir);
+    terminal.sendText(`(cd ${configPath}; wfupload ${filePath})`);
   }
 
   //TODO: Throw errors to vscode notification
@@ -106,9 +109,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     terminal.sendText(`export ARTIFICIAL_HOST=${configVals.getHost()}`);
     terminal.sendText(`export ARTIFICIAL_TOKEN=${configVals.getToken()}`);
     if (json) {
-      terminal.sendText(`wfgen ${element.path} -j`);
+      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path} -j)`);
     } else {
-      terminal.sendText(`wfgen ${element.path}`);
+      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path})`);
     }
     if (pathExists(workflowPath)) {
       return true;
