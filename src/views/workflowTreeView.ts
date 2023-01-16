@@ -106,8 +106,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
       });
     }
-    terminal.sendText(`export ARTIFICIAL_HOST=${configVals.getHost()}`);
-    terminal.sendText(`export ARTIFICIAL_TOKEN=${configVals.getToken()}`);
+    const customConfigPath = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
+    const configPath = path.join(this.stubPath, customConfigPath);
+    terminal.sendText(`export ARTIFICIAL_CONFIG=${configPath}`);
     if (json) {
       terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path} -j)`);
     } else {
