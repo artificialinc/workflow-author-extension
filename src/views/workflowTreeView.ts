@@ -20,8 +20,6 @@ import { pathExists } from '../utils';
 import * as fs from 'fs';
 import { glob } from 'glob';
 import { createVisitor, parse } from 'python-ast';
-import { ArtificialApollo } from '../providers/apolloProvider';
-import { ConfigValues } from '../providers/configProvider';
 import { OutputLog } from '../providers/outputLogProvider';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
@@ -66,31 +64,17 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
     const success = this.generateWorkflow(element, false);
     if (success) {
-      const client = ArtificialApollo.getInstance();
-      for (const id in element.workflowIds) {
-        const reply = await client.queryAction(element.workflowIds[id]);
-        if (reply) {
-          this.outputLog.log(`Deleting wf ID: ${element.workflowIds[id]}`);
-          await client.deleteAction(element.workflowIds[id]);
-          this.outputLog.log('Deleted');
-        }
-      }
+      const terminal = this.findOrCreateTerminal();
+      const customConfigPath: string = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
+      const fullPath = path.join(this.stubPath, customConfigPath);
+      terminal.sendText(`export ARTIFICIAL_CONFIG=${fullPath}`);
+      const configPath = fullPath.split('config.yaml')[0];
+      terminal.sendText(`(cd ${configPath}; wf publish ${element.path + '.bin'})`);
     }
-    await this.importWorkflow(element.path + '.bin');
-  }
-
-  // TODO: dump output to text file and parse it to check for success?
-  async importWorkflow(filePath: string) {
-    const terminal = this.findOrCreateTerminal();
-    const customConfigPath: string = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
-    const customConfigDir: string = customConfigPath.split('config.yaml')[0];
-    const configPath = path.join(this.stubPath, customConfigDir);
-    terminal.sendText(`(cd ${configPath}; wfupload ${filePath})`);
   }
 
   //TODO: Throw errors to vscode notification
   generateWorkflow(element: WorkflowTreeElement, json: boolean): boolean {
-    const configVals = ConfigValues.getInstance();
     const terminal = this.findOrCreateTerminal();
     let workflowPath;
     if (json) {
@@ -106,8 +90,6 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
       });
     }
-    terminal.sendText(`export ARTIFICIAL_HOST=${configVals.getHost()}`);
-    terminal.sendText(`export ARTIFICIAL_TOKEN=${configVals.getToken()}`);
     if (json) {
       terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path} -j)`);
     } else {
