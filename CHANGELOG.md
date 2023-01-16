@@ -3,7 +3,7 @@
 ## [1.3.2]
 
 - Use artificial-workflows-tools CLI to publish wf's
-- This requires adapter to have artificial-workflows-tools = "\*" in their dev packages
+- This requires adapter to have artificial-workflows-tools = "*" in their dev packages
 
 ## [1.3.2]
 
