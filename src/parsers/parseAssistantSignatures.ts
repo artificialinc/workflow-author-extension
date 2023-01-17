@@ -18,17 +18,6 @@ import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
 
-export interface AssistantSignature {
-  actionId: string;
-  parameters: Param[];
-  name: string;
-}
-interface Param {
-  name: string;
-  type: string;
-  assistantName: string;
-}
-
 export class BuildAssistantSignatures {
   build(actionPythonPath: string): AssistantSignature[] {
     if (pathExists(actionPythonPath)) {
@@ -57,8 +46,8 @@ export class BuildAssistantSignatures {
     }
   }
 
-  private findAssistantParams(ast: DecoratedContext): Param[] {
-    const paramList: Param[] = [];
+  private findAssistantParams(ast: DecoratedContext): AssistantParam[] {
+    const paramList: AssistantParam[] = [];
     for (let x = 1; x < ast.decorators().decorator().length; x++) {
       if (ast.decorators().decorator(x).dotted_name().text === 'parameter') {
         const paramName = this.findName(ast, x, 0);

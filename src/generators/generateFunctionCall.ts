@@ -16,8 +16,6 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import { Function } from '../views/pythonTreeView';
-import { AssistantSignature } from '../parsers/parseAssistantSignatures';
-import { FunctionSignature } from '../apis/types';
 
 export class InsertFunctionCall {
   insertFunction(node: Function): void {

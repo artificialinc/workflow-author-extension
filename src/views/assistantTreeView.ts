@@ -17,15 +17,12 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ArtificialApollo, AssistantReply, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
-import { BuildAssistantSignatures, AssistantSignature } from '../parsers/parseAssistantSignatures';
+import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
 import { LabTreeElement } from './loadConfigTreeView';
 import * as _ from 'lodash';
 
 type TreeElement = LabTreeElement | AssistantTreeElement;
-interface Error {
-  code: number;
-  error: string;
-}
+
 export class AssistantByLabTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
 {
@@ -156,7 +153,7 @@ export class AssistantByLabTreeView
     return treeElements;
   }
 
-  private validParams(stubSignature: AssistantSignature, assistant: Assistant): Error {
+  private validParams(stubSignature: AssistantSignature, assistant: Assistant): AssistantTypeError {
     const stubNames: string[] = [];
     const assistantParamNames: string[] = [];
     for (const param of stubSignature.parameters) {
