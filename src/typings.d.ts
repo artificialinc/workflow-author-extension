@@ -1,3 +1,0 @@
-interface String {
-  cleanQuotes(): string;
-}

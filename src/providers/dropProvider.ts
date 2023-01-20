@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import { PythonTreeView } from '../views/pythonTreeView';
-import { AssistantByLabTreeView, AssistantTreeElement } from '../views/assistantTreeView';
+import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { InsertFunctionCall } from '../generators/generateFunctionCall';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;

@@ -17,14 +17,13 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FunctionSignature } from '../apis/types';
 import { pathExists } from '../utils';
 import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
 import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase } from 'lodash';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
-import { AssistantSignature, BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
+import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
 import _ = require('lodash');
 
 export class GenerateActionStubs {

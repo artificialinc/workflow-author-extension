@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
-import { FunctionSignature, Param } from '../apis/types';
 
 export class BuildPythonSignatures {
   build(actionPythonPath: string): FunctionSignature[] {
