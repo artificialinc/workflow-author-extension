@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.4.1]
+
+- Fix bug, still need to export token from .env for publish
+
 ## [1.4.0]
 
 - Use artificial-workflows-tools CLI to publish wf's
