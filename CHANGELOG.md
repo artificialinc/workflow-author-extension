@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.4.2]
+
+- Fix if workflow decorator is not the first decorator, publish tree will now find it properly
+- Adding sleep to ensure generation completes before moving on to publish
+- Assistant stub generation should now use assistant parameter ordering if it exists in the namespace
+
 ## [1.4.1]
 
 - Fix bug, still need to export token from .env for publish

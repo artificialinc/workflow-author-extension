@@ -69,20 +69,30 @@ export class GenerateActionStubs {
     });
   }
 
+  //TODO: Once we have fully updated all NS to use asst params with indices, this can be removed
   private getAllParamsSorted(apolloSignature: Assistant, stubs: AssistantSignature[]): string[] {
     let allParamsSorted: string[] = [];
-
     let stubParams = [];
     let alabParams = [];
+
+    // Check if asst params have indices set
+    let usingIndices = false;
+    for (let param of apolloSignature.parameters) {
+      alabParams.push(param.typeInfo.name);
+      if (param.index > 0) {
+        usingIndices = true;
+      }
+    }
+    if (usingIndices) {
+      return alabParams;
+    }
+    // If no explicit order set, fallback to using stubs as the order if they exist
     if (stubs) {
       const stubSignature = stubs.find((element) => element.actionId === apolloSignature.id);
       if (stubSignature) {
         for (let param of stubSignature?.parameters) {
           stubParams.push(param.assistantName);
         }
-      }
-      for (let param of apolloSignature.parameters) {
-        alabParams.push(param.typeInfo.name);
       }
       const sortedParams = _.intersection(stubParams, alabParams);
       allParamsSorted = _.concat(sortedParams, _.difference(alabParams, sortedParams));
