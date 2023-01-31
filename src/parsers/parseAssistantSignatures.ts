@@ -29,12 +29,14 @@ export class BuildAssistantSignatures {
 
         return createVisitor({
           visitDecorated: (ast) => {
-            if (ast.decorators().decorator(0).dotted_name().text === 'assistant') {
-              const signature: AssistantSignature = { actionId: '', parameters: [], name: '' };
-              signature.actionId = signature.name = this.findActionId(ast);
-              signature.name = this.findFuncName(ast);
-              signature.parameters = this.findAssistantParams(ast);
-              signatureList.push(signature);
+            for (let decoratorIndex = 0; decoratorIndex < ast.decorators().childCount; decoratorIndex++) {
+              if (ast.decorators().decorator(decoratorIndex).dotted_name().text === 'assistant') {
+                const signature: AssistantSignature = { actionId: '', parameters: [], name: '' };
+                signature.actionId = signature.name = this.findActionId(ast, decoratorIndex);
+                signature.name = this.findFuncName(ast);
+                signature.parameters = this.findAssistantParams(ast);
+                signatureList.push(signature);
+              }
             }
           },
         }).visit(ast);
@@ -63,8 +65,8 @@ export class BuildAssistantSignatures {
     return paramList;
   }
 
-  private findActionId(ast: DecoratedContext): string {
-    return ast.decorators().decorator(0).arglist()?.argument(0).test(0).text.cleanQuotes() ?? '';
+  private findActionId(ast: DecoratedContext, decoratorIndex: number): string {
+    return ast.decorators().decorator(decoratorIndex).arglist()?.argument(0).test(0).text.cleanQuotes() ?? '';
   }
 
   private findFuncName(ast: DecoratedContext): string {
