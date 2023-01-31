@@ -63,7 +63,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
-    const success = this.generateWorkflow(element, false);
+    const success = await this.generateWorkflow(element, false);
     if (success) {
       const terminal = this.findOrCreateTerminal();
       const configVals = ConfigValues.getInstance();
@@ -76,8 +76,12 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     }
   }
 
+  sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   //TODO: Throw errors to vscode notification
-  generateWorkflow(element: WorkflowTreeElement, json: boolean): boolean {
+  async generateWorkflow(element: WorkflowTreeElement, json: boolean): Promise<boolean> {
     const terminal = this.findOrCreateTerminal();
     let workflowPath;
     if (json) {
@@ -98,6 +102,11 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     } else {
       terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path})`);
     }
+    // TODO: No good way to tell if previous command has had time to complete
+    // For now just sleep 2s, so far wfgen is sub-second to complete.
+    // Adding this because sometimes we check to see if its generated too quickly and return false here
+    // which skips the publish
+    await this.sleep(2000);
     if (pathExists(workflowPath)) {
       return true;
     }
@@ -142,10 +151,14 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
 
         return createVisitor({
           visitDecorated: (ast) => {
-            const decoratorName = ast.decorators().decorator(0).dotted_name().text;
-            if (decoratorName === 'workflow') {
-              isWorkflow = true;
-              workflowIds.push(ast.decorators().decorator(0).arglist()?.argument(1).test(0).text.cleanQuotes() ?? '');
+            for (let decoratorIndex = 0; decoratorIndex < ast.decorators().childCount; decoratorIndex++) {
+              const decoratorName = ast.decorators().decorator(decoratorIndex).dotted_name().text;
+              if (decoratorName === 'workflow') {
+                isWorkflow = true;
+                workflowIds.push(
+                  ast.decorators().decorator(decoratorIndex).arglist()?.argument(1).test(0).text.cleanQuotes() ?? ''
+                );
+              }
             }
           },
         }).visit(ast);
