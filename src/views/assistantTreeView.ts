@@ -20,6 +20,7 @@ import { ArtificialApollo, AssistantReply, Assistant, AssistantTypeInfo } from '
 import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
 import { LabTreeElement } from './loadConfigTreeView';
 import * as _ from 'lodash';
+import { camelCase } from 'lodash';
 
 type TreeElement = LabTreeElement | AssistantTreeElement;
 
@@ -134,9 +135,9 @@ export class AssistantByLabTreeView
         if (found.constraint.labId === element.labId) {
           const result = this.validParams(sig, found);
           if (result.code === 0) {
-            treeElements.push(new AssistantTreeElement(sig.name, element.labId, sig));
+            treeElements.push(new AssistantTreeElement(sig.name, element.labId, element.label, sig));
           } else {
-            treeElements.push(new AssistantTreeElementError(sig.name, element.labId, sig, result.error));
+            treeElements.push(new AssistantTreeElementError(sig.name, element.labId, element.label, sig, result.error));
           }
         }
       } else if (element.label === 'UNKNOWN') {
@@ -144,6 +145,7 @@ export class AssistantByLabTreeView
           new AssistantTreeElementError(
             sig.name,
             element.labId,
+            element.label,
             sig,
             'Assistant does not match a known lab in Artificial Cloud'
           )
@@ -158,7 +160,13 @@ export class AssistantByLabTreeView
           if (assistant.constraint.labId === element.labId) {
             const blankSignature: AssistantSignature = { actionId: '', parameters: [], name: '' };
             treeElements.push(
-              new AssistantTreeElementError(assistant.name, element.labId, blankSignature, 'No Stub for ALab Assistant')
+              new AssistantTreeElementError(
+                assistant.name,
+                element.labId,
+                element.label,
+                blankSignature,
+                'No Stub for ALab Assistant'
+              )
             );
           }
         }
@@ -247,6 +255,7 @@ export class AssistantTreeElement extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly labId: string,
+    public readonly labName: string,
     public readonly functionSignature: AssistantSignature
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
@@ -254,7 +263,8 @@ export class AssistantTreeElement extends vscode.TreeItem {
     this.functionSignature = functionSignature;
     this.contextValue = 'ASSISTANT';
   }
-  resourceUri = vscode.Uri.parse('artificial/assistantByLab/assistant/' + this.label);
+  labClassName = this.labName.charAt(0).toUpperCase() + camelCase(this.labName).slice(1) + 'Assistants';
+  resourceUri = vscode.Uri.parse('artificial/assistantByLab/assistant/' + this.labClassName + '/' + this.label);
   type = 'assistant';
   iconPath = {
     light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
@@ -265,6 +275,7 @@ export class AssistantTreeElementError extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly labId: string,
+    public readonly labName: string,
     public readonly functionSignature: AssistantSignature,
     public readonly tooltip: string
   ) {
@@ -274,6 +285,7 @@ export class AssistantTreeElementError extends vscode.TreeItem {
     this.contextValue = 'ASSISTANT';
     this.description = tooltip;
   }
+  labClassName = this.labName.charAt(0).toUpperCase() + camelCase(this.labName).slice(1) + 'Assistants';
   resourceUri = vscode.Uri.parse('artificial/typeError/assistantByLab/assistant/' + this.functionSignature.name);
   type = 'assistant';
   iconPath = {
