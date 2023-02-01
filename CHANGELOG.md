@@ -2,6 +2,7 @@
 
 ## [2.0.0]
 
+- Requires artificial-workflows 0.7.2 in adapter
 - Namespace generated assistants by lab
 - This will require assistant stubs to be regenerated for any existing adapters
 - This will require imports and call sites to be updated for assistants post generation
