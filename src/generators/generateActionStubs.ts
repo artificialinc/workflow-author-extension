@@ -57,8 +57,10 @@ export class GenerateActionStubs {
     }
     for (const lab of labs.labs) {
       pythonContent += `class ${lab.name.charAt(0).toUpperCase() + camelCase(lab.name).slice(1)}Assistants:\n`;
+      let labContainsAssistants = false;
       for (const sig of response.assistants) {
         if (lab.id === sig.constraint.labId) {
+          labContainsAssistants = true;
           let allParamsSorted = this.getAllParamsSorted(sig, stubs);
           pythonContent += `\t@staticmethod\n`;
           pythonContent += `\t@assistant('${sig.id}')\n`;
@@ -68,6 +70,9 @@ export class GenerateActionStubs {
           pythonContent += `\t) -> None:\n`;
           pythonContent += `\t\tpass\n\n\n`;
         }
+      }
+      if (!labContainsAssistants) {
+        pythonContent += '\tpass\n\n\n';
       }
     }
 
