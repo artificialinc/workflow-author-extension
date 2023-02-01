@@ -150,6 +150,20 @@ export class AssistantByLabTreeView
         );
       }
     }
+    // Find cloud assistants with no stubs
+    if (element.label !== 'UNKNOWN') {
+      for (const assistant of response.assistants) {
+        const found = treeElements.find((ele) => ele.functionSignature.actionId === assistant.id);
+        if (!found) {
+          if (assistant.constraint.labId === element.labId) {
+            const blankSignature: AssistantSignature = { actionId: '', parameters: [], name: '' };
+            treeElements.push(
+              new AssistantTreeElementError(assistant.name, element.labId, blankSignature, 'No Stub for ALab Assistant')
+            );
+          }
+        }
+      }
+    }
     return treeElements;
   }
 
