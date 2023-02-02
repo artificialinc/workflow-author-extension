@@ -20,7 +20,7 @@ import * as path from 'path';
 import { pathExists } from '../utils';
 import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
 import { OutputLog } from '../providers/outputLogProvider';
-import { snakeCase } from 'lodash';
+import { snakeCase, camelCase } from 'lodash';
 import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
@@ -51,15 +51,29 @@ export class GenerateActionStubs {
     if (!response?.assistants) {
       return;
     }
-
-    for (const sig of response?.assistants) {
-      let allParamsSorted = this.getAllParamsSorted(sig, stubs);
-      pythonContent += `@assistant('${sig.id}')\n`;
-      pythonContent += this.buildAssistantParmDec(sig, allParamsSorted);
-      pythonContent += `async def assistant_${snakeCase(sig.name)}(\n`;
-      pythonContent += this.buildAssistantParams(sig, allParamsSorted);
-      pythonContent += `) -> None:\n`;
-      pythonContent += `    pass\n\n\n`;
+    const labs = await client.queryLabs();
+    if (!labs) {
+      return;
+    }
+    for (const lab of labs.labs) {
+      pythonContent += `class ${lab.name.charAt(0).toUpperCase() + camelCase(lab.name).slice(1)}Assistants:\n`;
+      let labContainsAssistants = false;
+      for (const sig of response.assistants) {
+        if (lab.id === sig.constraint.labId) {
+          labContainsAssistants = true;
+          let allParamsSorted = this.getAllParamsSorted(sig, stubs);
+          pythonContent += `\t@staticmethod\n`;
+          pythonContent += `\t@assistant('${sig.id}')\n`;
+          pythonContent += this.buildAssistantParmDec(sig, allParamsSorted);
+          pythonContent += `\tasync def assistant_${snakeCase(sig.name)}(\n`;
+          pythonContent += this.buildAssistantParams(sig, allParamsSorted);
+          pythonContent += `\t) -> None:\n`;
+          pythonContent += `\t\tpass\n\n\n`;
+        }
+      }
+      if (!labContainsAssistants) {
+        pythonContent += '\tpass\n\n\n';
+      }
     }
 
     fs.writeFile(fullPath, pythonContent, (err) => {
@@ -107,7 +121,7 @@ export class GenerateActionStubs {
     for (const param of allParamsSorted) {
       const paramSig = sig.parameters.find((element) => element.typeInfo.name === param);
       if (paramSig) {
-        returnString += `    arg_${snakeCase(paramSig.typeInfo.name)}: ${this.convertToPythonType(
+        returnString += `\t\targ_${snakeCase(paramSig.typeInfo.name)}: ${this.convertToPythonType(
           paramSig.typeInfo
         )},\n`;
       }
@@ -148,7 +162,7 @@ export class GenerateActionStubs {
     for (const param of allParamsSorted) {
       const paramSig = sig.parameters.find((element) => element.typeInfo.name === param);
       if (paramSig) {
-        returnString += `@parameter('arg_${snakeCase(paramSig.typeInfo.name)}', action_parameter_name='${
+        returnString += `\t@parameter('arg_${snakeCase(paramSig.typeInfo.name)}', action_parameter_name='${
           paramSig.typeInfo.name
         }')\n`;
       }

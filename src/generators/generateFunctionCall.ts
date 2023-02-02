@@ -21,14 +21,19 @@ export class InsertFunctionCall {
   insertFunction(node: Function): void {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
-      const functionCall = this.buildFunctionCall(node.functionSignature);
+      const functionCall = this.buildFunctionCall(node.functionSignature, '');
       editor.edit((editBuilder) => {
         editBuilder.insert(editor.selection.active, functionCall);
       });
     }
   }
-  buildFunctionCall(signature: FunctionSignature | AssistantSignature): string {
-    let content = 'await ' + signature.name + '(\n';
+  buildFunctionCall(signature: FunctionSignature | AssistantSignature, className: string): string {
+    let content = '';
+    if (className !== '') {
+      content = 'await ' + className + '.' + signature.name + '(\n';
+    } else {
+      content = 'await ' + signature.name + '(\n';
+    }
 
     let functionString = '';
     for (let param of signature.parameters) {

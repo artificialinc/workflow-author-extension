@@ -39,15 +39,18 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
 
     let text = await dataTransferItem.asString();
     let element;
+    let className = '';
     if (text.includes('/python/')) {
       element = this.funcTree.getTreeItemByUri(text);
     }
     if (text.includes('/assistant/')) {
       element = this.assistantTreeByLab.getTreeItemByUri(text);
+      className = text.split('/')[4];
     }
     if (element && 'functionSignature' in element) {
       const insertFuncCall = new InsertFunctionCall();
-      text = insertFuncCall.buildFunctionCall(element.functionSignature);
+      // TODO: Change parser to put the class name in the function signature
+      text = insertFuncCall.buildFunctionCall(element.functionSignature, className);
     }
 
     // TODO: Move this into tree provider or own generator??
