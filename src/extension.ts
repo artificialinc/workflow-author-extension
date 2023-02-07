@@ -24,6 +24,7 @@ import { AssistantByLabTreeView } from './views/assistantTreeView';
 import { ViewFileDecorationProvider } from './providers/decorationProvider';
 import { WorkflowTreeElement, WorkflowTreeView } from './views/workflowTreeView';
 import { ConfigTreeView } from './views/configTreeView';
+import { ConfigValues } from './providers/configProvider';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -106,7 +107,15 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerDocumentDropEditProvider(selector, new DropProvider(funcTree, assistantByLab))
   );
 
-  console.log('Congratulations, your extension "artificial" is now active!');
+  const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+  const configVals = ConfigValues.getInstance();
+  const host = configVals.getHost().split('.')[0];
+  statusBar.text = `$(debug-disconnect) ` + host;
+  statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
+  statusBar.show();
+  context.subscriptions.push(statusBar);
+
+  console.log('Artificial Workflow Extension is active');
 }
 
 export function deactivate() {}

@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.1.0]
+
+- Display what namespace the extension is configured and connected to in the status bar
+
 ## [2.0.0]
 
 - Requires artificial-workflows 0.7.2 in adapter
