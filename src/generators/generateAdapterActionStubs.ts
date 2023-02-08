@@ -26,7 +26,6 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { FileData } from '../apis/types';
 import { pathExists } from '../utils';
 import { OutputLog } from '../providers/outputLogProvider';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';

@@ -17,23 +17,12 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-<<<<<<< HEAD:src/generators/generateAssistantStubs.ts
-import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
-import { OutputLog } from '../providers/outputLogProvider';
-import { snakeCase } from 'lodash';
-import { AssistantByLabTreeView } from '../views/assistantTreeView';
-import { AssistantSignature, BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
-import * as _ from 'lodash';
-=======
-import { pathExists } from '../utils';
 import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
 import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase, camelCase } from 'lodash';
-import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
-import _ = require('lodash');
->>>>>>> main:src/generators/generateActionStubs.ts
+import * as _ from 'lodash';
 
 export class GenerateAssistantStubs {
   outputChannel = OutputLog.getInstance();

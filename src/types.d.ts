@@ -29,17 +29,17 @@ interface FunctionSignature {
   module: string;
 }
 
-export interface FunctionsAndDataclasses {
+interface FunctionsAndDataclasses {
   functions: FunctionSignature[];
   dataclasses: Dataclass[];
 }
 
-export interface Dataclass {
+interface Dataclass {
   name: string;
   members: Param[];
 }
 
-export interface FileData {
+interface FileData {
   module: string;
   sigsAndTypes: FunctionsAndDataclasses;
 }
