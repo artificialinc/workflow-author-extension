@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.2.0]
+
+- Display Adapter Actions from manually created stub files
+
 ## [2.1.0]
 
 - Display what namespace the extension is configured and connected to in the status bar
@@ -24,7 +28,7 @@
 ## [1.4.0]
 
 - Use artificial-workflows-tools CLI to publish wf's
-- This requires adapter to have artificial-workflows-tools = "*" in their dev packages
+- This requires adapter to have artificial-workflows-tools = "\*" in their dev packages
 
 ## [1.3.2]
 
