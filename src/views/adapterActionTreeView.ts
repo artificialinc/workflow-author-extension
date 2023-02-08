@@ -123,6 +123,7 @@ export class Function extends vscode.TreeItem {
     super(functionSignature.name, vscode.TreeItemCollapsibleState.None);
     this.tooltip = `${this.label}`;
     this.functionSignature = functionSignature;
+    this.contextValue = 'FUNCTION';
   }
   resourceUri = vscode.Uri.parse('artificial/python/' + this.functionSignature.name);
   type = 'function';

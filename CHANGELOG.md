@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.2.1]
+
+- Fix bug, only allow adding adapter function calls, not modules through + button.
+
 ## [2.2.0]
 
 - Display Adapter Actions from manually created stub files
