@@ -30,11 +30,11 @@ import { pathExists } from '../utils';
 import { OutputLog } from '../providers/outputLogProvider';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
-import { PythonTreeView } from '../views/adapterActionTreeView';
+import { AdapterActionTreeView } from '../views/adapterActionTreeView';
 
 export class GenerateAdapterActionStubs {
   outputChannel = OutputLog.getInstance();
-  constructor(private workspaceRoot: string, private adapterActionTree: PythonTreeView) {}
+  constructor(private workspaceRoot: string, private adapterActionTree: AdapterActionTreeView) {}
 
   async generateAdapterActionStubsCommand(): Promise<any> {
     await this.generatePythonStubs();

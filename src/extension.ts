@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { GenerateAssistantStubs } from './generators/generateAssistantStubs';
 import { InsertFunctionCall } from './generators/generateFunctionCall';
 import { DropProvider } from './providers/dropProvider';
-import { PythonTreeView, Function } from './views/adapterActionTreeView';
+import { AdapterActionTreeView, Function } from './views/adapterActionTreeView';
 import { LoadConfigTreeView } from './views/loadConfigTreeView';
 import { AssistantByLabTreeView } from './views/assistantTreeView';
 import { ViewFileDecorationProvider } from './providers/decorationProvider';
@@ -65,12 +65,12 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubPath;
 
   const fullAdapterActionStubPath = path.join(rootPath, customAdapterActionStubPath);
-  const funcTree = new PythonTreeView(fullAdapterActionStubPath, context);
+  const funcTree = new AdapterActionTreeView(fullAdapterActionStubPath, context);
   funcTree.init();
-  vscode.commands.registerCommand('pythonActions.refreshEntry', () => funcTree.refresh());
+  vscode.commands.registerCommand('adapterActions.refreshEntry', () => funcTree.refresh());
   const functionCallProvider = new InsertFunctionCall();
   context.subscriptions.push(
-    vscode.commands.registerCommand('pythonActions.addToFile', (node: Function) =>
+    vscode.commands.registerCommand('adapterActions.addToFile', (node: Function) =>
       functionCallProvider.insertFunction(node)
     )
   );
@@ -108,12 +108,14 @@ export async function activate(context: vscode.ExtensionContext) {
       generateAssistantsProvider.generateAssistantStubsCommand()
     )
   );
-  const generateAdapterActionsProvider = new GenerateAdapterActionStubs(rootPath, funcTree);
-  context.subscriptions.push(
-    vscode.commands.registerCommand('pythonActions.generateAdapterStubs', () =>
-      generateAdapterActionsProvider.generateAdapterActionStubsCommand()
-    )
-  );
+
+  // const generateAdapterActionsProvider = new GenerateAdapterActionStubs(rootPath, funcTree);
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand('adapterActions.generateAdapterStubs', () =>
+  //     generateAdapterActionsProvider.generateAdapterActionStubsCommand()
+  //   )
+  // );
+
   //Drop handler for document editor
   const selector: vscode.DocumentSelector = { language: 'python' };
   context.subscriptions.push(

@@ -23,13 +23,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onView:pythonActions",
-    "onView:assistantsByLab",
-    "onView:loadConfigs",
-    "onView:workflows",
-    "onView:configs"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
@@ -73,10 +67,6 @@
       {
         "view": "assistantsByLab",
         "contents": "No Assistant Stubs found, hit generate to get started.\n[Generate Stubs](command:assistantsByLab.generateAssistantStubs)"
-      },
-      {
-        "view": "pythonActions",
-        "contents": "No Adapter Action Stubs found, hit generate to get started.\n[Generate Stubs](command:pythonActions.generateAdapterStubs)"
       }
     ],
     "viewsContainers": {
@@ -91,7 +81,7 @@
     "views": {
       "artificial-workflows": [
         {
-          "id": "pythonActions",
+          "id": "adapterActions",
           "name": "Adapter Functions"
         },
         {
@@ -125,12 +115,7 @@
         "category": "Artificial"
       },
       {
-        "command": "pythonActions.generateAdapterStubs",
-        "title": "Generate Adapter Action Stubs",
-        "category": "Artificial"
-      },
-      {
-        "command": "pythonActions.addToFile",
+        "command": "adapterActions.addToFile",
         "title": "Add Action Function Call to Workflow",
         "category": "Artificial",
         "icon": {
@@ -139,7 +124,7 @@
         }
       },
       {
-        "command": "pythonActions.refreshEntry",
+        "command": "adapterActions.refreshEntry",
         "title": "Refresh Python Functions",
         "category": "Artificial",
         "icon": {
@@ -215,8 +200,8 @@
     "menus": {
       "view/title": [
         {
-          "command": "pythonActions.refreshEntry",
-          "when": "view == pythonActions",
+          "command": "adapterActions.refreshEntry",
+          "when": "view == adapterActions",
           "group": "navigation"
         },
         {
@@ -235,11 +220,6 @@
           "group": "navigation"
         },
         {
-          "command": "pythonActions.generateAdapterStubs",
-          "when": "view == pythonActions",
-          "group": "navigation"
-        },
-        {
           "command": "workflows.refreshEntry",
           "when": "view == workflows",
           "group": "navigation"
@@ -252,8 +232,8 @@
       ],
       "view/item/context": [
         {
-          "command": "pythonActions.addToFile",
-          "when": "view == pythonActions",
+          "command": "adapterActions.addToFile",
+          "when": "view == adapterActions",
           "group": "inline"
         },
         {

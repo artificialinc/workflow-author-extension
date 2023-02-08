@@ -20,10 +20,10 @@ import { pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import _ = require('lodash');
 type TreeElement = Module | Function;
-export class PythonTreeView
+export class AdapterActionTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
 {
-  dropMimeTypes = ['application/vnd.code.tree.pythonActions'];
+  dropMimeTypes = ['application/vnd.code.tree.adapterActions'];
   dragMimeTypes = ['text/uri-list'];
 
   private _onDidChangeTreeData: vscode.EventEmitter<TreeElement | undefined | void> = new vscode.EventEmitter<
@@ -33,7 +33,7 @@ export class PythonTreeView
   readonly onDidChangeTreeData: vscode.Event<TreeElement | undefined | void> = this._onDidChangeTreeData.event;
   private uriPath: string;
   constructor(private stubPath: string, context: vscode.ExtensionContext) {
-    const view = vscode.window.createTreeView('pythonActions', {
+    const view = vscode.window.createTreeView('adapterActions', {
       treeDataProvider: this,
       showCollapseAll: true,
       canSelectMany: false,
