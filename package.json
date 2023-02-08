@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "2.2.0",
+  "version": "2.2.1",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -233,7 +233,7 @@
       "view/item/context": [
         {
           "command": "adapterActions.addToFile",
-          "when": "view == adapterActions",
+          "when": "view == adapterActions && viewItem == FUNCTION",
           "group": "inline"
         },
         {
