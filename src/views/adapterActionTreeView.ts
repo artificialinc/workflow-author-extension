@@ -16,7 +16,6 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { FunctionSignature } from '../apis/types';
 import { pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import _ = require('lodash');

@@ -14,11 +14,15 @@ See the License for the specific language governing permissions and
  limitations under the License. 
 */
 
-export interface Param {
+interface String {
+  cleanQuotes(): string;
+}
+
+interface Param {
   name: string;
   type: string;
 }
-export interface FunctionSignature {
+interface FunctionSignature {
   name: string;
   parameters: Param[];
   returnType: string;
@@ -38,4 +42,21 @@ export interface Dataclass {
 export interface FileData {
   module: string;
   sigsAndTypes: FunctionsAndDataclasses;
+}
+
+interface AssistantSignature {
+  actionId: string;
+  parameters: AssistantParam[];
+  name: string;
+}
+
+interface AssistantParam {
+  name: string;
+  type: string;
+  assistantName: string;
+}
+
+interface AssistantTypeError {
+  code: number;
+  error: string;
 }

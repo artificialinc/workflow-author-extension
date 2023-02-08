@@ -18,17 +18,6 @@ import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
 
-export interface AssistantSignature {
-  actionId: string;
-  parameters: Param[];
-  name: string;
-}
-interface Param {
-  name: string;
-  type: string;
-  assistantName: string;
-}
-
 export class BuildAssistantSignatures {
   build(actionPythonPath: string): AssistantSignature[] {
     if (pathExists(actionPythonPath)) {
@@ -40,12 +29,14 @@ export class BuildAssistantSignatures {
 
         return createVisitor({
           visitDecorated: (ast) => {
-            if (ast.decorators().decorator(0).dotted_name().text === 'assistant') {
-              const signature: AssistantSignature = { actionId: '', parameters: [], name: '' };
-              signature.actionId = signature.name = this.findActionId(ast);
-              signature.name = this.findFuncName(ast);
-              signature.parameters = this.findAssistantParams(ast);
-              signatureList.push(signature);
+            for (let decoratorIndex = 0; decoratorIndex < ast.decorators().childCount; decoratorIndex++) {
+              if (ast.decorators().decorator(decoratorIndex).dotted_name().text === 'assistant') {
+                const signature: AssistantSignature = { actionId: '', parameters: [], name: '' };
+                signature.actionId = signature.name = this.findActionId(ast, decoratorIndex);
+                signature.name = this.findFuncName(ast);
+                signature.parameters = this.findAssistantParams(ast);
+                signatureList.push(signature);
+              }
             }
           },
         }).visit(ast);
@@ -57,8 +48,8 @@ export class BuildAssistantSignatures {
     }
   }
 
-  private findAssistantParams(ast: DecoratedContext): Param[] {
-    const paramList: Param[] = [];
+  private findAssistantParams(ast: DecoratedContext): AssistantParam[] {
+    const paramList: AssistantParam[] = [];
     for (let x = 1; x < ast.decorators().decorator().length; x++) {
       if (ast.decorators().decorator(x).dotted_name().text === 'parameter') {
         const paramName = this.findName(ast, x, 0);
@@ -74,8 +65,8 @@ export class BuildAssistantSignatures {
     return paramList;
   }
 
-  private findActionId(ast: DecoratedContext): string {
-    return ast.decorators().decorator(0).arglist()?.argument(0).test(0).text.cleanQuotes() ?? '';
+  private findActionId(ast: DecoratedContext, decoratorIndex: number): string {
+    return ast.decorators().decorator(decoratorIndex).arglist()?.argument(0).test(0).text.cleanQuotes() ?? '';
   }
 
   private findFuncName(ast: DecoratedContext): string {

@@ -1,5 +1,31 @@
 # Change Log
 
+## [2.1.0]
+
+- Display what namespace the extension is configured and connected to in the status bar
+
+## [2.0.0]
+
+- Requires artificial-workflows 0.7.2 in adapter
+- Namespace generated assistants by lab
+- This will require assistant stubs to be regenerated for any existing adapters
+- This will require imports and call sites to be updated for assistants post generation
+
+## [1.4.2]
+
+- Fix if workflow decorator is not the first decorator, publish tree will now find it properly
+- Adding sleep to ensure generation completes before moving on to publish
+- Assistant stub generation should now use assistant parameter ordering if it exists in the namespace
+
+## [1.4.1]
+
+- Fix bug, still need to export token from .env for publish
+
+## [1.4.0]
+
+- Use artificial-workflows-tools CLI to publish wf's
+- This requires adapter to have artificial-workflows-tools = "*" in their dev packages
+
 ## [1.3.2]
 
 - Fix to always generate workflows from within workflow folder

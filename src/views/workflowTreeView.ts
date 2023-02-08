@@ -20,9 +20,8 @@ import { pathExists } from '../utils';
 import * as fs from 'fs';
 import { glob } from 'glob';
 import { createVisitor, parse } from 'python-ast';
-import { ArtificialApollo } from '../providers/apolloProvider';
-import { ConfigValues } from '../providers/configProvider';
 import { OutputLog } from '../providers/outputLogProvider';
+import { ConfigValues } from '../providers/configProvider';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
   private outputLog!: OutputLog;
@@ -64,33 +63,25 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
-    const success = this.generateWorkflow(element, false);
+    const success = await this.generateWorkflow(element, false);
     if (success) {
-      const client = ArtificialApollo.getInstance();
-      for (const id in element.workflowIds) {
-        const reply = await client.queryAction(element.workflowIds[id]);
-        if (reply) {
-          this.outputLog.log(`Deleting wf ID: ${element.workflowIds[id]}`);
-          await client.deleteAction(element.workflowIds[id]);
-          this.outputLog.log('Deleted');
-        }
-      }
+      const terminal = this.findOrCreateTerminal();
+      const configVals = ConfigValues.getInstance();
+      terminal.sendText(`export ARTIFICIAL_TOKEN=${configVals.getToken()}`);
+      const customConfigPath: string = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
+      const fullPath = path.join(this.stubPath, customConfigPath);
+      terminal.sendText(`export ARTIFICIAL_CONFIG=${fullPath}`);
+      const configPath = fullPath.split('config.yaml')[0];
+      terminal.sendText(`(cd ${configPath}; wf publish ${element.path + '.bin'})`);
     }
-    await this.importWorkflow(element.path + '.bin');
   }
 
-  // TODO: dump output to text file and parse it to check for success?
-  async importWorkflow(filePath: string) {
-    const terminal = this.findOrCreateTerminal();
-    const customConfigPath: string = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
-    const customConfigDir: string = customConfigPath.split('config.yaml')[0];
-    const configPath = path.join(this.stubPath, customConfigDir);
-    terminal.sendText(`(cd ${configPath}; wfupload ${filePath})`);
+  sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   //TODO: Throw errors to vscode notification
-  generateWorkflow(element: WorkflowTreeElement, json: boolean): boolean {
-    const configVals = ConfigValues.getInstance();
+  async generateWorkflow(element: WorkflowTreeElement, json: boolean): Promise<boolean> {
     const terminal = this.findOrCreateTerminal();
     let workflowPath;
     if (json) {
@@ -106,14 +97,16 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
       });
     }
-    const customConfigPath = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
-    const configPath = path.join(this.stubPath, customConfigPath);
-    terminal.sendText(`export ARTIFICIAL_CONFIG=${configPath}`);
     if (json) {
       terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path} -j)`);
     } else {
       terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path})`);
     }
+    // TODO: No good way to tell if previous command has had time to complete
+    // For now just sleep 2s, so far wfgen is sub-second to complete.
+    // Adding this because sometimes we check to see if its generated too quickly and return false here
+    // which skips the publish
+    await this.sleep(2000);
     if (pathExists(workflowPath)) {
       return true;
     }
@@ -158,10 +151,14 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
 
         return createVisitor({
           visitDecorated: (ast) => {
-            const decoratorName = ast.decorators().decorator(0).dotted_name().text;
-            if (decoratorName === 'workflow') {
-              isWorkflow = true;
-              workflowIds.push(ast.decorators().decorator(0).arglist()?.argument(1).test(0).text.cleanQuotes() ?? '');
+            for (let decoratorIndex = 0; decoratorIndex < ast.decorators().childCount; decoratorIndex++) {
+              const decoratorName = ast.decorators().decorator(decoratorIndex).dotted_name().text;
+              if (decoratorName === 'workflow') {
+                isWorkflow = true;
+                workflowIds.push(
+                  ast.decorators().decorator(decoratorIndex).arglist()?.argument(1).test(0).text.cleanQuotes() ?? ''
+                );
+              }
             }
           },
         }).visit(ast);

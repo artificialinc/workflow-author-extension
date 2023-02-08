@@ -15,8 +15,8 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { PythonTreeView } from '../views/adapterActionTreeView';
-import { AssistantByLabTreeView, AssistantTreeElement } from '../views/assistantTreeView';
+import { PythonTreeView } from '../views/pythonTreeView';
+import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { InsertFunctionCall } from '../generators/generateFunctionCall';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;
@@ -39,15 +39,18 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
 
     let text = await dataTransferItem.asString();
     let element;
+    let className = '';
     if (text.includes('/python/')) {
       element = this.funcTree.getTreeItemByUri(text);
     }
     if (text.includes('/assistant/')) {
       element = this.assistantTreeByLab.getTreeItemByUri(text);
+      className = text.split('/')[4];
     }
     if (element && 'functionSignature' in element) {
       const insertFuncCall = new InsertFunctionCall();
-      text = insertFuncCall.buildFunctionCall(element.functionSignature);
+      // TODO: Change parser to put the class name in the function signature
+      text = insertFuncCall.buildFunctionCall(element.functionSignature, className);
     }
 
     // TODO: Move this into tree provider or own generator??

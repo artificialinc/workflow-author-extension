@@ -15,22 +15,25 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { Function } from '../views/adapterActionTreeView';
-import { AssistantSignature } from '../parsers/parseAssistantSignatures';
-import { FunctionSignature } from '../apis/types';
+import { Function } from '../views/pythonTreeView';
 
 export class InsertFunctionCall {
   insertFunction(node: Function): void {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
-      const functionCall = this.buildFunctionCall(node.functionSignature);
+      const functionCall = this.buildFunctionCall(node.functionSignature, '');
       editor.edit((editBuilder) => {
         editBuilder.insert(editor.selection.active, functionCall);
       });
     }
   }
-  buildFunctionCall(signature: FunctionSignature | AssistantSignature): string {
-    let content = 'await ' + signature.name + '(\n';
+  buildFunctionCall(signature: FunctionSignature | AssistantSignature, className: string): string {
+    let content = '';
+    if (className !== '') {
+      content = 'await ' + className + '.' + signature.name + '(\n';
+    } else {
+      content = 'await ' + signature.name + '(\n';
+    }
 
     let functionString = '';
     for (let param of signature.parameters) {

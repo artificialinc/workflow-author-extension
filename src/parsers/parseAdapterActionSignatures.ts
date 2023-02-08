@@ -17,7 +17,10 @@ See the License for the specific language governing permissions and
 import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
+<<<<<<< HEAD:src/parsers/parseAdapterActionSignatures.ts
 import { FunctionSignature, Param, Dataclass, FileData } from '../apis/types';
+=======
+>>>>>>> main:src/parsers/parsePythonSignatures.ts
 
 export class BuildPythonSignatures {
   async build(actionPythonPath: string): Promise<FileData | null> {

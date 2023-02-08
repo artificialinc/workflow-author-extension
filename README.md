@@ -24,7 +24,7 @@ artificial.env must specify ARTIFICIAL_TOKEN=.<br/>
 artificial.env may optionally override host with ARTIFICIAL_HOST=.<br/>
 
 Must have workflow and adapter folder<br/>
-Must be inside a dev container with access to `wfgen` and `wfupload`.<br/>
+Must be inside a dev container with access to `wfgen` and `wf publish`.<br/>
 
 Assistant Stubs are put in the root of the workflows directory in a file named stubs_assistants.py<br/>
 Optionally assistant stubs can have a custom path and file name configured in VS Code extension settings<br/>
