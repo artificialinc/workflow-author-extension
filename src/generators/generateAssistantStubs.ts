@@ -17,23 +17,21 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { pathExists } from '../utils';
 import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
 import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase, camelCase } from 'lodash';
-import { BuildPythonSignatures } from '../parsers/parsePythonSignatures';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
-import _ = require('lodash');
+import * as _ from 'lodash';
 
-export class GenerateActionStubs {
+export class GenerateAssistantStubs {
   outputChannel = OutputLog.getInstance();
   constructor(private workspaceRoot: string, private assistantByLab: AssistantByLabTreeView) {}
-  async generateStubs(): Promise<any> {
-    //this.generatePythonStubs();
+
+  async generateAssistantStubsCommand(): Promise<any> {
     await this.generateAssistantStubs();
     await this.assistantByLab.refresh();
-    vscode.window.showInformationMessage('Created boilerplate files');
+    vscode.window.showInformationMessage('Created Assistant Stub File');
   }
 
   private async generateAssistantStubs(): Promise<void> {
@@ -168,56 +166,5 @@ export class GenerateActionStubs {
       }
     }
     return returnString;
-  }
-
-  private generatePythonStubs(): void {
-    let funcSigs: FunctionSignature[] = [];
-    const actionPythonPath = path.join(this.workspaceRoot, 'adapter', 'actions.py');
-    if (pathExists(actionPythonPath)) {
-      funcSigs = new BuildPythonSignatures().build(actionPythonPath);
-    } else {
-      vscode.window.showInformationMessage('Workspace has no actions.py');
-      return;
-    }
-
-    let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
-    pythonContent += '# REGEN USING EXTENSION\n';
-    pythonContent += 'from artificial.workflows.decorators import substrate_action\n\n';
-
-    for (const sig of funcSigs) {
-      pythonContent = pythonContent.concat('\n');
-      pythonContent = pythonContent.concat("@substrate_action('", sig.name, '\', display_name="', sig.name, '")');
-      pythonContent = pythonContent.concat('\n');
-      let functionString = 'async def ' + sig.name + '(';
-      let iterations = sig.parameters.length;
-      for (let param of sig.parameters) {
-        --iterations;
-        if (param.name !== 'self' && param.type !== 'ActionContext' && !param.name.includes('ioraw_')) {
-          functionString += param.name;
-          functionString += ': ';
-          functionString += param.type;
-          // This takes care of trailing comma after last param
-          if (iterations) {
-            functionString += ', ';
-          }
-        }
-      }
-
-      functionString += ')';
-      if (sig.returnType !== '') {
-        functionString += ' -> ';
-        functionString += sig.returnType;
-      }
-      functionString += ':';
-      pythonContent = pythonContent.concat(functionString);
-      pythonContent = pythonContent.concat('\n');
-      pythonContent = pythonContent.concat('    pass\n\n');
-    }
-
-    fs.writeFile(path.join(this.workspaceRoot, 'workflow', 'stubs_actions.py'), pythonContent, (err) => {
-      if (err) {
-        return vscode.window.showErrorMessage('Failed to create boilerplate file!');
-      }
-    });
   }
 }

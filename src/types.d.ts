@@ -26,6 +26,22 @@ interface FunctionSignature {
   name: string;
   parameters: Param[];
   returnType: string;
+  module: string;
+}
+
+interface FunctionsAndDataclasses {
+  functions: FunctionSignature[];
+  dataclasses: Dataclass[];
+}
+
+interface Dataclass {
+  name: string;
+  members: Param[];
+}
+
+interface FileData {
+  module: string;
+  sigsAndTypes: FunctionsAndDataclasses;
 }
 
 interface AssistantSignature {

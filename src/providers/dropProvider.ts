@@ -15,13 +15,13 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { PythonTreeView } from '../views/pythonTreeView';
+import { AdapterActionTreeView } from '../views/adapterActionTreeView';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { InsertFunctionCall } from '../generators/generateFunctionCall';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;
   private assistantTreeByLab;
-  constructor(functionTree: PythonTreeView, assistantTreeByLab: AssistantByLabTreeView) {
+  constructor(functionTree: AdapterActionTreeView, assistantTreeByLab: AssistantByLabTreeView) {
     this.funcTree = functionTree;
     this.assistantTreeByLab = assistantTreeByLab;
   }

@@ -15,10 +15,10 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { GenerateActionStubs } from './generators/generateActionStubs';
+import { GenerateAssistantStubs } from './generators/generateAssistantStubs';
 import { InsertFunctionCall } from './generators/generateFunctionCall';
 import { DropProvider } from './providers/dropProvider';
-import { PythonTreeView, Function } from './views/pythonTreeView';
+import { AdapterActionTreeView, Function } from './views/adapterActionTreeView';
 import { LoadConfigTreeView } from './views/loadConfigTreeView';
 import { AssistantByLabTreeView } from './views/assistantTreeView';
 import { ViewFileDecorationProvider } from './providers/decorationProvider';
@@ -27,6 +27,7 @@ import { ConfigTreeView } from './views/configTreeView';
 import { ConfigValues } from './providers/configProvider';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { GenerateAdapterActionStubs } from './generators/generateAdapterActionStubs';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -60,11 +61,16 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   //Function Tree and related commands
-  const funcTree = new PythonTreeView(rootPath + '/workflow/stubs_actions.py', context);
-  vscode.commands.registerCommand('pythonActions.refreshEntry', () => funcTree.refresh());
+  const customAdapterActionStubPath =
+    vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubPath;
+
+  const fullAdapterActionStubPath = path.join(rootPath, customAdapterActionStubPath);
+  const funcTree = new AdapterActionTreeView(fullAdapterActionStubPath, context);
+  funcTree.init();
+  vscode.commands.registerCommand('adapterActions.refreshEntry', () => funcTree.refresh());
   const functionCallProvider = new InsertFunctionCall();
   context.subscriptions.push(
-    vscode.commands.registerCommand('pythonActions.addToFile', (node: Function) =>
+    vscode.commands.registerCommand('adapterActions.addToFile', (node: Function) =>
       functionCallProvider.insertFunction(node)
     )
   );
@@ -96,10 +102,19 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.registerCommand('configs.refreshEntry', () => configTree.refresh());
 
   // Generate Stubs
-  const generateProvider = new GenerateActionStubs(rootPath, assistantByLab);
+  const generateAssistantsProvider = new GenerateAssistantStubs(rootPath, assistantByLab);
   context.subscriptions.push(
-    vscode.commands.registerCommand('assistantsByLab.generateStubs', () => generateProvider.generateStubs())
+    vscode.commands.registerCommand('assistantsByLab.generateAssistantStubs', () =>
+      generateAssistantsProvider.generateAssistantStubsCommand()
+    )
   );
+
+  // const generateAdapterActionsProvider = new GenerateAdapterActionStubs(rootPath, funcTree);
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand('adapterActions.generateAdapterStubs', () =>
+  //     generateAdapterActionsProvider.generateAdapterActionStubsCommand()
+  //   )
+  // );
 
   //Drop handler for document editor
   const selector: vscode.DocumentSelector = { language: 'python' };

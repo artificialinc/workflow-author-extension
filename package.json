@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "2.1.0",
+  "version": "2.2.0",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -23,13 +23,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onView:pythonActions",
-    "onView:assistantsByLab",
-    "onView:loadConfigs",
-    "onView:workflows",
-    "onView:configs"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
@@ -44,6 +38,11 @@
           "type": "string",
           "default": "config.yaml",
           "description": "Path to config.yaml"
+        },
+        "artificial.workflow.author.adapterActionStubPath": {
+          "type": "string",
+          "default": "workflow/stubs_actions.py",
+          "description": "Path to generate adapter action stubs"
         }
       }
     },
@@ -67,7 +66,7 @@
     "viewsWelcome": [
       {
         "view": "assistantsByLab",
-        "contents": "No Assistant Stubs found, hit generate to get started.\n[Generate Stubs](command:assistantsByLab.generateStubs)"
+        "contents": "No Assistant Stubs found, hit generate to get started.\n[Generate Stubs](command:assistantsByLab.generateAssistantStubs)"
       }
     ],
     "viewsContainers": {
@@ -82,9 +81,8 @@
     "views": {
       "artificial-workflows": [
         {
-          "id": "pythonActions",
-          "name": "Adapter Functions",
-          "when": "devMode"
+          "id": "adapterActions",
+          "name": "Adapter Functions"
         },
         {
           "id": "assistantsByLab",
@@ -112,12 +110,12 @@
         "category": "Artificial"
       },
       {
-        "command": "assistantsByLab.generateStubs",
-        "title": "Generate Stubs",
+        "command": "assistantsByLab.generateAssistantStubs",
+        "title": "Generate Assistant Stubs",
         "category": "Artificial"
       },
       {
-        "command": "pythonActions.addToFile",
+        "command": "adapterActions.addToFile",
         "title": "Add Action Function Call to Workflow",
         "category": "Artificial",
         "icon": {
@@ -126,7 +124,7 @@
         }
       },
       {
-        "command": "pythonActions.refreshEntry",
+        "command": "adapterActions.refreshEntry",
         "title": "Refresh Python Functions",
         "category": "Artificial",
         "icon": {
@@ -202,8 +200,8 @@
     "menus": {
       "view/title": [
         {
-          "command": "pythonActions.refreshEntry",
-          "when": "view == pythonActions",
+          "command": "adapterActions.refreshEntry",
+          "when": "view == adapterActions",
           "group": "navigation"
         },
         {
@@ -217,7 +215,7 @@
           "group": "navigation"
         },
         {
-          "command": "assistantsByLab.generateStubs",
+          "command": "assistantsByLab.generateAssistantStubs",
           "when": "view == assistantsByLab",
           "group": "navigation"
         },
@@ -234,8 +232,8 @@
       ],
       "view/item/context": [
         {
-          "command": "pythonActions.addToFile",
-          "when": "view == pythonActions",
+          "command": "adapterActions.addToFile",
+          "when": "view == adapterActions",
           "group": "inline"
         },
         {
