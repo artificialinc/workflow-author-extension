@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.2.2]
+
+- Fix bug, properly clean quotes from adapter module name and function names.
+- Fix drag and drop, URI stopped being passed in plain text by default by vscode.
+
 ## [2.2.1]
 
 - Fix bug, only allow adding adapter function calls, not modules through + button.
