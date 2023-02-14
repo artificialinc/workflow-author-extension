@@ -42,7 +42,7 @@ export class BuildPythonSignatures {
               for (const arg of args) {
                 if (arg.test(0).text === 'name') {
                   if (arg.test(1).text.indexOf('/') !== -1) {
-                    signature.module = arg.test(1).text.split('/')[0].replace(new RegExp("'", 'g'), '');
+                    signature.module = arg.test(1).text.split('/')[0].cleanQuotes();
                   }
                 }
               }
@@ -67,7 +67,7 @@ export class BuildPythonSignatures {
             if (funcName === '__init__') {
               const stmts = ast.suite().stmt();
               for (const stmt of stmts) {
-                const text = stmt.text.replace(new RegExp("'", 'g'), '');
+                const text = stmt.text.cleanQuotes();
                 if (text.match('super')) {
                   const module = text.split('"')[1];
                   if (module !== undefined) {

@@ -79,7 +79,7 @@ export class AssistantByLabTreeView
 
   getTreeItemByUri(uri: string): TreeElement | undefined {
     const element = this.treeElements.find((sig) => {
-      if (sig.resourceUri.toString() === 'file://' + uri) {
+      if (sig.resourceUri.toString() === uri) {
         return sig;
       }
     });

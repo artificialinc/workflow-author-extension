@@ -20,8 +20,12 @@ import { Function } from '../views/adapterActionTreeView';
 export class InsertFunctionCall {
   insertFunction(node: Function): void {
     const editor = vscode.window.activeTextEditor;
+    let className = '';
     if (editor) {
-      const functionCall = this.buildFunctionCall(node.functionSignature, '');
+      if (node.resourceUri.toString().includes('/assistant/')) {
+        className = node.resourceUri.toString().split('/')[6];
+      }
+      const functionCall = this.buildFunctionCall(node.functionSignature, className);
       editor.edit((editBuilder) => {
         editBuilder.insert(editor.selection.active, functionCall);
       });

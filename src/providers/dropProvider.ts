@@ -32,7 +32,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     token: vscode.CancellationToken
   ): Promise<vscode.DocumentDropEdit | undefined> {
     // Check the data transfer to see if we have some kind of text data
-    const dataTransferItem = dataTransfer.get('text') ?? dataTransfer.get('text/plain');
+    const dataTransferItem = dataTransfer.get('text/uri-list');
     if (!dataTransferItem) {
       return undefined;
     }
@@ -45,7 +45,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     }
     if (text.includes('/assistant/')) {
       element = this.assistantTreeByLab.getTreeItemByUri(text);
-      className = text.split('/')[4];
+      className = text.split('/')[6];
     }
     if (element && 'functionSignature' in element) {
       const insertFuncCall = new InsertFunctionCall();
