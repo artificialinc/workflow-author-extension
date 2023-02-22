@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.2.3]
+
+- Adapter tree view incorrectly cleared tree items when viewing new child of tree, breaking drag & drop
+
 ## [2.2.2]
 
 - Fix bug, properly clean quotes from adapter module name and function names.
