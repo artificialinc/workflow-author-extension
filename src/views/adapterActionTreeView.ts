@@ -44,10 +44,12 @@ export class AdapterActionTreeView
   }
 
   async init() {
+    this.treeElements = [];
     this.treeElements = await this.getChildren();
   }
 
   async refresh(): Promise<void> {
+    this.treeElements = [];
     this.treeElements = await this.getChildren();
     this._onDidChangeTreeData.fire();
   }
@@ -74,7 +76,6 @@ export class AdapterActionTreeView
   private treeElements!: TreeElement[];
   private functionSignatures!: FunctionSignature[];
   async getChildren(element?: TreeElement): Promise<TreeElement[]> {
-    this.treeElements = [];
     if (element) {
       if (element.type === 'module') {
         const functions = this.getFunctions(element.label);
