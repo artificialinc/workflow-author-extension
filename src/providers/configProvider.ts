@@ -40,7 +40,7 @@ export class ConfigValues {
 
     const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
 
-    this.hostName = process.env.ARTIFICIAL_HOST ? process.env.ARTIFICIAL_HOST : config.artificial.host;
+    this.hostName = config.artificial.host;
 
     this.apiToken = process.env.ARTIFICIAL_TOKEN ? process.env.ARTIFICIAL_TOKEN : config.artificial.token;
 
