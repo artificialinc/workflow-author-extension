@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.2.4]
+
+- Fix for config, only can override token from artificial.env, not host
+
 ## [2.2.3]
 
 - Adapter tree view incorrectly cleared tree items when viewing new child of tree, breaking drag & drop
