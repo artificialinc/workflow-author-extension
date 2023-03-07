@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.3.0]
+
+- No more custom config. All connection info comes from .env
+
 ## [2.2.4]
 
 - Fix for config, only can override token from artificial.env, not host
