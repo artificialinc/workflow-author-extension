@@ -21,7 +21,6 @@ import * as fs from 'fs';
 import { glob } from 'glob';
 import { createVisitor, parse } from 'python-ast';
 import { OutputLog } from '../providers/outputLogProvider';
-import { ConfigValues } from '../providers/configProvider';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
   private outputLog!: OutputLog;
@@ -66,13 +65,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     const success = await this.generateWorkflow(element, false);
     if (success) {
       const terminal = this.findOrCreateTerminal();
-      const configVals = ConfigValues.getInstance();
-      terminal.sendText(`export ARTIFICIAL_TOKEN=${configVals.getToken()}`);
-      const customConfigPath: string = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
-      const fullPath = path.join(this.stubPath, customConfigPath);
-      terminal.sendText(`export ARTIFICIAL_CONFIG=${fullPath}`);
-      const configPath = fullPath.split('config.yaml')[0];
-      terminal.sendText(`(cd ${configPath}; wf publish ${element.path + '.bin'})`);
+      terminal.sendText(`(wf publish ${element.path + '.bin'})`);
     }
   }
 

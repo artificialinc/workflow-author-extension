@@ -38,7 +38,7 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
-  dotenv.config({ override: true, path: rootPath + '/artificial.env' });
+  //dotenv.config({ override: true, path: rootPath + '/artificial.env' });
   let devMode = false;
   vscode.commands.registerCommand('artificial-workflows.toggleDevMode', () =>
     vscode.commands.executeCommand('setContext', 'devMode', (devMode = !devMode))

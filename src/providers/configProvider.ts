@@ -15,37 +15,16 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { pathExists } from '../utils';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as parse from 'yaml';
 
 export class ConfigValues {
   private static instance: ConfigValues;
   private constructor(private hostName: string = '', private apiToken: string = '') {
-    let rootPath =
-      vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
-        ? vscode.workspace.workspaceFolders[0].uri.fsPath
-        : undefined;
-    if (!rootPath) {
-      vscode.window.showInformationMessage('No Root Path Found');
-      rootPath = '';
-    }
-    const customConfigPath = vscode.workspace.getConfiguration('artificial.workflow.author').configPath;
-    const configPath = path.join(rootPath, customConfigPath);
+    this.hostName = process.env.ARTIFICIAL_HOST ?? '';
 
-    if (!pathExists(configPath)) {
-      vscode.window.showErrorMessage('No config.yaml found for host & token');
-    }
-
-    const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
-
-    this.hostName = config.artificial.host;
-
-    this.apiToken = process.env.ARTIFICIAL_TOKEN ? process.env.ARTIFICIAL_TOKEN : config.artificial.token;
+    this.apiToken = process.env.ARTIFICIAL_TOKEN ?? '';
 
     if (!this.hostName) {
-      vscode.window.showErrorMessage('Host Name not found in config.yaml');
+      vscode.window.showErrorMessage('Host Name not found in artificial.env');
     }
     if (!this.apiToken) {
       vscode.window.showErrorMessage('API Token not found in artificial.env');
