@@ -15,20 +15,14 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-
+import * as parse from 'yaml';
+import * as path from 'path';
+import { pathExists } from '../utils';
+import * as fs from 'fs';
 export class ConfigValues {
   private static instance: ConfigValues;
   private constructor(private hostName: string = '', private apiToken: string = '') {
-    this.hostName = process.env.ARTIFICIAL_HOST ?? '';
-
-    this.apiToken = process.env.ARTIFICIAL_TOKEN ?? '';
-
-    if (!this.hostName) {
-      vscode.window.showErrorMessage('Host Name not found in artificial.env');
-    }
-    if (!this.apiToken) {
-      vscode.window.showErrorMessage('API Token not found in artificial.env');
-    }
+    this.reset();
   }
   public static getInstance(): ConfigValues {
     if (!ConfigValues.instance) {
@@ -41,5 +35,33 @@ export class ConfigValues {
   }
   public getToken() {
     return this.apiToken;
+  }
+  public reset() {
+    let rootPath =
+      vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
+        ? vscode.workspace.workspaceFolders[0].uri.fsPath
+        : undefined;
+    if (!rootPath) {
+      vscode.window.showInformationMessage('No Root Path Found');
+      rootPath = '';
+    }
+    const configPath = path.join(rootPath, 'tmp/merged.yaml');
+
+    if (!pathExists(configPath)) {
+      vscode.window.showErrorMessage('No config found for host & token');
+    }
+
+    const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
+
+    this.hostName = config.artificial.host ?? '';
+
+    this.apiToken = config.artificial.token ?? '';
+
+    if (!this.hostName) {
+      vscode.window.showErrorMessage('Host Name not found in artificial.env');
+    }
+    if (!this.apiToken) {
+      vscode.window.showErrorMessage('API Token not found in artificial.env');
+    }
   }
 }

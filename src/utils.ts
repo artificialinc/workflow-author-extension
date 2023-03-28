@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 */
 
 import * as fs from 'fs';
+import * as vscode from 'vscode';
 
 export function pathExists(p: string): boolean {
   try {
@@ -28,3 +29,19 @@ export function pathExists(p: string): boolean {
 String.prototype.cleanQuotes = function (): string {
   return this.replace(new RegExp('\'|"', 'g'), '');
 };
+
+export function findOrCreateTerminal(showTerminal: boolean = false): vscode.Terminal {
+  let terminal = undefined;
+  for (const term of vscode.window.terminals) {
+    if (term.name === 'Artificial-WF-Terminal') {
+      terminal = term;
+    }
+  }
+  if (!terminal) {
+    terminal = vscode.window.createTerminal(`Artificial-WF-Terminal`);
+  }
+  if (showTerminal) {
+    terminal.show();
+  }
+  return terminal;
+}

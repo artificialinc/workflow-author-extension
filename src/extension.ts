@@ -25,9 +25,11 @@ import { ViewFileDecorationProvider } from './providers/decorationProvider';
 import { WorkflowTreeElement, WorkflowTreeView } from './views/workflowTreeView';
 import { ConfigTreeView } from './views/configTreeView';
 import { ConfigValues } from './providers/configProvider';
+import { findOrCreateTerminal } from './utils';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { GenerateAdapterActionStubs } from './generators/generateAdapterActionStubs';
+import { ArtificialApollo } from './providers/apolloProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -129,6 +131,25 @@ export async function activate(context: vscode.ExtensionContext) {
   statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
   statusBar.show();
   context.subscriptions.push(statusBar);
+
+  const watcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(rootPath + '/config', '**/*.yaml')
+  );
+
+  // listen to files being changed
+  watcher.onDidChange((uri) => {
+    const terminal = findOrCreateTerminal();
+    //This needs to handle dumping to a folder, and folder not existing..etc...
+    terminal.sendText('python gen stuff');
+    configVals.reset();
+    const client = ArtificialApollo.getInstance();
+    client.reset();
+    statusBar.text = `$(debug-disconnect) ` + configVals.getHost().split('.')[0];
+    statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
+    assistantByLab.refresh();
+    loadConfigTree.refresh();
+  });
+  context.subscriptions.push(watcher);
 
   console.log('Artificial Workflow Extension is active');
 }

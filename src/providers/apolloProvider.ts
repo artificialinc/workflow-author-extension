@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import { ApolloClient, HttpLink, from, gql } from '@apollo/client/core';
 import { RetryLink } from '@apollo/client/link/retry';
-import { InMemoryCache } from '@apollo/client/cache/';
+import { InMemoryCache, NormalizedCacheObject } from '@apollo/client/cache/';
 import fetch from 'cross-fetch';
 import ApolloLinkTimeout from 'apollo-link-timeout';
 import { ConfigValues } from './configProvider';
@@ -86,17 +86,24 @@ export interface LabConfigReply {
 
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
-  private hostName;
-  private apiToken;
-  private retryLink;
-  public apollo;
+  public apollo: ApolloClient<NormalizedCacheObject> | undefined;
   private outputLog;
   constructor() {
-    const configVals = ConfigValues.getInstance();
-    this.hostName = 'https://' + configVals.getHost() + '/graphql';
-    this.apiToken = configVals.getToken();
     this.outputLog = OutputLog.getInstance();
-    this.retryLink = new RetryLink({
+    this.apollo = this.createApollo();
+  }
+  public static getInstance(): ArtificialApollo {
+    if (!ArtificialApollo.instance) {
+      ArtificialApollo.instance = new ArtificialApollo();
+    }
+    return ArtificialApollo.instance;
+  }
+  private createApollo(): any {
+    const configVals = ConfigValues.getInstance();
+    const hostName = 'https://' + configVals.getHost() + '/graphql';
+    const apiToken = configVals.getToken();
+
+    const retryLink = new RetryLink({
       delay: {
         initial: 100,
         max: 2000,
@@ -107,15 +114,6 @@ export class ArtificialApollo {
         retryIf: (error, _operation) => !!error,
       },
     });
-    this.apollo = this.createApollo();
-  }
-  public static getInstance(): ArtificialApollo {
-    if (!ArtificialApollo.instance) {
-      ArtificialApollo.instance = new ArtificialApollo();
-    }
-    return ArtificialApollo.instance;
-  }
-  private createApollo(): any {
     try {
       if (this.apollo) {
         console.log('Tried to create duplicate apollo client.');
@@ -123,19 +121,19 @@ export class ArtificialApollo {
       }
 
       const httpLink = new HttpLink({
-        uri: this.hostName,
+        uri: hostName,
         credentials: 'include',
         headers: {
-          authorization: `Bearer ${this.apiToken}`,
+          authorization: `Bearer ${apiToken}`,
           cookie: `artificial-org=${'artificial'}`,
         },
         fetch,
       });
       const timeoutLink = new ApolloLinkTimeout(3000);
       const timeoutHttpLink = timeoutLink.concat(httpLink);
-      console.log('Hostname: ', this.hostName);
+      console.log('Hostname: ', hostName);
       this.apollo = new ApolloClient({
-        link: from([this.retryLink, timeoutHttpLink]),
+        link: from([retryLink, timeoutHttpLink]),
         cache: new InMemoryCache({}),
         defaultOptions: {
           query: {
@@ -151,6 +149,16 @@ export class ArtificialApollo {
     } catch (err) {
       vscode.window.showErrorMessage(`Exception creating apollo client ${err}`);
     }
+  }
+
+  public reset() {
+    if (!this.apollo) {
+      this.createApollo();
+      return;
+    }
+    this.apollo.stop();
+    this.apollo = undefined;
+    this.createApollo();
   }
 
   public async queryWorkflows() {
@@ -190,6 +198,7 @@ export class ArtificialApollo {
         console.error('ApolloClient missing.');
         return;
       }
+      this.apollo.stop();
       const result = await this.apollo.query({
         query: gql`
           query assistants {
