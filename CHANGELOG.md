@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.4.0]
+
+- Config change. Config pulled from configs folder using common command line tool
+- Debounced apollo errors when config is incorrect to stop spamming notifications
+
 ## [2.3.0]
 
 - No more custom config. All connection info comes from .env

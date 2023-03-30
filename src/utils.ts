@@ -26,6 +26,14 @@ export function pathExists(p: string): boolean {
   return true;
 }
 
+export function initConfig(rootPath: string) {
+  const terminal = findOrCreateTerminal();
+  if (!pathExists(rootPath + '/tmp')) {
+    terminal.sendText('mkdir tmp');
+  }
+  terminal.sendText('afconfig view --yaml > tmp/merged.yaml');
+}
+
 String.prototype.cleanQuotes = function (): string {
   return this.replace(new RegExp('\'|"', 'g'), '');
 };

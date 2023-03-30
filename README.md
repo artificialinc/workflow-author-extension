@@ -16,12 +16,7 @@ Ability to generate assistant stub file<br/>
 
 ## Requirements
 
-Must have a config.yaml in your root project or specify a path to your config.yaml in VS Code extension settings<br/>
-Config.yaml must specify host, org, and prefix<br/>
-
-Must have a artificial.env in your root project<br/>
-artificial.env must specify ARTIFICIAL_TOKEN=.<br/>
-artificial.env may optionally override host with ARTIFICIAL_HOST=.<br/>
+Must have host and token specified in configs folder according to the Artificial SDK Readme<br/>
 
 Must have workflow and adapter folder<br/>
 Must be inside a dev container with access to `wfgen` and `wf publish`.<br/>

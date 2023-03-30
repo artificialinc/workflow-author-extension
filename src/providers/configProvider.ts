@@ -22,21 +22,9 @@ import * as fs from 'fs';
 export class ConfigValues {
   private static instance: ConfigValues;
   private constructor(private hostName: string = '', private apiToken: string = '') {
-    this.reset();
+    this.initialize();
   }
-  public static getInstance(): ConfigValues {
-    if (!ConfigValues.instance) {
-      ConfigValues.instance = new ConfigValues();
-    }
-    return ConfigValues.instance;
-  }
-  public getHost() {
-    return this.hostName;
-  }
-  public getToken() {
-    return this.apiToken;
-  }
-  public reset() {
+  private initialize() {
     let rootPath =
       vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
@@ -52,16 +40,28 @@ export class ConfigValues {
     }
 
     const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
-
+    if (!config) {
+      this.hostName = '';
+      this.apiToken = '';
+      return;
+    }
     this.hostName = config.artificial.host ?? '';
 
     this.apiToken = config.artificial.token ?? '';
-
-    if (!this.hostName) {
-      vscode.window.showErrorMessage('Host Name not found in artificial.env');
+  }
+  public static getInstance(): ConfigValues {
+    if (!ConfigValues.instance) {
+      ConfigValues.instance = new ConfigValues();
     }
-    if (!this.apiToken) {
-      vscode.window.showErrorMessage('API Token not found in artificial.env');
-    }
+    return ConfigValues.instance;
+  }
+  public getHost() {
+    return this.hostName;
+  }
+  public getToken() {
+    return this.apiToken;
+  }
+  public reset() {
+    this.initialize();
   }
 }

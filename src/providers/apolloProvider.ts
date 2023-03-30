@@ -22,6 +22,7 @@ import ApolloLinkTimeout from 'apollo-link-timeout';
 import { ConfigValues } from './configProvider';
 import { OutputLog } from './outputLogProvider';
 import * as vscode from 'vscode';
+import { debounce } from 'lodash';
 export interface LabReply {
   labs: [{ name: string; id: string }];
 }
@@ -86,7 +87,7 @@ export interface LabConfigReply {
 
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
-  public apollo: ApolloClient<NormalizedCacheObject> | undefined;
+  public apollo: ApolloClient<NormalizedCacheObject>;
   private outputLog;
   constructor() {
     this.outputLog = OutputLog.getInstance();
@@ -115,11 +116,6 @@ export class ArtificialApollo {
       },
     });
     try {
-      if (this.apollo) {
-        console.log('Tried to create duplicate apollo client.');
-        return this.apollo;
-      }
-
       const httpLink = new HttpLink({
         uri: hostName,
         credentials: 'include',
@@ -152,14 +148,16 @@ export class ArtificialApollo {
   }
 
   public reset() {
-    if (!this.apollo) {
-      this.createApollo();
-      return;
-    }
     this.apollo.stop();
-    this.apollo = undefined;
-    this.createApollo();
+    this.apollo = this.createApollo();
   }
+
+  private throwError = debounce((error: any) => {
+    this.outputLog.log(`Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`);
+    vscode.window.showErrorMessage(
+      `Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`
+    );
+  }, 2000);
 
   public async queryWorkflows() {
     try {
@@ -178,16 +176,14 @@ export class ArtificialApollo {
       });
 
       if (result && result.data) {
+        this.throwError.cancel();
         return result.data;
       }
     } catch (err: any) {
       if (err.message === 'Timeout exceeded') {
         this.outputLog.log(`Timeout querying for workflows. Error:  ${err} ${err.networkError.result}`);
       } else {
-        this.outputLog.log(`Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`);
-        vscode.window.showErrorMessage(
-          `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
-        );
+        this.throwError(err);
       }
     }
   }
@@ -224,16 +220,14 @@ export class ArtificialApollo {
         `,
       });
       if (result && result.data) {
+        this.throwError.cancel();
         return result.data;
       }
     } catch (err: any) {
       if (err.message === 'Timeout exceeded') {
         this.outputLog.log(`Timeout querying for assistants. Error:  ${err} ${err.networkError.result}`);
       } else {
-        this.outputLog.log(`Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`);
-        vscode.window.showErrorMessage(
-          `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
-        );
+        this.throwError(err);
       }
     }
   }
@@ -255,16 +249,14 @@ export class ArtificialApollo {
       });
 
       if (result && result.data) {
+        this.throwError.cancel();
         return result.data;
       }
     } catch (err: any) {
       if (err.message === 'Timeout exceeded') {
         this.outputLog.log(`Timeout querying for labs. Error:  ${err} ${err.networkError.result}`);
       } else {
-        this.outputLog.log(`Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`);
-        vscode.window.showErrorMessage(
-          `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
-        );
+        this.throwError(err);
       }
     }
   }
@@ -294,16 +286,14 @@ export class ArtificialApollo {
       });
 
       if (result && result.data) {
+        this.throwError.cancel();
         return result.data;
       }
     } catch (err: any) {
       if (err.message === 'Timeout exceeded') {
         this.outputLog.log(`Timeout querying for configs. Error:  ${err} ${err.networkError.result}`);
       } else {
-        this.outputLog.log(`Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`);
-        vscode.window.showErrorMessage(
-          `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
-        );
+        this.throwError(err);
       }
     }
   }
@@ -328,16 +318,14 @@ export class ArtificialApollo {
       });
       // TODO: Catch if a bad id is passed and nothing gets deleted
       if (result && result.data) {
+        this.throwError.cancel();
         return result.data;
       }
     } catch (err: any) {
       if (err.message === 'Timeout exceeded') {
         this.outputLog.log(`Timeout querying for action. Error:  ${err} ${err.networkError.result}`);
       } else {
-        this.outputLog.log(`Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`);
-        vscode.window.showErrorMessage(
-          `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
-        );
+        this.throwError(err);
       }
     }
   }
@@ -360,16 +348,14 @@ export class ArtificialApollo {
       });
 
       if (result && result.data) {
+        this.throwError.cancel();
         return result.data;
       }
     } catch (err: any) {
       if (err.message === 'Timeout exceeded') {
         this.outputLog.log(`Timeout deleting Action. Error:  ${err} ${err.networkError.result}`);
       } else {
-        this.outputLog.log(`Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`);
-        vscode.window.showErrorMessage(
-          `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
-        );
+        this.throwError(err);
       }
     }
   }
@@ -391,16 +377,15 @@ export class ArtificialApollo {
       });
 
       if (result && result.data) {
+        this.throwError.cancel();
+
         return result.data;
       }
     } catch (err: any) {
       if (err.message === 'Timeout exceeded') {
         this.outputLog.log(`Timeout querying for org config. Error:  ${err} ${err.networkError.result}`);
       } else {
-        this.outputLog.log(`Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`);
-        vscode.window.showErrorMessage(
-          `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
-        );
+        this.throwError(err);
       }
     }
   }
@@ -426,16 +411,14 @@ export class ArtificialApollo {
       });
 
       if (result && result.data) {
+        this.throwError.cancel();
         return result.data;
       }
     } catch (err: any) {
       if (err.message === 'Timeout exceeded') {
         this.outputLog.log(`Timeout querying for lab config. Error:  ${err} ${err.networkError.result}`);
       } else {
-        this.outputLog.log(`Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`);
-        vscode.window.showErrorMessage(
-          `Problem connecting to Artificial, check token/config ${err} ${err.networkError.result}`
-        );
+        this.throwError(err);
       }
     }
   }
