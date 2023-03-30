@@ -26,12 +26,16 @@ export function pathExists(p: string): boolean {
   return true;
 }
 
-export function initConfig(rootPath: string) {
+export async function initConfig(rootPath: string) {
   const terminal = findOrCreateTerminal();
   if (!pathExists(rootPath + '/tmp')) {
     terminal.sendText('mkdir tmp');
   }
   terminal.sendText('afconfig view --yaml > tmp/merged.yaml');
+  // This blocks during the initial activation of the extension,
+  // to allow time for the terminal command to complete and hydrate values
+  // Post activation of the extension, this sleep fires but doesn't block
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 String.prototype.cleanQuotes = function (): string {

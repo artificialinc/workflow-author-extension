@@ -36,7 +36,9 @@ export class ConfigValues {
     const configPath = path.join(rootPath, 'tmp/merged.yaml');
 
     if (!pathExists(configPath)) {
-      vscode.window.showErrorMessage('No config found for host & token');
+      this.hostName = '';
+      this.apiToken = '';
+      return;
     }
 
     const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
