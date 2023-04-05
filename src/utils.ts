@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 */
 
 import * as fs from 'fs';
+import * as vscode from 'vscode';
 
 export function pathExists(p: string): boolean {
   try {
@@ -25,6 +26,34 @@ export function pathExists(p: string): boolean {
   return true;
 }
 
+export async function initConfig(rootPath: string) {
+  const terminal = findOrCreateTerminal();
+  if (!pathExists(rootPath + '/tmp')) {
+    terminal.sendText('mkdir tmp');
+  }
+  terminal.sendText('afconfig view --yaml > tmp/merged.yaml');
+  // This blocks during the initial activation of the extension,
+  // to allow time for the terminal command to complete and hydrate values
+  // Post activation of the extension, this sleep fires but doesn't block
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
 String.prototype.cleanQuotes = function (): string {
   return this.replace(new RegExp('\'|"', 'g'), '');
 };
+
+export function findOrCreateTerminal(showTerminal: boolean = false): vscode.Terminal {
+  let terminal = undefined;
+  for (const term of vscode.window.terminals) {
+    if (term.name === 'Artificial-WF-Terminal') {
+      terminal = term;
+    }
+  }
+  if (!terminal) {
+    terminal = vscode.window.createTerminal(`Artificial-WF-Terminal`);
+  }
+  if (showTerminal) {
+    terminal.show();
+  }
+  return terminal;
+}

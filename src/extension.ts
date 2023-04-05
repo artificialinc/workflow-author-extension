@@ -25,9 +25,11 @@ import { ViewFileDecorationProvider } from './providers/decorationProvider';
 import { WorkflowTreeElement, WorkflowTreeView } from './views/workflowTreeView';
 import { ConfigTreeView } from './views/configTreeView';
 import { ConfigValues } from './providers/configProvider';
-import * as dotenv from 'dotenv';
+import { initConfig } from './utils';
 import * as path from 'path';
 import { GenerateAdapterActionStubs } from './generators/generateAdapterActionStubs';
+import { ArtificialApollo } from './providers/apolloProvider';
+import { OutputLog } from './providers/outputLogProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -38,8 +40,36 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!rootPath) {
     return;
   }
-  //dotenv.config({ override: true, path: rootPath + '/artificial.env' });
+  await initConfig(rootPath);
   let devMode = false;
+  const configVals = ConfigValues.getInstance();
+
+  const outputLog = OutputLog.getInstance();
+
+  const watchConfig = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(rootPath + '/configs', '**/*.yaml')
+  );
+
+  watchConfig.onDidChange((uri) => {
+    initConfig(rootPath);
+  });
+  context.subscriptions.push(watchConfig);
+
+  const watchMergedConfig = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(rootPath + '/tmp', 'merged.yaml')
+  );
+  watchMergedConfig.onDidChange((uri) => {
+    outputLog.log('merged.yaml changed');
+    configVals.reset();
+    const client = ArtificialApollo.getInstance();
+    client.reset();
+    statusBar.text = `$(debug-disconnect) ` + configVals.getHost().split('.')[0];
+    statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
+    assistantByLab.refresh();
+    loadConfigTree.refresh();
+  });
+  context.subscriptions.push(watchMergedConfig);
+
   vscode.commands.registerCommand('artificial-workflows.toggleDevMode', () =>
     vscode.commands.executeCommand('setContext', 'devMode', (devMode = !devMode))
   );
@@ -123,7 +153,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
-  const configVals = ConfigValues.getInstance();
+
   const host = configVals.getHost().split('.')[0];
   statusBar.text = `$(debug-disconnect) ` + host;
   statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;

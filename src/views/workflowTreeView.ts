@@ -21,6 +21,7 @@ import * as fs from 'fs';
 import { glob } from 'glob';
 import { createVisitor, parse } from 'python-ast';
 import { OutputLog } from '../providers/outputLogProvider';
+import { findOrCreateTerminal } from '../utils';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
   private outputLog!: OutputLog;
@@ -47,24 +48,10 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     return element;
   }
 
-  findOrCreateTerminal(): vscode.Terminal {
-    let terminal = undefined;
-    for (const term of vscode.window.terminals) {
-      if (term.name === 'Artificial-WF-Terminal') {
-        terminal = term;
-      }
-    }
-    if (!terminal) {
-      terminal = vscode.window.createTerminal(`Artificial-WF-Terminal`);
-    }
-    terminal.show();
-    return terminal;
-  }
-
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
     const success = await this.generateWorkflow(element, false);
     if (success) {
-      const terminal = this.findOrCreateTerminal();
+      const terminal = findOrCreateTerminal(true);
       terminal.sendText(`(wf publish ${element.path + '.bin'})`);
     }
   }
@@ -75,7 +62,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
 
   //TODO: Throw errors to vscode notification
   async generateWorkflow(element: WorkflowTreeElement, json: boolean): Promise<boolean> {
-    const terminal = this.findOrCreateTerminal();
+    const terminal = findOrCreateTerminal(true);
     let workflowPath;
     if (json) {
       workflowPath = element.path + '.json';
