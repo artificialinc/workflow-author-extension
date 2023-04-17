@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.4.1]
+
+- Generate all workflows into the workspace/tmp directory
+
 ## [2.4.0]
 
 - Config change. Config pulled from configs folder using common command line tool

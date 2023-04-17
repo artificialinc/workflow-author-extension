@@ -49,10 +49,10 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
-    const success = await this.generateWorkflow(element, false);
-    if (success) {
+    const result = await this.generateWorkflow(element, false);
+    if (result.success) {
       const terminal = findOrCreateTerminal(true);
-      terminal.sendText(`(wf publish ${element.path + '.bin'})`);
+      terminal.sendText(`(wf publish ${result.outputPath + '.bin'})`);
     }
   }
 
@@ -61,13 +61,22 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   //TODO: Throw errors to vscode notification
-  async generateWorkflow(element: WorkflowTreeElement, json: boolean): Promise<boolean> {
+  async generateWorkflow(
+    element: WorkflowTreeElement,
+    json: boolean
+  ): Promise<{ success: boolean; outputPath: string }> {
     const terminal = findOrCreateTerminal(true);
     let workflowPath;
+    const split = element.path.split('/');
+    const fileName = split[split.length - 1];
+    const outputPath = `${this.stubPath}/tmp/${fileName}`;
+    if (!pathExists(this.stubPath + '/tmp')) {
+      terminal.sendText('mkdir tmp');
+    }
     if (json) {
-      workflowPath = element.path + '.json';
+      workflowPath = outputPath + '.json';
     } else {
-      workflowPath = element.path + '.bin';
+      workflowPath = outputPath + '.bin';
     }
     if (pathExists(workflowPath)) {
       fs.unlink(workflowPath, (err) => {
@@ -77,10 +86,11 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
       });
     }
+
     if (json) {
-      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path} -j)`);
+      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen -o ${outputPath}.json ${element.path} -j)`);
     } else {
-      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path})`);
+      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen -o ${outputPath}.bin ${element.path})`);
     }
     // TODO: No good way to tell if previous command has had time to complete
     // For now just sleep 2s, so far wfgen is sub-second to complete.
@@ -88,9 +98,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     // which skips the publish
     await this.sleep(2000);
     if (pathExists(workflowPath)) {
-      return true;
+      return { success: true, outputPath: outputPath };
     }
-    return false;
+    return { success: false, outputPath: '' };
   }
 
   async getChildren(element?: WorkflowTreeElement): Promise<WorkflowTreeElement[]> {
