@@ -49,6 +49,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
+
     const result = await this.generateWorkflow(element, false);
     if (result.success) {
       const terminal = findOrCreateTerminal(true);
