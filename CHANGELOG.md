@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.4.1]
+
+- Fix for publishing multiple workflows in same file
+
 ## [2.4.0]
 
 - Config change. Config pulled from configs folder using common command line tool
