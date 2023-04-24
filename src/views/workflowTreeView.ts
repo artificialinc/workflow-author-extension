@@ -82,6 +82,8 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     // Adding this because sometimes we check to see if its generated too quickly and return false here
     // which skips the publish
     await this.sleep(2000);
+    // TODO: echo $1 > tmp/file the exit status code of wfgen
+    //       Read the file for 0 or 1, notify error and cancel publish
     return true;
   }
 
