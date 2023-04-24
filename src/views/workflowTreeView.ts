@@ -52,7 +52,15 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     const success = await this.generateWorkflow(element, false);
     if (success) {
       const terminal = findOrCreateTerminal(true);
-      terminal.sendText(`(wf publish ${element.path + '.bin'})`);
+      // If there are multiple workflows in one file
+      if (element.workflowIds.length > 1) {
+        for (const wfID of element.workflowIds) {
+          terminal.sendText(`(wf publish ${element.path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`);
+        }
+      } else {
+        //One workflow in the file
+        terminal.sendText(`(wf publish ${element.path + '.bin'})`);
+      }
     }
   }
 
@@ -63,20 +71,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   //TODO: Throw errors to vscode notification
   async generateWorkflow(element: WorkflowTreeElement, json: boolean): Promise<boolean> {
     const terminal = findOrCreateTerminal(true);
-    let workflowPath;
-    if (json) {
-      workflowPath = element.path + '.json';
-    } else {
-      workflowPath = element.path + '.bin';
-    }
-    if (pathExists(workflowPath)) {
-      fs.unlink(workflowPath, (err) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
-      });
-    }
+
     if (json) {
       terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path} -j)`);
     } else {
@@ -87,10 +82,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     // Adding this because sometimes we check to see if its generated too quickly and return false here
     // which skips the publish
     await this.sleep(2000);
-    if (pathExists(workflowPath)) {
-      return true;
-    }
-    return false;
+    // TODO: echo $1 > tmp/file the exit status code of wfgen
+    //       Read the file for 0 or 1, notify error and cancel publish
+    return true;
   }
 
   async getChildren(element?: WorkflowTreeElement): Promise<WorkflowTreeElement[]> {

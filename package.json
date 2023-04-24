@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "2.4.0",
+  "version": "2.4.1",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -193,6 +193,28 @@
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "workflows.publish",
+          "when": "False"
+        },
+        {
+          "command": "workflows.generateBinary",
+          "when": "False"
+        },
+        {
+          "command": "workflows.generateJson",
+          "when": "False"
+        },
+        {
+          "command": "assistantsByLab.addToFile",
+          "when": "False"
+        },
+        {
+          "command": "adapterActions.addToFile",
+          "when": "False"
+        }
+      ],
       "view/title": [
         {
           "command": "adapterActions.refreshEntry",
