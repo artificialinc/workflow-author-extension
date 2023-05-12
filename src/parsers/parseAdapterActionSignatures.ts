@@ -41,8 +41,15 @@ export class BuildPythonSignatures {
               const args = ast?.decorators()?.decorator(0)?.arglist()?.argument() ?? [];
               for (const arg of args) {
                 if (arg.test(0).text === 'name') {
+                  //TODO: Remove  once we are off A-C 15
                   if (arg.test(1).text.indexOf('/') !== -1) {
                     signature.module = arg.test(1).text.split('/')[0].cleanQuotes();
+                  }
+                  if (arg.test(1).text.indexOf('.') !== -1) {
+                    const splitArray = arg.test(1).text.split('.');
+                    splitArray.pop();
+                    const moduleName = splitArray.join('.').cleanQuotes();
+                    signature.module = moduleName;
                   }
                 }
               }
