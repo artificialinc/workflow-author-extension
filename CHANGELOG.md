@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.4.2]
+
+- Fix for adapter common 16 module naming scheme
+
 ## [2.4.1]
 
 - Fix for publishing multiple workflows in same file
