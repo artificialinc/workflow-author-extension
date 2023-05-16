@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.5.0]
+
+- CodeLens for publishing workflow above workflow decorators
+
 ## [2.4.2]
 
 - Fix for adapter common 16 module naming scheme

@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as fs from 'fs';
 import * as vscode from 'vscode';
+import { createVisitor, parse } from 'python-ast';
 
 export function pathExists(p: string): boolean {
   try {
@@ -56,4 +57,35 @@ export function findOrCreateTerminal(showTerminal: boolean = false): vscode.Term
     terminal.show();
   }
   return terminal;
+}
+
+export function findWorkflowsInFiles(files: string[]) {
+  const workflows: { path: string; ids: string[] }[] = [];
+  for (const file of files) {
+    const pythonFile = fs.readFileSync(file, 'utf-8');
+    let isWorkflow = false;
+    const workflowIds: string[] = [];
+    const findWorkflow = (source: string) => {
+      let ast = parse(source);
+
+      return createVisitor({
+        visitDecorated: (ast) => {
+          for (let decoratorIndex = 0; decoratorIndex < ast.decorators().childCount; decoratorIndex++) {
+            const decoratorName = ast.decorators().decorator(decoratorIndex).dotted_name().text;
+            if (decoratorName === 'workflow') {
+              isWorkflow = true;
+              workflowIds.push(
+                ast.decorators().decorator(decoratorIndex).arglist()?.argument(1).test(0).text.cleanQuotes() ?? ''
+              );
+            }
+          }
+        },
+      }).visit(ast);
+    };
+    findWorkflow(pythonFile);
+    if (isWorkflow) {
+      workflows.push({ path: file, ids: workflowIds });
+    }
+  }
+  return workflows;
 }

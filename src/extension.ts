@@ -30,6 +30,7 @@ import * as path from 'path';
 import { GenerateAdapterActionStubs } from './generators/generateAdapterActionStubs';
 import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
+import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
   const rootPath =
@@ -80,14 +81,17 @@ export async function activate(context: vscode.ExtensionContext) {
   // Workflow Publishing view
   const workflowTree = new WorkflowTreeView(rootPath, context);
   vscode.commands.registerCommand('workflows.refreshEntry', () => workflowTree.refresh());
-  vscode.commands.registerCommand('workflows.publish', (node: WorkflowTreeElement) =>
-    workflowTree.publishWorkflow(node)
+  vscode.commands.registerCommand('workflows.publish', (path: string, workflowIDs: string[]) =>
+    workflowTree.publishWorkflow(path, workflowIDs)
+  );
+  vscode.commands.registerCommand('workflows.treePublish', (node: WorkflowTreeElement) =>
+    workflowTree.publishWorkflow(node.path, node.workflowIds)
   );
   vscode.commands.registerCommand('workflows.generateBinary', (node: WorkflowTreeElement) =>
-    workflowTree.generateWorkflow(node, false)
+    workflowTree.generateWorkflow(node.path, false)
   );
   vscode.commands.registerCommand('workflows.generateJson', (node: WorkflowTreeElement) =>
-    workflowTree.generateWorkflow(node, true)
+    workflowTree.generateWorkflow(node.path, true)
   );
 
   //Function Tree and related commands
@@ -159,6 +163,18 @@ export async function activate(context: vscode.ExtensionContext) {
   statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
   statusBar.show();
   context.subscriptions.push(statusBar);
+
+  let docSelector = {
+    language: 'python',
+    scheme: 'file',
+  };
+
+  let codeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
+    docSelector,
+    new WorkflowPublishLensProvider()
+  );
+
+  context.subscriptions.push(codeLensProviderDisposable);
 
   console.log('Artificial Workflow Extension is active');
 }
