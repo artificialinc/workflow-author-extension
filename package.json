@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "2.4.2",
+  "version": "2.5.0",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -23,7 +23,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
@@ -146,6 +148,15 @@
         }
       },
       {
+        "command": "workflows.treePublish",
+        "title": "Publish Workflow",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/dark/upload.svg",
+          "dark": "resources/dark/upload.svg"
+        }
+      },
+      {
         "command": "workflows.generateBinary",
         "title": "Generate workflow binary file",
         "category": "Artificial"
@@ -196,6 +207,10 @@
       "commandPalette": [
         {
           "command": "workflows.publish",
+          "when": "False"
+        },
+        {
+          "command": "workflows.treePublish",
           "when": "False"
         },
         {
@@ -259,7 +274,7 @@
           "group": "inline"
         },
         {
-          "command": "workflows.publish",
+          "command": "workflows.treePublish",
           "when": "view == workflows",
           "group": "inline"
         },

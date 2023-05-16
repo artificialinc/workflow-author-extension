@@ -48,18 +48,18 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     return element;
   }
 
-  async publishWorkflow(element: WorkflowTreeElement): Promise<void> {
-    const success = await this.generateWorkflow(element, false);
+  async publishWorkflow(path: string, workflowIds: string[]): Promise<void> {
+    const success = await this.generateWorkflow(path, false);
     if (success) {
       const terminal = findOrCreateTerminal(true);
       // If there are multiple workflows in one file
-      if (element.workflowIds.length > 1) {
-        for (const wfID of element.workflowIds) {
-          terminal.sendText(`(wf publish ${element.path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`);
+      if (workflowIds.length > 1) {
+        for (const wfID of workflowIds) {
+          terminal.sendText(`(wf publish ${path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`);
         }
       } else {
         //One workflow in the file
-        terminal.sendText(`(wf publish ${element.path + '.bin'})`);
+        terminal.sendText(`(wf publish ${path + '.bin'})`);
       }
     }
   }
@@ -69,13 +69,13 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   //TODO: Throw errors to vscode notification
-  async generateWorkflow(element: WorkflowTreeElement, json: boolean): Promise<boolean> {
+  async generateWorkflow(path: string, json: boolean): Promise<boolean> {
     const terminal = findOrCreateTerminal(true);
 
     if (json) {
-      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path} -j)`);
+      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${path} -j)`);
     } else {
-      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${element.path})`);
+      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${path})`);
     }
     // TODO: No good way to tell if previous command has had time to complete
     // For now just sleep 2s, so far wfgen is sub-second to complete.
