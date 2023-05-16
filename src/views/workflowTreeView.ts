@@ -17,11 +17,9 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { pathExists } from '../utils';
-import * as fs from 'fs';
 import { glob } from 'glob';
-import { createVisitor, parse } from 'python-ast';
 import { OutputLog } from '../providers/outputLogProvider';
-import { findOrCreateTerminal } from '../utils';
+import { findOrCreateTerminal, findWorkflowsInFiles } from '../utils';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
   private outputLog!: OutputLog;
@@ -93,7 +91,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     } else {
       if (pathExists(this.stubPath)) {
         const files = this.findPythonFiles();
-        const workflows = this.findWorkflowsInFiles(files);
+        const workflows = findWorkflowsInFiles(files);
         const elements = [];
         for (const workflow of workflows) {
           elements.push(new WorkflowTreeElement(workflow.path, workflow.ids));
@@ -112,37 +110,6 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     fileList = glob.sync(actionPath + '/**/*.py');
 
     return fileList;
-  }
-
-  private findWorkflowsInFiles(files: string[]) {
-    const workflows: { path: string; ids: string[] }[] = [];
-    for (const file of files) {
-      const pythonFile = fs.readFileSync(file, 'utf-8');
-      let isWorkflow = false;
-      const workflowIds: string[] = [];
-      const findWorkflow = (source: string) => {
-        let ast = parse(source);
-
-        return createVisitor({
-          visitDecorated: (ast) => {
-            for (let decoratorIndex = 0; decoratorIndex < ast.decorators().childCount; decoratorIndex++) {
-              const decoratorName = ast.decorators().decorator(decoratorIndex).dotted_name().text;
-              if (decoratorName === 'workflow') {
-                isWorkflow = true;
-                workflowIds.push(
-                  ast.decorators().decorator(decoratorIndex).arglist()?.argument(1).test(0).text.cleanQuotes() ?? ''
-                );
-              }
-            }
-          },
-        }).visit(ast);
-      };
-      findWorkflow(pythonFile);
-      if (isWorkflow) {
-        workflows.push({ path: file, ids: workflowIds });
-      }
-    }
-    return workflows;
   }
 }
 
