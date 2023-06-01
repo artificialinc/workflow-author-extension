@@ -96,7 +96,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         for (const workflow of workflows) {
           elements.push(new WorkflowTreeElement(workflow.path, workflow.ids));
         }
-        return elements;
+        return elements.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
       } else {
         //vscode.window.showInformationMessage('Workspace has no workflows');
         return [];

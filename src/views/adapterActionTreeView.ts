@@ -80,7 +80,7 @@ export class AdapterActionTreeView
       if (element.type === 'module') {
         const functions = this.getFunctions(element.label);
         this.treeElements = this.treeElements.concat(functions);
-        return functions;
+        return functions.sort((a, b) => a.label?.localeCompare(b.label, 'en', { numeric: true }));
       }
       return [];
     } else {
@@ -111,7 +111,7 @@ export class AdapterActionTreeView
   private getFunctions(moduleName: string | vscode.TreeItemLabel | undefined): Function[] {
     const signatures = this.functionSignatures.map((sig) => {
       if (sig.module === moduleName) {
-        return new Function(sig);
+        return new Function(sig.name, sig);
       }
     });
     const compactedSigs = _.compact(signatures);
@@ -120,8 +120,8 @@ export class AdapterActionTreeView
 }
 
 export class Function extends vscode.TreeItem {
-  constructor(public readonly functionSignature: FunctionSignature) {
-    super(functionSignature.name, vscode.TreeItemCollapsibleState.None);
+  constructor(public readonly label: string, public readonly functionSignature: FunctionSignature) {
+    super(label, vscode.TreeItemCollapsibleState.None);
     this.tooltip = `${this.label}`;
     this.functionSignature = functionSignature;
     this.contextValue = 'FUNCTION';

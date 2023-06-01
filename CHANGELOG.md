@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.5.1]
+
+- AlphaNumeric sort for tree views
+
 ## [2.5.0]
 
 - CodeLens for publishing workflow above workflow decorators
