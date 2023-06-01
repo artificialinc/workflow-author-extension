@@ -92,7 +92,7 @@ export class AssistantByLabTreeView
       if (element.type === 'lab') {
         const assistants = await this.getAssistants(element);
         this.treeElements = this.treeElements.concat(assistants);
-        return assistants;
+        return assistants.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
       }
       return [];
     } else {
