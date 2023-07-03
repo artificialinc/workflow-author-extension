@@ -26,7 +26,17 @@ import * as _ from 'lodash';
 
 export class GenerateAssistantStubs {
   outputChannel = OutputLog.getInstance();
-  constructor(private workspaceRoot: string, private assistantByLab: AssistantByLabTreeView) {}
+  constructor(
+    context: vscode.ExtensionContext,
+    private workspaceRoot: string,
+    private assistantByLab: AssistantByLabTreeView
+  ) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand('assistantsByLab.generateAssistantStubs', () =>
+        this.generateAssistantStubsCommand()
+      )
+    );
+  }
 
   async generateAssistantStubsCommand(): Promise<any> {
     await this.generateAssistantStubs();

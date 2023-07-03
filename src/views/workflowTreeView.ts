@@ -18,11 +18,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { pathExists } from '../utils';
 import { glob } from 'glob';
-import { OutputLog } from '../providers/outputLogProvider';
 import { findOrCreateTerminal, findWorkflowsInFiles } from '../utils';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
-  private outputLog!: OutputLog;
   private _onDidChangeTreeData: vscode.EventEmitter<WorkflowTreeElement | undefined | void> = new vscode.EventEmitter<
     WorkflowTreeElement | undefined | void
   >();
@@ -34,8 +32,22 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       showCollapseAll: false,
       canSelectMany: false,
     });
-    this.outputLog = OutputLog.getInstance();
-    context.subscriptions.push(view);
+    context.subscriptions.push(
+      view,
+      vscode.commands.registerCommand('workflows.refreshEntry', () => this.refresh()),
+      vscode.commands.registerCommand('workflows.publish', (path: string, workflowIDs: string[]) =>
+        this.publishWorkflow(path, workflowIDs)
+      ),
+      vscode.commands.registerCommand('workflows.treePublish', (node: WorkflowTreeElement) =>
+        this.publishWorkflow(node.path, node.workflowIds)
+      ),
+      vscode.commands.registerCommand('workflows.generateBinary', (node: WorkflowTreeElement) =>
+        this.generateWorkflow(node.path, false)
+      ),
+      vscode.commands.registerCommand('workflows.generateJson', (node: WorkflowTreeElement) =>
+        this.generateWorkflow(node.path, true)
+      )
+    );
   }
 
   refresh(): void {
@@ -122,6 +134,16 @@ export class WorkflowTreeElement extends vscode.TreeItem {
     // TODO: HACK
     this.label = label.slice(index + 10);
     this.path = label;
+    this.command = {
+      command: 'vscode.open',
+      title: 'Open Call',
+      arguments: [
+        this.tooltip,
+        <vscode.TextDocumentShowOptions>{
+          preserveFocus: true,
+        },
+      ],
+    };
   }
   path: string;
   iconPath = {

@@ -18,6 +18,12 @@ import * as vscode from 'vscode';
 import { Function } from '../views/adapterActionTreeView';
 
 export class InsertFunctionCall {
+  constructor(context: vscode.ExtensionContext) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand('adapterActions.addToFile', (node: Function) => this.insertFunction(node)),
+      vscode.commands.registerCommand('assistantsByLab.addToFile', (node: Function) => this.insertFunction(node))
+    );
+  }
   insertFunction(node: Function): void {
     const editor = vscode.window.activeTextEditor;
     let className = '';

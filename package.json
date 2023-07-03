@@ -64,6 +64,10 @@
       {
         "view": "assistantsByLab",
         "contents": "No Assistant Stubs found, hit generate to get started.\n[Generate Stubs](command:assistantsByLab.generateAssistantStubs)"
+      },
+      {
+        "view": "labAsstData",
+        "contents": "[Export Labs & Assistants from Artificial](command:labAsstData.exportData)\n WARNING: This is destructive and could overwrite changes made to Labs/Assistants in Artificial\n [Import Labs & Assistants to Artificial](command:labAsstData.importData)"
       }
     ],
     "viewsContainers": {
@@ -86,26 +90,20 @@
           "name": "Assistants"
         },
         {
-          "id": "loadConfigs",
-          "name": "Labware Load Configurations",
-          "when": "devMode"
-        },
-        {
           "id": "configs",
           "name": "Configuration"
         },
         {
           "id": "workflows",
           "name": "Workflow Publishing"
+        },
+        {
+          "id": "labAsstData",
+          "name": "Lab & Assistant Export/Import"
         }
       ]
     },
     "commands": [
-      {
-        "command": "artificial-workflows.toggleDevMode",
-        "title": "Toggle Dev Mode",
-        "category": "Artificial"
-      },
       {
         "command": "assistantsByLab.generateAssistantStubs",
         "title": "Generate Assistant Stubs",
@@ -185,15 +183,6 @@
         }
       },
       {
-        "command": "loadConfigs.refreshEntry",
-        "title": "Refresh Load Configs",
-        "category": "Artificial",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
         "command": "configs.refreshEntry",
         "title": "Refresh Configs",
         "category": "Artificial",
@@ -201,6 +190,16 @@
           "light": "resources/light/refresh.svg",
           "dark": "resources/dark/refresh.svg"
         }
+      },
+      {
+        "command": "labAsstData.exportData",
+        "title": "Export Lab and Assistant Data",
+        "category": "Artificial"
+      },
+      {
+        "command": "labAsstData.importData",
+        "title": "Import Lab and Assistant Data",
+        "category": "Artificial"
       }
     ],
     "menus": {
@@ -234,11 +233,6 @@
         {
           "command": "adapterActions.refreshEntry",
           "when": "view == adapterActions",
-          "group": "navigation"
-        },
-        {
-          "command": "loadConfigs.refreshEntry",
-          "when": "view == loadConfigs",
           "group": "navigation"
         },
         {

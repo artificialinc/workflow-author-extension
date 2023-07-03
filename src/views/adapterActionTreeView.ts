@@ -41,6 +41,7 @@ export class AdapterActionTreeView
     });
     context.subscriptions.push(view);
     this.uriPath = 'artificial/python/';
+    context.subscriptions.push(vscode.commands.registerCommand('adapterActions.refreshEntry', () => this.refresh()));
   }
 
   async init() {

@@ -21,9 +21,15 @@ import { InsertFunctionCall } from '../generators/generateFunctionCall';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;
   private assistantTreeByLab;
-  constructor(functionTree: AdapterActionTreeView, assistantTreeByLab: AssistantByLabTreeView) {
+  private context;
+  constructor(
+    context: vscode.ExtensionContext,
+    functionTree: AdapterActionTreeView,
+    assistantTreeByLab: AssistantByLabTreeView
+  ) {
     this.funcTree = functionTree;
     this.assistantTreeByLab = assistantTreeByLab;
+    this.context = context;
   }
   async provideDocumentDropEdits(
     _document: vscode.TextDocument,
@@ -48,7 +54,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
       className = text.split('/')[6];
     }
     if (element && 'functionSignature' in element) {
-      const insertFuncCall = new InsertFunctionCall();
+      const insertFuncCall = new InsertFunctionCall(this.context);
       // TODO: Change parser to put the class name in the function signature
       text = insertFuncCall.buildFunctionCall(element.functionSignature, className);
     }

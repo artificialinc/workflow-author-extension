@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ArtificialApollo } from '../providers/apolloProvider';
-import { LabTreeElement } from './loadConfigTreeView';
 
 type TreeItem = OrgTreeItem | ConfigTreeItem | LabTreeElement | LabHeaderTreeItem;
 
@@ -40,6 +39,7 @@ export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode
     });
     context.subscriptions.push(view);
     this.uriPath = 'artificial/configs/';
+    context.subscriptions.push(vscode.commands.registerCommand('configs.refreshEntry', () => this.refresh()));
   }
 
   refresh(): void {
@@ -164,4 +164,16 @@ export class ConfigTreeItem extends vscode.TreeItem {
   resourceUri = this.buildURI();
 
   iconPath = new vscode.ThemeIcon('symbol-property');
+}
+export class LabTreeElement extends vscode.TreeItem {
+  constructor(public readonly label: string, public readonly labId: string) {
+    super(label, vscode.TreeItemCollapsibleState.Collapsed);
+    this.tooltip = `${this.label}`;
+  }
+  resourceUri = vscode.Uri.parse('artificial/loadConfigs/' + 'lab/' + this.labId);
+  type = 'lab';
+  iconPath = {
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg'),
+  };
 }
