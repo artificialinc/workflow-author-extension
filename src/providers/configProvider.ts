@@ -21,7 +21,12 @@ import { pathExists } from '../utils';
 import * as fs from 'fs';
 export class ConfigValues {
   private static instance: ConfigValues;
-  private constructor(private hostName: string = '', private apiToken: string = '') {
+  private constructor(
+    private hostName: string = '',
+    private apiToken: string = '',
+    private adapterActionStubPath = '',
+    private assistantStubPath = ''
+  ) {
     this.initialize();
   }
   private initialize() {
@@ -47,6 +52,15 @@ export class ConfigValues {
       this.apiToken = '';
       return;
     }
+
+    const customAdapterActionStubPath =
+      vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubPath;
+
+    this.adapterActionStubPath = path.join(rootPath, customAdapterActionStubPath);
+
+    const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
+    this.assistantStubPath = path.join(rootPath, customAssistantStubPath);
+
     this.hostName = config.artificial.host ?? '';
 
     this.apiToken = config.artificial.token ?? '';
@@ -62,6 +76,12 @@ export class ConfigValues {
   }
   public getToken() {
     return this.apiToken;
+  }
+  public getAdapterActionStubPath() {
+    return this.adapterActionStubPath;
+  }
+  public getAssistantStubPath() {
+    return this.assistantStubPath;
   }
   public reset() {
     this.initialize();

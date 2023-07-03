@@ -54,27 +54,11 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
       className = text.split('/')[6];
     }
     if (element && 'functionSignature' in element) {
-      const insertFuncCall = new InsertFunctionCall(this.context);
+      const insertFuncCall = new InsertFunctionCall();
       // TODO: Change parser to put the class name in the function signature
       text = insertFuncCall.buildFunctionCall(element.functionSignature, className);
     }
 
-    // TODO: Move this into tree provider or own generator??
-    if (text.includes('/loadConfigs/')) {
-      const splitText = text.split('/');
-      if (text.includes('/lab/')) {
-        text = splitText[splitText.length - 1];
-      } else if (text.includes('/asset/')) {
-        const loadConfigId = splitText[splitText.length - 2];
-        const loadConfigOrder = splitText[splitText.length - 1];
-        text = `assets = await load_assets(start_idx=${
-          parseFloat(loadConfigOrder) + 1
-        }, number_to_load = 1, '${loadConfigId}')`;
-      } else {
-        const loadConfigId = splitText[splitText.length - 1];
-        text = `assets = await load_assets(start_idx= , number_to_load = , '${loadConfigId}')`;
-      }
-    }
     if (text.includes('/configs/')) {
       const splitText = text.split('/');
       if (text.includes('/org/')) {

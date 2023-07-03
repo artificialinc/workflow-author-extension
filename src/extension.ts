@@ -25,36 +25,111 @@ import { WorkflowTreeView } from './views/workflowTreeView';
 import { ConfigTreeView } from './views/configTreeView';
 import { ConfigValues } from './providers/configProvider';
 import { initConfig } from './utils';
-import * as path from 'path';
 import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
 
 export async function activate(context: vscode.ExtensionContext) {
-  const rootPath =
-    vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
-      ? vscode.workspace.workspaceFolders[0].uri.fsPath
-      : undefined;
-
+  // Config Setup
+  const { configVals, rootPath } = await setupConfig(context);
   if (!rootPath) {
     return;
   }
-  const outputLog = OutputLog.getInstance();
 
-  // CONFIG SETUP
-  await initConfig(rootPath);
-  const configVals = ConfigValues.getInstance();
-  const watchConfig = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(rootPath + '/configs', '**/*.yaml')
+  //Provides Type Error Decoration
+  new ViewFileDecorationProvider();
+  // Workflow Publishing Tree
+  new WorkflowTreeView(rootPath, context);
+  // Import/Export Buttons
+  new DataTreeView(context);
+  // Config Tree
+  new ConfigTreeView(context);
+  // Commands to insert & drag/drop functions
+  setupDragAndDrop(context);
+  // Adapter Function Tree
+  const funcTree = setupAdapterFuncTree(configVals, context);
+  // Assistant Tree
+  const assistantByLab = await setupAssistantTree(configVals, context);
+  // Command to generate assistant stubs
+  new GenerateAssistantStubs(context, rootPath, assistantByLab);
+  //Drop handler for document editor
+  const selector = setupDropHandler(context, funcTree, assistantByLab);
+  // Status Bar for Connection Info
+  const statusBar = setupStatusBar(configVals, context);
+  // Code Lens for WF Publish
+  setupCodeLens(selector, context);
+  // Handle config resets across components
+  configResetWatcher(rootPath, configVals, statusBar, assistantByLab, context);
+
+  console.log('Artificial Workflow Extension is active');
+}
+
+async function setupAssistantTree(configVals: ConfigValues, context: vscode.ExtensionContext) {
+  const assistantByLab = new AssistantByLabTreeView(
+    configVals.getAssistantStubPath(),
+    'artificial/assistantByLab/',
+    context
   );
-  watchConfig.onDidChange((uri) => {
-    initConfig(rootPath);
-  });
-  context.subscriptions.push(watchConfig);
+  await assistantByLab.init();
+  return assistantByLab;
+}
+
+function setupAdapterFuncTree(configVals: ConfigValues, context: vscode.ExtensionContext) {
+  const funcTree = new AdapterActionTreeView(configVals.getAdapterActionStubPath(), context);
+  funcTree.init();
+  return funcTree;
+}
+
+function setupDragAndDrop(context: vscode.ExtensionContext) {
+  const funcCall = new InsertFunctionCall();
+  context.subscriptions.push(
+    vscode.commands.registerCommand('adapterActions.addToFile', (node: Function) => funcCall.insertFunction(node)),
+    vscode.commands.registerCommand('assistantsByLab.addToFile', (node: Function) => funcCall.insertFunction(node))
+  );
+}
+
+function setupDropHandler(
+  context: vscode.ExtensionContext,
+  funcTree: AdapterActionTreeView,
+  assistantByLab: AssistantByLabTreeView
+) {
+  const selector: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
+  context.subscriptions.push(
+    vscode.languages.registerDocumentDropEditProvider(selector, new DropProvider(context, funcTree, assistantByLab))
+  );
+  return selector;
+}
+
+function setupCodeLens(selector: vscode.DocumentFilter, context: vscode.ExtensionContext) {
+  const codeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
+    selector,
+    new WorkflowPublishLensProvider()
+  );
+  context.subscriptions.push(codeLensProviderDisposable);
+}
+
+function setupStatusBar(configVals: ConfigValues, context: vscode.ExtensionContext) {
+  const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+  const host = configVals.getHost().split('.')[0];
+  statusBar.text = `$(debug-disconnect) ` + host;
+  statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
+  statusBar.show();
+  context.subscriptions.push(statusBar);
+  return statusBar;
+}
+
+function configResetWatcher(
+  rootPath: string,
+  configVals: ConfigValues,
+  statusBar: vscode.StatusBarItem,
+  assistantByLab: AssistantByLabTreeView,
+  context: vscode.ExtensionContext
+) {
   const watchMergedConfig = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(rootPath + '/tmp', 'merged.yaml')
   );
+  const outputLog = OutputLog.getInstance();
   watchMergedConfig.onDidChange((uri) => {
     outputLog.log('merged.yaml changed');
     configVals.reset();
@@ -65,59 +140,23 @@ export async function activate(context: vscode.ExtensionContext) {
     assistantByLab.refresh();
   });
   context.subscriptions.push(watchMergedConfig);
+}
 
-  //Provides Type Error Decoration
-  new ViewFileDecorationProvider();
-
-  // Workflow Publishing view
-  new WorkflowTreeView(rootPath, context);
-  new DataTreeView(context);
-  new ConfigTreeView(context);
-  new InsertFunctionCall(context);
-
-  //Function Tree and related commands
-  const customAdapterActionStubPath =
-    vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubPath;
-
-  const fullAdapterActionStubPath = path.join(rootPath, customAdapterActionStubPath);
-  const funcTree = new AdapterActionTreeView(fullAdapterActionStubPath, context);
-  funcTree.init();
-
-  const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
-  const fullAssistantStubPath = path.join(rootPath, customAssistantStubPath);
-  //Assistant Tree and Commands
-  const assistantByLab: AssistantByLabTreeView = new AssistantByLabTreeView(
-    fullAssistantStubPath,
-    'artificial/assistantByLab/',
-    context
+async function setupConfig(context: vscode.ExtensionContext) {
+  const rootPath =
+    vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
+      : '';
+  await initConfig(rootPath);
+  const configVals = ConfigValues.getInstance();
+  const watchConfig = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(rootPath + '/configs', '**/*.yaml')
   );
-  await assistantByLab.init();
-  await assistantByLab.refresh();
-
-  new GenerateAssistantStubs(context, rootPath, assistantByLab);
-
-  //Drop handler for document editor
-  const selector: vscode.DocumentSelector = { language: 'python' };
-  context.subscriptions.push(
-    vscode.languages.registerDocumentDropEditProvider(selector, new DropProvider(context, funcTree, assistantByLab))
-  );
-
-  // Status Bar for Connection Info
-  const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
-  const host = configVals.getHost().split('.')[0];
-  statusBar.text = `$(debug-disconnect) ` + host;
-  statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
-  statusBar.show();
-  context.subscriptions.push(statusBar);
-
-  //Code Lens for WF Publish
-  let codeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
-    selector,
-    new WorkflowPublishLensProvider()
-  );
-  context.subscriptions.push(codeLensProviderDisposable);
-
-  console.log('Artificial Workflow Extension is active');
+  watchConfig.onDidChange((uri) => {
+    initConfig(rootPath);
+  });
+  context.subscriptions.push(watchConfig);
+  return { configVals, rootPath };
 }
 
 export function deactivate() {}

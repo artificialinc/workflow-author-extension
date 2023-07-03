@@ -54,6 +54,7 @@ export class AssistantByLabTreeView
     this.assistantResponse = await client.queryAssistants();
     this.assistantSignatures = new BuildAssistantSignatures().build(this.stubPath);
     this.treeElements = await this.getChildren();
+    this._onDidChangeTreeData.fire();
     // setInterval(() => this.refresh(), 60000); TODO: Turn on auto refresh of tree?
     return;
   }
