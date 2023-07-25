@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,12 +11,13 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { createVisitor, parse } from 'python-ast';
+import { getInterpreterDetails } from './python';
 
 export function pathExists(p: string): boolean {
   try {
@@ -28,6 +29,10 @@ export function pathExists(p: string): boolean {
 }
 
 export async function initConfig(rootPath: string) {
+const interpreterDetails = await getInterpreterDetails();
+        if (interpreterDetails.path) {
+            console.log(`Using interpreter from Python extension: ${interpreterDetails.path.join(' ')}`);
+        }
   const terminal = findOrCreateTerminal();
   if (!pathExists(rootPath + '/tmp')) {
     terminal.sendText('mkdir tmp');
