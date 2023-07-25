@@ -32,7 +32,7 @@ export async function initConfig(rootPath: string) {
   if (!pathExists(rootPath + '/tmp')) {
     terminal.sendText('mkdir tmp');
   }
-  //terminal.sendText('afconfig view --yaml > tmp/merged.yaml');
+  terminal.sendText('afconfig view --yaml > tmp/merged.yaml');
   // This blocks during the initial activation of the extension,
   // to allow time for the terminal command to complete and hydrate values
   // Post activation of the extension, this sleep fires but doesn't block
