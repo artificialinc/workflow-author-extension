@@ -19,6 +19,8 @@ import { findOrCreateTerminal } from '../utils';
 import { ConfigValues } from '../providers/configProvider';
 
 export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
+  private token: string;
+  private server: string;
   constructor(context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('labAsstData', {
       treeDataProvider: this,
@@ -28,6 +30,10 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     context.subscriptions.push(view);
     context.subscriptions.push(vscode.commands.registerCommand('labAsstData.exportData', () => this.exportData()));
     context.subscriptions.push(vscode.commands.registerCommand('labAsstData.importData', () => this.importData()));
+
+    const config = ConfigValues.getInstance();
+    this.token = config.getToken();
+    this.server = config.getHost();
   }
   async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
     return [];
@@ -37,14 +43,14 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
   exportData() {
     const terminal = findOrCreateTerminal();
-    const config = ConfigValues.getInstance();
-    const token = config.getToken();
-    const server = config.getHost();
     terminal.sendText(
-      `alab-cli data exportManifest --min -x 50000 -s ${server} -t ${token} -d data -m data/manifest.yaml`
+      `artificial-cli data exportManifest --quiet --min -x 50000 -s ${this.server} -t ${this.token} -d data -m data/manifest.yaml`
     );
   }
   importData() {
-    console.log('Import');
+    const terminal = findOrCreateTerminal();
+    terminal.sendText(
+      `artificial-cli data importManifest -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
+    );
   }
 }
