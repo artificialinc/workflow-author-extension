@@ -50,7 +50,7 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   importData() {
     const terminal = findOrCreateTerminal();
     terminal.sendText(
-      `artificial-cli data importManifest -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
+      `artificial-cli data importManifest --quiet -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
     );
   }
 }
