@@ -41,16 +41,30 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
     return element;
   }
-  exportData() {
-    const terminal = findOrCreateTerminal();
-    terminal.sendText(
-      `artificial-cli data exportManifest --quiet --min -x 50000 -s ${this.server} -t ${this.token} -d data -m data/manifest.yaml`
+  async exportData() {
+    await vscode.tasks.executeTask(
+      new vscode.Task(
+        { type: 'shell' },
+        vscode.TaskScope.Global,
+        'Export Labs/Assistants',
+        'Export Labs/Assistants',
+        new vscode.ShellExecution(
+          `artificial-cli data exportManifest --quiet --min -x 50000 -s ${this.server} -t ${this.token} -d data -m data/manifest.yaml`
+        )
+      )
     );
   }
-  importData() {
-    const terminal = findOrCreateTerminal();
-    terminal.sendText(
-      `artificial-cli data importManifest --quiet -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
+  async importData() {
+    await vscode.tasks.executeTask(
+      new vscode.Task(
+        { type: 'shell' },
+        vscode.TaskScope.Global,
+        'Import Labs/Assistants',
+        'Import Labs/Assistants',
+        new vscode.ShellExecution(
+          `artificial-cli data importManifest -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
+        )
+      )
     );
   }
 }
