@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import { ConfigValues } from '../providers/configProvider';
-import { pathExists } from '../utils';
+import { artificialTask, pathExists } from '../utils';
 
 export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   private token: string;
@@ -43,39 +43,17 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   }
   async exportData() {
     if (!pathExists(this.rootPath + '/data')) {
-      await vscode.tasks.executeTask(
-        new vscode.Task(
-          { type: 'shell' },
-          vscode.TaskScope.Global,
-          'Data Directory Creation',
-          'Artificial',
-          new vscode.ShellExecution(`mkdir data`)
-        )
-      );
+      await artificialTask('Data Directory Creation', `mkdir data`);
     }
-    await vscode.tasks.executeTask(
-      new vscode.Task(
-        { type: 'shell' },
-        vscode.TaskScope.Global,
-        'Export Labs/Assistants',
-        'Artificial',
-        new vscode.ShellExecution(
-          `artificial-cli data exportManifest --quiet --min -x 50000 -s ${this.server} -t ${this.token} -d data -m data/manifest.yaml`
-        )
-      )
+    await artificialTask(
+      'Export Labs/Assistants',
+      `artificial-cli data exportManifest --quiet --min -x 50000 -s ${this.server} -t ${this.token} -d data -m data/manifest.yaml`
     );
   }
   async importData() {
-    await vscode.tasks.executeTask(
-      new vscode.Task(
-        { type: 'shell' },
-        vscode.TaskScope.Global,
-        'Import Labs/Assistants',
-        'Artificial',
-        new vscode.ShellExecution(
-          `artificial-cli data importManifest --quiet -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
-        )
-      )
+    await artificialTask(
+      'Import Labs/Assistants',
+      `artificial-cli data importManifest --quiet -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
     );
   }
 }

@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { pathExists } from '../utils';
+import { artificialTask, pathExists } from '../utils';
 import { glob } from 'glob';
 import { findWorkflowsInFiles } from '../utils';
 
@@ -64,29 +64,14 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       // If there are multiple workflows in one file
       if (workflowIds.length > 1) {
         for (const wfID of workflowIds) {
-          await vscode.tasks.executeTask(
-            new vscode.Task(
-              { type: 'shell' },
-              vscode.TaskScope.Global,
-              'Publish Workflow',
-              'Artificial',
-              new vscode.ShellExecution(
-                `(wf publish ${path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`
-              )
-            )
+          await artificialTask(
+            'Publish Workflow',
+            `(wf publish ${path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`
           );
         }
       } else {
         //One workflow in the file
-        await vscode.tasks.executeTask(
-          new vscode.Task(
-            { type: 'shell' },
-            vscode.TaskScope.Global,
-            'Publish Workflow',
-            'Artificial',
-            new vscode.ShellExecution(`(wf publish ${path + '.bin'})`)
-          )
-        );
+        await artificialTask('Publish Workflow', `(wf publish ${path + '.bin'})`);
       }
     }
   }
@@ -98,25 +83,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   //TODO: Throw errors to vscode notification
   async generateWorkflow(path: string, json: boolean): Promise<boolean> {
     if (json) {
-      await vscode.tasks.executeTask(
-        new vscode.Task(
-          { type: 'shell' },
-          vscode.TaskScope.Global,
-          'Generate Workflow',
-          'Artificial',
-          new vscode.ShellExecution(`(cd ${this.stubPath}/workflow; wfgen ${path} -j)`)
-        )
-      );
+      await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path} -j)`);
     } else {
-      await vscode.tasks.executeTask(
-        new vscode.Task(
-          { type: 'shell' },
-          vscode.TaskScope.Global,
-          'Generate Workflow',
-          'Artificial',
-          new vscode.ShellExecution(`(cd ${this.stubPath}/workflow; wfgen ${path})`)
-        )
-      );
+      await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path})`);
     }
     // TODO: No good way to tell if previous command has had time to complete
     // For now just sleep 2s, so far wfgen is sub-second to complete.

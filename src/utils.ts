@@ -29,25 +29,9 @@ export function pathExists(p: string): boolean {
 
 export async function initConfig(rootPath: string) {
   if (!pathExists(rootPath + '/tmp')) {
-    await vscode.tasks.executeTask(
-      new vscode.Task(
-        { type: 'shell' },
-        vscode.TaskScope.Global,
-        'tmp Directory Creation',
-        'Artificial',
-        new vscode.ShellExecution('mkdir tmp')
-      )
-    );
+    await artificialTask('tmp Directory Creation', 'mkdir tmp');
   }
-  await vscode.tasks.executeTask(
-    new vscode.Task(
-      { type: 'shell' },
-      vscode.TaskScope.Global,
-      'Setup Config',
-      'Artificial',
-      new vscode.ShellExecution(`afconfig view --yaml > tmp/merged.yaml`)
-    )
-  );
+  await artificialTask('Setup Config', `afconfig view --yaml > tmp/merged.yaml`);
 
   // This blocks during the initial activation of the extension,
   // to allow time for the terminal command to complete and hydrate values
@@ -104,4 +88,10 @@ export function findWorkflowsInFiles(files: string[]) {
     }
   }
   return workflows;
+}
+
+export async function artificialTask(task: string, command: string) {
+  await vscode.tasks.executeTask(
+    new vscode.Task({ type: 'shell' }, vscode.TaskScope.Global, task, 'Artificial', new vscode.ShellExecution(command))
+  );
 }
