@@ -61,6 +61,12 @@ export async function activate(context: vscode.ExtensionContext) {
   setupCodeLens(selector, context);
   // Handle config resets across components
   configResetWatcher(rootPath, configVals, statusBar, assistantByLab, context);
+  // Handle terminal command exit code notifications
+  taskExitWatcher();
+  console.log('Artificial Workflow Extension is active');
+}
+
+function taskExitWatcher() {
   vscode.tasks.onDidEndTaskProcess((e) => {
     if (e.exitCode === 0) {
       vscode.window.showInformationMessage(`${e.execution.task.name} completed successfully`);
@@ -68,7 +74,6 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage(`${e.execution.task.name}: Please check terminal logs for error details`);
     }
   });
-  console.log('Artificial Workflow Extension is active');
 }
 
 async function setupAssistantTree(configVals: ConfigValues, context: vscode.ExtensionContext) {
