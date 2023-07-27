@@ -16,11 +16,12 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import { ConfigValues } from '../providers/configProvider';
+import { pathExists } from '../utils';
 
 export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
   private token: string;
   private server: string;
-  constructor(context: vscode.ExtensionContext) {
+  constructor(private rootPath: string, context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('labAsstData', {
       treeDataProvider: this,
       showCollapseAll: false,
@@ -41,12 +42,23 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     return element;
   }
   async exportData() {
+    if (!pathExists(this.rootPath + '/data')) {
+      await vscode.tasks.executeTask(
+        new vscode.Task(
+          { type: 'shell' },
+          vscode.TaskScope.Global,
+          'Data Directory Creation',
+          'Artificial',
+          new vscode.ShellExecution(`mkdir data`)
+        )
+      );
+    }
     await vscode.tasks.executeTask(
       new vscode.Task(
         { type: 'shell' },
         vscode.TaskScope.Global,
         'Export Labs/Assistants',
-        'Export Labs/Assistants',
+        'Artificial',
         new vscode.ShellExecution(
           `artificial-cli data exportManifest --quiet --min -x 50000 -s ${this.server} -t ${this.token} -d data -m data/manifest.yaml`
         )
@@ -59,7 +71,7 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
         { type: 'shell' },
         vscode.TaskScope.Global,
         'Import Labs/Assistants',
-        'Import Labs/Assistants',
+        'Artificial',
         new vscode.ShellExecution(
           `artificial-cli data importManifest --quiet -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
         )

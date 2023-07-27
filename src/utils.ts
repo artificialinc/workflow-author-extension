@@ -33,7 +33,7 @@ export async function initConfig(rootPath: string) {
       new vscode.Task(
         { type: 'shell' },
         vscode.TaskScope.Global,
-        'Setup Config',
+        'tmp Directory Creation',
         'Artificial',
         new vscode.ShellExecution('mkdir tmp')
       )

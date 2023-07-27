@@ -42,7 +42,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Workflow Publishing Tree
   new WorkflowTreeView(rootPath, context);
   // Import/Export Buttons
-  new DataTreeView(context);
+  new DataTreeView(rootPath, context);
   // Config Tree
   new ConfigTreeView(context);
   // Commands to insert & drag/drop functions
