@@ -29,7 +29,7 @@ import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
-import { setupAdapterCommands } from './adapter/adapter';
+import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 
 export async function activate(context: vscode.ExtensionContext) {
   // Config Setup
@@ -174,5 +174,60 @@ async function setupConfig(context: vscode.ExtensionContext) {
   context.subscriptions.push(watchConfig);
   return { configVals, rootPath };
 }
+
+function setupAdapterCommands(configVals: ConfigValues, context: vscode.ExtensionContext) {
+  // Update adapter image command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
+      const adapter = await ArtificialAdapterManager.createLocalAdapter();
+      const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
+        resolve([
+          "ghcr.io/artificialinc/adapter-manager:aidan-5",
+          "ghcr.io/artificialinc/adapter-manager:aidan-6",
+          "ghcr.io/artificialinc/adapter-manager:shawn-7",]);
+      }), { placeHolder: 'Select an adapter image to update to' });
+      if (image === '') {
+        console.log(image);
+        vscode.window.showErrorMessage('An image is mandatory to execute this action');
+      }
+
+      if (image !== undefined) {
+        console.log(image);
+        await adapter.updateAdapterImage("adapter_manager", image);
+      }
+    }
+    )
+  );
+
+  // Execute adapter action command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('adapterActions.executeAdapterAction', async () => {
+      const action = await vscode.window.showQuickPick(new Promise<string[]>(async (resolve, reject) => {
+        try {
+          const adapter2 = await ArtificialAdapter.createRemoteAdapter(
+            `labmanager.${configVals.getHost()}`,
+            configVals.getPrefix(),
+            configVals.getOrgId(),
+            configVals.getLabId(),
+            configVals.getToken(),
+          );
+          resolve(adapter2.listActions());
+        } catch (e) {
+          reject(e);
+        }
+      }), { placeHolder: "Select an action to execute" });
+      if (action === '') {
+        console.log(action);
+        vscode.window.showErrorMessage('An action is mandatory');
+      }
+
+      if (action !== undefined) {
+        console.log(`Extension would execute ${action}, but that code hasn't been written yet`);
+      }
+    }
+    )
+  );
+}
+
 
 export function deactivate() { }
