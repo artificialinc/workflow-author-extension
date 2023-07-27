@@ -314,10 +314,10 @@
     }
   },
   "scripts": {
-    "vscode:prepublish2": "yarn run compile",
+    "vscode:prepublish2": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts --fix",
     "test": "CI=true jest --coverage",
     "vscode:prepublish": "npm run esbuild-base -- --minify",
@@ -357,11 +357,10 @@
     "glob": "^8.0.3",
     "google-protobuf": "^3.21.2",
     "graphql": "^16.6.0",
-    "grpc-js-reflection-client": "github:artificialinc/grpc-js-reflection-api-client#d6369ac",
+    "grpc-js-reflection-client": "github:artificialinc/grpc-js-reflection-api-client#c73c70483834108761c45b111aa9ee9064fbe00f",
     "lodash": "^4.17.21",
     "protobufjs": ">=7.2.4",
     "python-ast": "^0.1.0",
     "yaml": "^2.1.1"
-  },
-  "packageManager": "yarn@3.6.1"
+  }
 }
