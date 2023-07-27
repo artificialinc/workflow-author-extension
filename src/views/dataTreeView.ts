@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { findOrCreateTerminal } from '../utils';
 import { ConfigValues } from '../providers/configProvider';
 
 export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {

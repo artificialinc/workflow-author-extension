@@ -28,15 +28,31 @@ export function pathExists(p: string): boolean {
 }
 
 export async function initConfig(rootPath: string) {
-  const terminal = findOrCreateTerminal();
   if (!pathExists(rootPath + '/tmp')) {
-    terminal.sendText('mkdir tmp');
+    await vscode.tasks.executeTask(
+      new vscode.Task(
+        { type: 'shell' },
+        vscode.TaskScope.Global,
+        'Setup Config',
+        'Artificial',
+        new vscode.ShellExecution('mkdir tmp')
+      )
+    );
   }
-  terminal.sendText('afconfig view --yaml > tmp/merged.yaml');
+  await vscode.tasks.executeTask(
+    new vscode.Task(
+      { type: 'shell' },
+      vscode.TaskScope.Global,
+      'Setup Config',
+      'Artificial',
+      new vscode.ShellExecution(`afconfig view --yaml > tmp/merged.yaml`)
+    )
+  );
+
   // This blocks during the initial activation of the extension,
   // to allow time for the terminal command to complete and hydrate values
   // Post activation of the extension, this sleep fires but doesn't block
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 String.prototype.cleanQuotes = function (): string {

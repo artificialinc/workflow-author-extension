@@ -65,7 +65,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (e.exitCode === 0) {
       vscode.window.showInformationMessage(`${e.execution.task.name} completed successfully`);
     } else {
-      vscode.window.showErrorMessage(`${e.execution.task.name}: Errored, please check terminal logs for details`);
+      vscode.window.showErrorMessage(`${e.execution.task.name}: Please check terminal logs for error details`);
     }
   });
   console.log('Artificial Workflow Extension is active');
