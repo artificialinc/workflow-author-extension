@@ -18,7 +18,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { ArtificialApollo, AssistantReply, Assistant, AssistantTypeInfo } from '../providers/apolloProvider';
 import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
-import { LabTreeElement } from './loadConfigTreeView';
 import * as _ from 'lodash';
 import { camelCase } from 'lodash';
 
@@ -47,6 +46,7 @@ export class AssistantByLabTreeView
     });
     context.subscriptions.push(view);
     this.treeElements = [];
+    context.subscriptions.push(vscode.commands.registerCommand('assistantsByLab.refreshEntry', () => this.refresh()));
   }
 
   public async init(): Promise<void> {
@@ -54,6 +54,7 @@ export class AssistantByLabTreeView
     this.assistantResponse = await client.queryAssistants();
     this.assistantSignatures = new BuildAssistantSignatures().build(this.stubPath);
     this.treeElements = await this.getChildren();
+    this._onDidChangeTreeData.fire();
     // setInterval(() => this.refresh(), 60000); TODO: Turn on auto refresh of tree?
     return;
   }
@@ -291,5 +292,17 @@ export class AssistantTreeElementError extends vscode.TreeItem {
   iconPath = {
     light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
     dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
+  };
+}
+export class LabTreeElement extends vscode.TreeItem {
+  constructor(public readonly label: string, public readonly labId: string) {
+    super(label, vscode.TreeItemCollapsibleState.Collapsed);
+    this.tooltip = `${this.label}`;
+  }
+  resourceUri = vscode.Uri.parse('artificial/loadConfigs/' + 'lab/' + this.labId);
+  type = 'lab';
+  iconPath = {
+    light: path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg'),
+    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg'),
   };
 }

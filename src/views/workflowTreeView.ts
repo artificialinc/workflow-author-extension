@@ -16,13 +16,11 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { pathExists } from '../utils';
+import { artificialTask, pathExists } from '../utils';
 import { glob } from 'glob';
-import { OutputLog } from '../providers/outputLogProvider';
-import { findOrCreateTerminal, findWorkflowsInFiles } from '../utils';
+import { findWorkflowsInFiles } from '../utils';
 
 export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeElement> {
-  private outputLog!: OutputLog;
   private _onDidChangeTreeData: vscode.EventEmitter<WorkflowTreeElement | undefined | void> = new vscode.EventEmitter<
     WorkflowTreeElement | undefined | void
   >();
@@ -34,8 +32,22 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       showCollapseAll: false,
       canSelectMany: false,
     });
-    this.outputLog = OutputLog.getInstance();
-    context.subscriptions.push(view);
+    context.subscriptions.push(
+      view,
+      vscode.commands.registerCommand('workflows.refreshEntry', () => this.refresh()),
+      vscode.commands.registerCommand('workflows.publish', (path: string, workflowIDs: string[]) =>
+        this.publishWorkflow(path, workflowIDs)
+      ),
+      vscode.commands.registerCommand('workflows.treePublish', (node: WorkflowTreeElement) =>
+        this.publishWorkflow(node.path, node.workflowIds)
+      ),
+      vscode.commands.registerCommand('workflows.generateBinary', (node: WorkflowTreeElement) =>
+        this.generateWorkflow(node.path, false)
+      ),
+      vscode.commands.registerCommand('workflows.generateJson', (node: WorkflowTreeElement) =>
+        this.generateWorkflow(node.path, true)
+      )
+    );
   }
 
   refresh(): void {
@@ -49,15 +61,17 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   async publishWorkflow(path: string, workflowIds: string[]): Promise<void> {
     const success = await this.generateWorkflow(path, false);
     if (success) {
-      const terminal = findOrCreateTerminal(true);
       // If there are multiple workflows in one file
       if (workflowIds.length > 1) {
         for (const wfID of workflowIds) {
-          terminal.sendText(`(wf publish ${path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`);
+          await artificialTask(
+            'Publish Workflow',
+            `(wf publish ${path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`
+          );
         }
       } else {
         //One workflow in the file
-        terminal.sendText(`(wf publish ${path + '.bin'})`);
+        await artificialTask('Publish Workflow', `(wf publish ${path + '.bin'})`);
       }
     }
   }
@@ -68,12 +82,10 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
 
   //TODO: Throw errors to vscode notification
   async generateWorkflow(path: string, json: boolean): Promise<boolean> {
-    const terminal = findOrCreateTerminal(true);
-
     if (json) {
-      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${path} -j)`);
+      await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path} -j)`);
     } else {
-      terminal.sendText(`(cd ${this.stubPath}/workflow; wfgen ${path})`);
+      await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path})`);
     }
     // TODO: No good way to tell if previous command has had time to complete
     // For now just sleep 2s, so far wfgen is sub-second to complete.
@@ -122,6 +134,17 @@ export class WorkflowTreeElement extends vscode.TreeItem {
     // TODO: HACK
     this.label = label.slice(index + 10);
     this.path = label;
+    // TODO: This open command isnt working inside a dev container
+    // this.command = {
+    //   command: 'vscode.open',
+    //   title: 'Open Call',
+    //   arguments: [
+    //     this.tooltip,
+    //     <vscode.TextDocumentShowOptions>{
+    //       preserveFocus: true,
+    //     },
+    //   ],
+    // };
   }
   path: string;
   iconPath = {

@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { Function } from '../views/adapterActionTreeView';
 
 export class InsertFunctionCall {
+  constructor() {}
   insertFunction(node: Function): void {
     const editor = vscode.window.activeTextEditor;
     let className = '';

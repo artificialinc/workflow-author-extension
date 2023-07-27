@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.6.0]
+
+- Import/Export of Lab/Assistants
+  - Requires artificial-cli 0.0.10 in adapter template
+
 ## [2.5.1]
 
 - AlphaNumeric sort for tree views

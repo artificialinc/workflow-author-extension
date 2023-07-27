@@ -28,15 +28,15 @@ export function pathExists(p: string): boolean {
 }
 
 export async function initConfig(rootPath: string) {
-  const terminal = findOrCreateTerminal();
   if (!pathExists(rootPath + '/tmp')) {
-    terminal.sendText('mkdir tmp');
+    await artificialTask('tmp Directory Creation', 'mkdir tmp');
   }
-  terminal.sendText('afconfig view --yaml > tmp/merged.yaml');
+  await artificialTask('Setup Config', `afconfig view --yaml > tmp/merged.yaml`);
+
   // This blocks during the initial activation of the extension,
   // to allow time for the terminal command to complete and hydrate values
   // Post activation of the extension, this sleep fires but doesn't block
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 String.prototype.cleanQuotes = function (): string {
@@ -88,4 +88,10 @@ export function findWorkflowsInFiles(files: string[]) {
     }
   }
   return workflows;
+}
+
+export async function artificialTask(task: string, command: string) {
+  await vscode.tasks.executeTask(
+    new vscode.Task({ type: 'shell' }, vscode.TaskScope.Global, task, 'Artificial', new vscode.ShellExecution(command))
+  );
 }

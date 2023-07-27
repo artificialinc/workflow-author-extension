@@ -21,9 +21,15 @@ import { InsertFunctionCall } from '../generators/generateFunctionCall';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;
   private assistantTreeByLab;
-  constructor(functionTree: AdapterActionTreeView, assistantTreeByLab: AssistantByLabTreeView) {
+  private context;
+  constructor(
+    context: vscode.ExtensionContext,
+    functionTree: AdapterActionTreeView,
+    assistantTreeByLab: AssistantByLabTreeView
+  ) {
     this.funcTree = functionTree;
     this.assistantTreeByLab = assistantTreeByLab;
+    this.context = context;
   }
   async provideDocumentDropEdits(
     _document: vscode.TextDocument,
@@ -53,22 +59,6 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
       text = insertFuncCall.buildFunctionCall(element.functionSignature, className);
     }
 
-    // TODO: Move this into tree provider or own generator??
-    if (text.includes('/loadConfigs/')) {
-      const splitText = text.split('/');
-      if (text.includes('/lab/')) {
-        text = splitText[splitText.length - 1];
-      } else if (text.includes('/asset/')) {
-        const loadConfigId = splitText[splitText.length - 2];
-        const loadConfigOrder = splitText[splitText.length - 1];
-        text = `assets = await load_assets(start_idx=${
-          parseFloat(loadConfigOrder) + 1
-        }, number_to_load = 1, '${loadConfigId}')`;
-      } else {
-        const loadConfigId = splitText[splitText.length - 1];
-        text = `assets = await load_assets(start_idx= , number_to_load = , '${loadConfigId}')`;
-      }
-    }
     if (text.includes('/configs/')) {
       const splitText = text.split('/');
       if (text.includes('/org/')) {
