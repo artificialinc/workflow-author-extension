@@ -1,6 +1,7 @@
 import { getAdapterClients as getAdapterClients, AdapterClient } from './grpc/grpc';
-import { ServiceClient } from '@grpc/grpc-js/build/src/make-client'; // WHY?!
 import * as grpc from '@grpc/grpc-js';
+import * as vscode from 'vscode';
+import { ConfigValues } from '../providers/configProvider';
 
 export class ArtificialAdapter {
   adapterClients: Map<string, AdapterClient>;
@@ -57,4 +58,62 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
       });
     });
   }
+}
+
+export function setupAdapterCommands(configVals: ConfigValues, context: vscode.ExtensionContext) {
+  // Update adapter image command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
+      const adapter = await ArtificialAdapterManager.createLocalAdapter();
+      // const searchQuery = await vscode.window.showQuickPick(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
+      const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
+        resolve([
+          "ghcr.io/artificialinc/adapter-manager:aidan-5",
+          "ghcr.io/artificialinc/adapter-manager:aidan-6",
+          "ghcr.io/artificialinc/adapter-manager:shawn-7",]);
+        // resolve(adapter.listActions());
+      }), { placeHolder: 'Select an adapter image to update to' });
+      if (image === '') {
+        console.log(image);
+        vscode.window.showErrorMessage('A search query is mandatory to execute this action');
+      }
+
+      if (image !== undefined) {
+        console.log(image);
+        await adapter.updateAdapterImage("adapter_manager", image);
+      }
+    }
+    )
+  );
+
+  // Execute adapter action command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('adapterActions.executeAdapterAction', async () => {
+      // const searchQuery = await vscode.window.showQuickPick(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
+      const searchQuery = await vscode.window.showQuickPick(new Promise<string[]>(async (resolve, reject) => {
+        // resolve(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
+        try {
+          const adapter2 = await ArtificialAdapter.createRemoteAdapter(
+            `labmanager.${configVals.getHost()}`,
+            configVals.getPrefix(),
+            configVals.getOrgId(),
+            configVals.getLabId(),
+            configVals.getToken(),
+          );
+          resolve(adapter2.listActions());
+        } catch (e) {
+          reject(e);
+        }
+      }), { placeHolder: "Select an action to execute" });
+      if (searchQuery === '') {
+        console.log(searchQuery);
+        vscode.window.showErrorMessage('A search query is mandatory to execute this action');
+      }
+
+      if (searchQuery !== undefined) {
+        console.log(searchQuery);
+      }
+    }
+    )
+  );
 }

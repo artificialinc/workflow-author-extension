@@ -29,7 +29,7 @@ import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
-import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
+import { setupAdapterCommands } from './adapter/adapter';
 
 export async function activate(context: vscode.ExtensionContext) {
   // Config Setup
@@ -65,62 +65,8 @@ export async function activate(context: vscode.ExtensionContext) {
   // Handle terminal command exit code notifications
   taskExitWatcher();
 
-  // Update adapter image command
-  context.subscriptions.push(
-    vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
-      const adapter = await ArtificialAdapterManager.createLocalAdapter();
-      // const searchQuery = await vscode.window.showQuickPick(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
-      const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
-        resolve([
-          "ghcr.io/artificialinc/adapter-manager:aidan-5",
-          "ghcr.io/artificialinc/adapter-manager:aidan-6",
-          "ghcr.io/artificialinc/adapter-manager:shawn-7",]);
-        // resolve(adapter.listActions());
-      }), { placeHolder: 'Select an adapter image to update to' });
-      if (image === '') {
-        console.log(image);
-        vscode.window.showErrorMessage('A search query is mandatory to execute this action');
-      }
-
-      if (image !== undefined) {
-        console.log(image);
-        await adapter.updateAdapterImage("adapter_manager", image);
-      }
-    }
-    )
-  );
-
-  // Execute adapter action command
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('adapterActions.executeAdapterAction', async () => {
-      // const searchQuery = await vscode.window.showQuickPick(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
-      const searchQuery = await vscode.window.showQuickPick(new Promise<string[]>(async (resolve, reject) => {
-        // resolve(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
-        try {
-          const adapter2 = await ArtificialAdapter.createRemoteAdapter(
-            `labmanager.${configVals.getHost()}`,
-            configVals.getPrefix(),
-            configVals.getOrgId(),
-            configVals.getLabId(),
-            configVals.getToken(),
-          );
-          resolve(adapter2.listActions());
-        } catch (e) {
-          reject(e);
-        }
-      }), { placeHolder: "Select an action to execute" });
-      if (searchQuery === '') {
-        console.log(searchQuery);
-        vscode.window.showErrorMessage('A search query is mandatory to execute this action');
-      }
-
-      if (searchQuery !== undefined) {
-        console.log(searchQuery);
-      }
-    }
-    )
-  );
+  // Setup adapter commands
+  setupAdapterCommands(configVals, context);
 
   console.log('Artificial Workflow Extension is active');
 }
