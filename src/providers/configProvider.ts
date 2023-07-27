@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import * as vscode from 'vscode';
@@ -25,7 +25,10 @@ export class ConfigValues {
     private hostName: string = '',
     private apiToken: string = '',
     private adapterActionStubPath = '',
-    private assistantStubPath = ''
+    private assistantStubPath = '',
+     private prefix: string = '',
+     private orgId: string = '',
+     private labId: string = '',
   ) {
     this.initialize();
   }
@@ -43,6 +46,9 @@ export class ConfigValues {
     if (!pathExists(configPath)) {
       this.hostName = '';
       this.apiToken = '';
+      this.prefix = '';
+      this.orgId = '';
+      this.labId = '';
       return;
     }
 
@@ -50,6 +56,9 @@ export class ConfigValues {
     if (!config) {
       this.hostName = '';
       this.apiToken = '';
+      this.prefix = '';
+      this.orgId = '';
+      this.labId = '';
       return;
     }
 
@@ -62,8 +71,10 @@ export class ConfigValues {
     this.assistantStubPath = path.join(rootPath, customAssistantStubPath);
 
     this.hostName = config.artificial.host ?? '';
-
     this.apiToken = config.artificial.token ?? '';
+    this.prefix = config.artificial.prefix ?? '';
+    this.labId = config.artificial.labId ?? '';
+    this.orgId = config.artificial.orgId ?? '';
   }
   public static getInstance(): ConfigValues {
     if (!ConfigValues.instance) {
@@ -82,6 +93,15 @@ export class ConfigValues {
   }
   public getAssistantStubPath() {
     return this.assistantStubPath;
+  }
+  public getPrefix() {
+    return this.prefix;
+  }
+  public getOrgId() {
+    return this.orgId;
+  }
+  public getLabId() {
+    return this.labId;
   }
   public reset() {
     this.initialize();

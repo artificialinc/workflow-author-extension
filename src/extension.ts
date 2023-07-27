@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import * as vscode from 'vscode';
@@ -29,6 +29,7 @@ import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
+import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 
 export async function activate(context: vscode.ExtensionContext) {
   // Config Setup
@@ -63,6 +64,64 @@ export async function activate(context: vscode.ExtensionContext) {
   configResetWatcher(rootPath, configVals, statusBar, assistantByLab, context);
   // Handle terminal command exit code notifications
   taskExitWatcher();
+
+  // Update adapter image command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
+      const adapter = await ArtificialAdapterManager.createLocalAdapter();
+      // const searchQuery = await vscode.window.showQuickPick(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
+      const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
+        resolve([
+          "ghcr.io/artificialinc/adapter-manager:aidan-5",
+          "ghcr.io/artificialinc/adapter-manager:aidan-6",
+          "ghcr.io/artificialinc/adapter-manager:shawn-7",]);
+        // resolve(adapter.listActions());
+      }), { placeHolder: 'Select an adapter image to update to' });
+      if (image === '') {
+        console.log(image);
+        vscode.window.showErrorMessage('A search query is mandatory to execute this action');
+      }
+
+      if (image !== undefined) {
+        console.log(image);
+        await adapter.updateAdapterImage("adapter_manager", image);
+      }
+    }
+    )
+  );
+
+  // Execute adapter action command
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('adapterActions.executeAdapterAction', async () => {
+      // const searchQuery = await vscode.window.showQuickPick(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
+      const searchQuery = await vscode.window.showQuickPick(new Promise<string[]>(async (resolve, reject) => {
+        // resolve(["ghcr.io/artificialinc/adapter-manager:aidan-5","ghcr.io/artificialinc/adapter-manager:aidan-6"]);
+        try {
+          const adapter2 = await ArtificialAdapter.createRemoteAdapter(
+            `labmanager.${configVals.getHost()}`,
+            configVals.getPrefix(),
+            configVals.getOrgId(),
+            configVals.getLabId(),
+            configVals.getToken(),
+          );
+          resolve(adapter2.listActions());
+        } catch (e) {
+          reject(e);
+        }
+      }), { placeHolder: "Select an action to execute" });
+      if (searchQuery === '') {
+        console.log(searchQuery);
+        vscode.window.showErrorMessage('A search query is mandatory to execute this action');
+      }
+
+      if (searchQuery !== undefined) {
+        console.log(searchQuery);
+      }
+    }
+    )
+  );
+
   console.log('Artificial Workflow Extension is active');
 }
 
@@ -170,4 +229,4 @@ async function setupConfig(context: vscode.ExtensionContext) {
   return { configVals, rootPath };
 }
 
-export function deactivate() {}
+export function deactivate() { }
