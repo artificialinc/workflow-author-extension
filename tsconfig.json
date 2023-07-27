@@ -7,7 +7,8 @@
 			"ES2020"
 		],
 		"sourceMap": true,
-		"rootDir": ".",
-		"strict": true
+		"inlineSources": true,
+		"rootDir": "src",
+		"strict": true,
 	}
 }
