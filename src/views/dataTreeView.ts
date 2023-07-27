@@ -61,7 +61,7 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
         'Import Labs/Assistants',
         'Import Labs/Assistants',
         new vscode.ShellExecution(
-          `artificial-cli data importManifest -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
+          `artificial-cli data importManifest --quiet -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
         )
       )
     );
