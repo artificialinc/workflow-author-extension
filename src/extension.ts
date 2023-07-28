@@ -182,9 +182,9 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       const adapter = await ArtificialAdapterManager.createLocalAdapter();
       const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
         resolve([
-          "ghcr.io/artificialinc/adapter-manager:aidan-5",
-          "ghcr.io/artificialinc/adapter-manager:aidan-6",
-          "ghcr.io/artificialinc/adapter-manager:shawn-7",]);
+          "ghcr.io/artificialinc/adapter-manager:v0.1.0",
+          "ghcr.io/artificialinc/adapter-manager:v0.1.1",
+          "ghcr.io/artificialinc/adapter-manager:v0.2.0",]);
       }), { placeHolder: 'Select an adapter image to update to' });
       if (image === '') {
         console.log(image);
