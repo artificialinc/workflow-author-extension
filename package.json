@@ -4,7 +4,6 @@
   "description": "Extension to help author Artificial workflows in Orchestration Python",
   "publisher": "artificial",
   "license": "apache-2.0",
-  "private": false,
   "author": {
     "name": "Artificial, Inc."
   },
@@ -12,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "2.6.0",
+  "version": "2.6.1",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -40,6 +39,11 @@
           "type": "string",
           "default": "workflow/stubs_actions.py",
           "description": "Path to generate adapter action stubs"
+        },
+        "artificial.workflow.author.devMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable dev mode"
         }
       }
     },
@@ -121,6 +125,24 @@
       {
         "command": "adapterActions.refreshEntry",
         "title": "Refresh Python Functions",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "adapterActions.updateAdapterImage",
+        "title": "Update Adapter Image",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "adapterActions.executeAdapterAction",
+        "title": "Execute Adapter Action",
         "category": "Artificial",
         "icon": {
           "light": "resources/light/refresh.svg",
@@ -227,6 +249,14 @@
         {
           "command": "adapterActions.addToFile",
           "when": "False"
+        },
+        {
+          "command": "adapterActions.executeAdapterAction",
+          "when": "config.artificial.workflow.author.devMode"
+        },
+        {
+          "command": "adapterActions.updateAdapterImage",
+          "when": "config.artificial.workflow.author.devMode"
         }
       ],
       "view/title": [
@@ -284,12 +314,12 @@
     }
   },
   "scripts": {
-    "vscode:prepublish2": "yarn run compile",
+    "vscode:prepublish2": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "yarn run compile && yarn run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts --fix",
+    "test": "CI=true jest --coverage",
     "vscode:prepublish": "npm run esbuild-base -- --minify",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild": "npm run esbuild-base -- --sourcemap",
@@ -298,27 +328,38 @@
   },
   "devDependencies": {
     "@types/glob": "^7.2.0",
+    "@types/google-protobuf": "^3.15.6",
+    "@types/jest": "27.5.0",
     "@types/lodash": "^4.14.185",
-    "@types/mocha": "^9.1.1",
     "@types/node": "16.x",
     "@types/vscode": "^1.71.0",
     "@types/zen-observable": "^0.8.3",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "@vscode/test-electron": "^2.1.5",
-    "esbuild": "^0.15.12",
+    "cd": "^0.3.3",
+    "esbuild": "^0.15.18",
     "eslint": "^8.20.0",
-    "mocha": "^10.0.0",
-    "typescript": "^4.7.4"
+    "grpc-node-server-reflection": "^1.0.2",
+    "jest": "^29.5.0",
+    "jest-mock-extended": "^3.0.4",
+    "ts-jest": "^29.0.5",
+    "typescript": "^4.7.4",
+    "wait-for-expect": "^3.0.2"
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
+    "@grpc/grpc-js": "^1.8.20",
+    "@grpc/proto-loader": "0.7.8",
     "apollo-link-timeout": "^4.0.0",
     "cross-fetch": "^3.1.5",
     "dotenv": "^16.0.3",
     "glob": "^8.0.3",
+    "google-protobuf": "^3.21.2",
     "graphql": "^16.6.0",
+    "grpc-js-reflection-client": "^1.2.6-beta1",
     "lodash": "^4.17.21",
+    "protobufjs": ">=7.2.4",
     "python-ast": "^0.1.0",
     "yaml": "^2.1.1"
   }

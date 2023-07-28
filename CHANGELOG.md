@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.6.1]
+
+- Add mock up Adapter Action functionality behind dev mode
+
 ## [2.6.0]
 
 - Import/Export of Lab/Assistants

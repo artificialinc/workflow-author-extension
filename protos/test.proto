@@ -1,0 +1,16 @@
+syntax = "proto3";
+package manager.management_actions;
+
+import "google/protobuf/timestamp.proto";
+
+service ManagementActions {
+  rpc TestCall(TestMessage) returns (TestResponse) {};
+}
+
+message TestMessage {
+  string test_string_field = 1;
+}
+
+message TestResponse {
+  google.protobuf.Timestamp test_timestamp_field = 1;
+}

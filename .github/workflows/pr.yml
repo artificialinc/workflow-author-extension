@@ -1,0 +1,23 @@
+name: Artificial, Inc. Workflow Author Extension (PR)
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+          cache: 'npm'
+
+      - name: Install the dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
