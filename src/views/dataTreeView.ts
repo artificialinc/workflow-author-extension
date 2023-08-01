@@ -19,8 +19,6 @@ import { ConfigValues } from '../providers/configProvider';
 import { artificialTask, pathExists } from '../utils';
 
 export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
-  private token: string;
-  private server: string;
   constructor(private rootPath: string, context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('labAsstData', {
       treeDataProvider: this,
@@ -30,10 +28,6 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     context.subscriptions.push(view);
     context.subscriptions.push(vscode.commands.registerCommand('labAsstData.exportData', () => this.exportData()));
     context.subscriptions.push(vscode.commands.registerCommand('labAsstData.importData', () => this.importData()));
-
-    const config = ConfigValues.getInstance();
-    this.token = config.getToken();
-    this.server = config.getHost();
   }
   async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
     return [];
@@ -45,15 +39,21 @@ export class DataTreeView implements vscode.TreeDataProvider<vscode.TreeItem> {
     if (!pathExists(this.rootPath + '/data')) {
       await artificialTask('Data Directory Creation', `mkdir data`);
     }
+    const config = ConfigValues.getInstance();
+    const token = config.getToken();
+    const server = config.getHost();
     await artificialTask(
       'Export Labs/Assistants',
-      `artificial-cli data exportManifest --quiet --min -x 50000 -s ${this.server} -t ${this.token} -d data -m data/manifest.yaml`
+      `artificial-cli data exportManifest --quiet --min -x 50000 -s ${server} -t ${token} -d data -m data/manifest.yaml`
     );
   }
   async importData() {
+    const config = ConfigValues.getInstance();
+    const token = config.getToken();
+    const server = config.getHost();
     await artificialTask(
       'Import Labs/Assistants',
-      `artificial-cli data importManifest --quiet -x 50000 -s ${this.server} -t ${this.token} -m data/manifest.yaml`
+      `artificial-cli data importManifest --quiet -x 50000 -s ${server} -t ${token} -m data/manifest.yaml`
     );
   }
 }

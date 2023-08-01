@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.6.2]
+
+- Fix config bug on swapping configuration contexts for import/export
+
 ## [2.6.1]
 
 - Add mock up Adapter Action functionality behind dev mode
