@@ -110,7 +110,6 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
         return elements.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
       } else {
-        //vscode.window.showInformationMessage('Workspace has no workflows');
         return [];
       }
     }
@@ -125,7 +124,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 }
 
-export class WorkflowTreeElement extends vscode.TreeItem {
+class WorkflowTreeElement extends vscode.TreeItem {
   constructor(public readonly label: string, public readonly workflowIds: string[]) {
     super(label);
     collapsibleState: vscode.TreeItemCollapsibleState.None;
@@ -135,16 +134,16 @@ export class WorkflowTreeElement extends vscode.TreeItem {
     this.label = label.slice(index + 10);
     this.path = label;
     // TODO: This open command isnt working inside a dev container
-    // this.command = {
-    //   command: 'vscode.open',
-    //   title: 'Open Call',
-    //   arguments: [
-    //     this.tooltip,
-    //     <vscode.TextDocumentShowOptions>{
-    //       preserveFocus: true,
-    //     },
-    //   ],
-    // };
+    this.command = {
+      command: 'vscode.open',
+      title: 'Open Call',
+      arguments: [
+        vscode.Uri.file(this.tooltip),
+        <vscode.TextDocumentShowOptions>{
+          preserveFocus: true,
+        },
+      ],
+    };
   }
   path: string;
   iconPath = {

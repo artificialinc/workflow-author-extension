@@ -43,7 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Workflow Publishing Tree
   new WorkflowTreeView(rootPath, context);
   // Import/Export Buttons
-  new DataTreeView(rootPath, context);
+  const dataTree = new DataTreeView(rootPath, context);
   // Config Tree
   new ConfigTreeView(context);
   // Commands to insert & drag/drop functions
@@ -63,17 +63,19 @@ export async function activate(context: vscode.ExtensionContext) {
   // Handle config resets across components
   configResetWatcher(rootPath, configVals, statusBar, assistantByLab, context);
   // Handle terminal command exit code notifications
-  taskExitWatcher();
-
+  taskExitWatcher(dataTree);
   // Setup adapter commands
   setupAdapterCommands(configVals, context);
 
   console.log('Artificial Workflow Extension is active');
 }
 
-function taskExitWatcher() {
+function taskExitWatcher(dataTree: DataTreeView) {
   vscode.tasks.onDidEndTaskProcess((e) => {
     if (e.exitCode === 0) {
+      if (e.execution.task.name === 'Export Labs/Assistants') {
+        dataTree.refresh();
+      }
       vscode.window.showInformationMessage(`${e.execution.task.name} completed successfully`);
     } else {
       vscode.window.showErrorMessage(`${e.execution.task.name}: Please check terminal logs for error details`);
@@ -180,12 +182,16 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
   context.subscriptions.push(
     vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
       const adapter = await ArtificialAdapterManager.createLocalAdapter();
-      const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
-        resolve([
-          "ghcr.io/artificialinc/adapter-manager:v0.1.0",
-          "ghcr.io/artificialinc/adapter-manager:v0.1.1",
-          "ghcr.io/artificialinc/adapter-manager:v0.2.0",]);
-      }), { placeHolder: 'Select an adapter image to update to' });
+      const image = await vscode.window.showQuickPick(
+        new Promise<string[]>((resolve, reject) => {
+          resolve([
+            'ghcr.io/artificialinc/adapter-manager:v0.1.0',
+            'ghcr.io/artificialinc/adapter-manager:v0.1.1',
+            'ghcr.io/artificialinc/adapter-manager:v0.2.0',
+          ]);
+        }),
+        { placeHolder: 'Select an adapter image to update to' }
+      );
       if (image === '') {
         console.log(image);
         vscode.window.showErrorMessage('An image is mandatory to execute this action');
@@ -193,29 +199,31 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
 
       if (image !== undefined) {
         console.log(image);
-        await adapter.updateAdapterImage("adapter_manager", image);
+        await adapter.updateAdapterImage('adapter_manager', image);
       }
-    }
-    )
+    })
   );
 
   // Execute adapter action command
   context.subscriptions.push(
     vscode.commands.registerCommand('adapterActions.executeAdapterAction', async () => {
-      const action = await vscode.window.showQuickPick(new Promise<string[]>(async (resolve, reject) => {
-        try {
-          const adapter2 = await ArtificialAdapter.createRemoteAdapter(
-            `labmanager.${configVals.getHost()}`,
-            configVals.getPrefix(),
-            configVals.getOrgId(),
-            configVals.getLabId(),
-            configVals.getToken(),
-          );
-          resolve(adapter2.listActions());
-        } catch (e) {
-          reject(e);
-        }
-      }), { placeHolder: "Select an action to execute" });
+      const action = await vscode.window.showQuickPick(
+        new Promise<string[]>(async (resolve, reject) => {
+          try {
+            const adapter2 = await ArtificialAdapter.createRemoteAdapter(
+              `labmanager.${configVals.getHost()}`,
+              configVals.getPrefix(),
+              configVals.getOrgId(),
+              configVals.getLabId(),
+              configVals.getToken()
+            );
+            resolve(adapter2.listActions());
+          } catch (e) {
+            reject(e);
+          }
+        }),
+        { placeHolder: 'Select an action to execute' }
+      );
       if (action === '') {
         console.log(action);
         vscode.window.showErrorMessage('An action is mandatory');
@@ -224,10 +232,8 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       if (action !== undefined) {
         console.log(`Extension would execute ${action}, but that code hasn't been written yet`);
       }
-    }
-    )
+    })
   );
 }
 
-
-export function deactivate() { }
+export function deactivate() {}

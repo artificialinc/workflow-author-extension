@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
-import _ = require('lodash');
+import * as _ from 'lodash';
 type TreeElement = Module | Function;
 export class AdapterActionTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
