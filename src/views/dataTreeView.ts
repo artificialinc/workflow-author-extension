@@ -19,8 +19,8 @@ import { ConfigValues } from '../providers/configProvider';
 import { artificialTask, pathExists } from '../utils';
 import { glob } from 'glob';
 import { findLabAndAssistantsInFiles } from '../utils';
-import path = require('path');
-import _ = require('lodash');
+import * as path from 'path';
+import * as _ from 'lodash';
 type TreeItem = AssistantHeaderTreeItem | LabHeaderTreeItem | DataTreeItem;
 enum DialogResponses {
   ok = 'OK',
@@ -65,25 +65,28 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
     }
     if (element) {
       if (element?.type === TreeItemTypes.labheader) {
-        const labs = labsAndAssistants.map((item) => {
-          if (item.type === TreeItemTypes.lab) {
-            return new DataTreeItem(item.name, item.path, item.id, TreeItemTypes.lab);
-          }
-        });
-        const compactedLabs = _.compact(labs);
-        if (compactedLabs) {
-          return compactedLabs.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
+        const labs = _.compact(
+          labsAndAssistants.map((item) => {
+            if (item.type === TreeItemTypes.lab) {
+              return new DataTreeItem(item.name, item.path, item.id, TreeItemTypes.lab);
+            }
+          })
+        );
+
+        if (labs) {
+          return labs.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
         }
       }
       if (element?.type === TreeItemTypes.assistantheader) {
-        const assistants = labsAndAssistants.map((item) => {
-          if (item.type === TreeItemTypes.assistant) {
-            return new DataTreeItem(item.name, item.path, item.id, TreeItemTypes.assistant);
-          }
-        });
-        const compactedAssistants = _.compact(assistants);
-        if (compactedAssistants) {
-          return compactedAssistants.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
+        const assistants = _.compact(
+          labsAndAssistants.map((item) => {
+            if (item.type === TreeItemTypes.assistant) {
+              return new DataTreeItem(item.name, item.path, item.id, TreeItemTypes.assistant);
+            }
+          })
+        );
+        if (assistants) {
+          return assistants.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
         }
       }
       return [];
