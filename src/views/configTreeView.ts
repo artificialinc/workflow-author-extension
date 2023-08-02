@@ -114,7 +114,7 @@ export class ConfigTreeView implements vscode.TreeDataProvider<TreeItem>, vscode
   }
 }
 
-export class OrgTreeItem extends vscode.TreeItem {
+class OrgTreeItem extends vscode.TreeItem {
   readonly type: string;
   constructor(public readonly label: string) {
     super(label, vscode.TreeItemCollapsibleState.Collapsed);
@@ -126,7 +126,7 @@ export class OrgTreeItem extends vscode.TreeItem {
   iconPath = new vscode.ThemeIcon('organization');
 }
 
-export class LabHeaderTreeItem extends vscode.TreeItem {
+class LabHeaderTreeItem extends vscode.TreeItem {
   readonly type: string;
   constructor(public readonly label: string) {
     super(label, vscode.TreeItemCollapsibleState.Collapsed);
@@ -141,7 +141,7 @@ export class LabHeaderTreeItem extends vscode.TreeItem {
   };
 }
 
-export class ConfigTreeItem extends vscode.TreeItem {
+class ConfigTreeItem extends vscode.TreeItem {
   readonly type: string;
   constructor(
     public readonly label: string,
@@ -165,7 +165,7 @@ export class ConfigTreeItem extends vscode.TreeItem {
 
   iconPath = new vscode.ThemeIcon('symbol-property');
 }
-export class LabTreeElement extends vscode.TreeItem {
+class LabTreeElement extends vscode.TreeItem {
   constructor(public readonly label: string, public readonly labId: string) {
     super(label, vscode.TreeItemCollapsibleState.Collapsed);
     this.tooltip = `${this.label}`;

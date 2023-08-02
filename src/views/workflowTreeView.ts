@@ -110,7 +110,6 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
         }
         return elements.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
       } else {
-        //vscode.window.showInformationMessage('Workspace has no workflows');
         return [];
       }
     }
@@ -125,7 +124,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 }
 
-export class WorkflowTreeElement extends vscode.TreeItem {
+class WorkflowTreeElement extends vscode.TreeItem {
   constructor(public readonly label: string, public readonly workflowIds: string[]) {
     super(label);
     collapsibleState: vscode.TreeItemCollapsibleState.None;

@@ -95,3 +95,20 @@ export async function artificialTask(task: string, command: string) {
     new vscode.Task({ type: 'shell' }, vscode.TaskScope.Global, task, 'Artificial', new vscode.ShellExecution(command))
   );
 }
+
+export function findLabAndAssistantsInFiles(files: string[]) {
+  const labsAndAssistants: { path: string; id: string; name: string; type: string }[] = [];
+  for (const file of files) {
+    const jsonFile = fs.readFileSync(file, 'utf-8');
+    if (jsonFile) {
+      const obj = JSON.parse(jsonFile);
+      if (obj.lab) {
+        labsAndAssistants.push({ path: file, id: obj.lab.id, name: obj.lab.name, type: 'lab' });
+      }
+      if (obj.workflow) {
+        labsAndAssistants.push({ path: file, id: obj.workflow.id, name: obj.workflow.name, type: 'assistant' });
+      }
+    }
+  }
+  return labsAndAssistants;
+}

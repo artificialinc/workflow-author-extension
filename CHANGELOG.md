@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.7.0]
+
+- Individual Lab/Assistant Import & Export
+
 ## [2.6.2]
 
 - Fix config bug on swapping configuration contexts for import/export

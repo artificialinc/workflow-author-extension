@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "2.6.2",
+  "version": "2.7.0",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -71,7 +71,7 @@
       },
       {
         "view": "labAsstData",
-        "contents": "[Export Labs & Assistants from Artificial](command:labAsstData.exportData)\n WARNING: This is destructive and could overwrite changes made to Labs/Assistants in Artificial\n [Import Labs & Assistants to Artificial](command:labAsstData.importData)"
+        "contents": "[Export Labs & Assistants from Artificial](command:labAsstData.exportData)\n "
       }
     ],
     "viewsContainers": {
@@ -215,17 +215,45 @@
       },
       {
         "command": "labAsstData.exportData",
-        "title": "Export Lab and Assistant Data",
-        "category": "Artificial"
+        "title": "Export ALL Lab and Assistant Data",
+        "category": "Artificial",
+        "icon": "$(cloud-download)"
       },
       {
         "command": "labAsstData.importData",
-        "title": "Import Lab and Assistant Data",
-        "category": "Artificial"
+        "title": "Publish ALL Lab and Assistant Data",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/dark/upload.svg",
+          "dark": "resources/dark/upload.svg"
+        }
+      },
+      {
+        "command": "labAsstData.importDataSingle",
+        "title": "Publish Single Lab or Assistant",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/dark/upload.svg",
+          "dark": "resources/dark/upload.svg"
+        }
+      },
+      {
+        "command": "labAsstData.exportDataSingle",
+        "title": "Export Single Lab or Assistant",
+        "category": "Artificial",
+        "icon": "$(cloud-download)"
       }
     ],
     "menus": {
       "commandPalette": [
+        {
+          "command": "labAsstData.importDataSingle",
+          "when": "False"
+        },
+        {
+          "command": "labAsstData.exportDataSingle",
+          "when": "False"
+        },
         {
           "command": "workflows.publish",
           "when": "False"
@@ -284,6 +312,16 @@
           "command": "configs.refreshEntry",
           "when": "view == configs",
           "group": "navigation"
+        },
+        {
+          "command": "labAsstData.exportData",
+          "when": "view == labAsstData",
+          "group": "navigation"
+        },
+        {
+          "command": "labAsstData.importData",
+          "when": "view == labAsstData",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -309,6 +347,16 @@
         {
           "command": "workflows.generateJson",
           "when": "view == workflows"
+        },
+        {
+          "command": "labAsstData.exportDataSingle",
+          "when": "view == labAsstData && viewItem == DATA",
+          "group": "inline"
+        },
+        {
+          "command": "labAsstData.importDataSingle",
+          "when": "view == labAsstData && viewItem == DATA",
+          "group": "inline"
         }
       ]
     }
