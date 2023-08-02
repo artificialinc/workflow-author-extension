@@ -221,5 +221,15 @@ class DataTreeItem extends vscode.TreeItem {
     collapsibleState: vscode.TreeItemCollapsibleState.None;
     this.tooltip = `${this.filePath}`;
     this.contextValue = 'DATA';
+    this.command = {
+      command: 'vscode.open',
+      title: 'Open Call',
+      arguments: [
+        vscode.Uri.file(this.filePath),
+        <vscode.TextDocumentShowOptions>{
+          preserveFocus: true,
+        },
+      ],
+    };
   }
 }

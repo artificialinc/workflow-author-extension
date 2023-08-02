@@ -134,16 +134,16 @@ class WorkflowTreeElement extends vscode.TreeItem {
     this.label = label.slice(index + 10);
     this.path = label;
     // TODO: This open command isnt working inside a dev container
-    // this.command = {
-    //   command: 'vscode.open',
-    //   title: 'Open Call',
-    //   arguments: [
-    //     this.tooltip,
-    //     <vscode.TextDocumentShowOptions>{
-    //       preserveFocus: true,
-    //     },
-    //   ],
-    // };
+    this.command = {
+      command: 'vscode.open',
+      title: 'Open Call',
+      arguments: [
+        vscode.Uri.file(this.tooltip),
+        <vscode.TextDocumentShowOptions>{
+          preserveFocus: true,
+        },
+      ],
+    };
   }
   path: string;
   iconPath = {
