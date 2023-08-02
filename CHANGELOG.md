@@ -3,6 +3,7 @@
 ## [2.7.0]
 
 - Individual Lab/Assistant Import & Export
+- Directly open workflows by clicking on tree items
 
 ## [2.6.2]
 
