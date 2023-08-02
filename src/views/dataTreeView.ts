@@ -102,17 +102,24 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
     const config = ConfigValues.getInstance();
     const token = config.getToken();
     const server = config.getHost();
-    if (element.type === 'assistant') {
-      await artificialTask(
-        'Import Assistant',
-        `cat ${element.filePath} | artificial-cli data importWorkflow --quiet -s ${server} -t ${token}`
-      );
-    }
-    if (element.type === 'lab') {
-      await artificialTask(
-        'Import Lab',
-        `cat ${element.filePath} | artificial-cli data importLab --quiet -s ${server} -t ${token}`
-      );
+    const response = await vscode.window.showInformationMessage(
+      'This will overwrite cloud data, Continue?',
+      'OK',
+      'Cancel'
+    );
+    if (response === 'OK') {
+      if (element.type === 'assistant') {
+        await artificialTask(
+          'Import Assistant',
+          `cat ${element.filePath} | artificial-cli data importWorkflow --quiet -s ${server} -t ${token}`
+        );
+      }
+      if (element.type === 'lab') {
+        await artificialTask(
+          'Import Lab',
+          `cat ${element.filePath} | artificial-cli data importLab --quiet -s ${server} -t ${token}`
+        );
+      }
     }
   }
   async exportDataSingle(element: DataTreeItem): Promise<void> {
@@ -148,10 +155,17 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
     const config = ConfigValues.getInstance();
     const token = config.getToken();
     const server = config.getHost();
-    await artificialTask(
-      'Import Labs/Assistants',
-      `artificial-cli data importManifest --quiet -x 50000 -s ${server} -t ${token} -m data/manifest.yaml`
+    const response = await vscode.window.showInformationMessage(
+      'This will overwrite cloud data, Continue?',
+      'OK',
+      'Cancel'
     );
+    if (response === 'OK') {
+      await artificialTask(
+        'Import Labs/Assistants',
+        `artificial-cli data importManifest --quiet -x 50000 -s ${server} -t ${token} -m data/manifest.yaml`
+      );
+    }
   }
 }
 class LabHeaderTreeItem extends vscode.TreeItem {
