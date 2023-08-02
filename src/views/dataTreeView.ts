@@ -104,13 +104,13 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
     const server = config.getHost();
     if (element.type === 'assistant') {
       await artificialTask(
-        'Import Data',
+        'Import Assistant',
         `cat ${element.filePath} | artificial-cli data importWorkflow --quiet -s ${server} -t ${token}`
       );
     }
     if (element.type === 'lab') {
       await artificialTask(
-        'Import Data',
+        'Import Lab',
         `cat ${element.filePath} | artificial-cli data importLab --quiet -s ${server} -t ${token}`
       );
     }
