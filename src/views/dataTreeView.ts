@@ -22,6 +22,16 @@ import { findLabAndAssistantsInFiles } from '../utils';
 import path = require('path');
 import _ = require('lodash');
 type TreeItem = AssistantHeaderTreeItem | LabHeaderTreeItem | DataTreeItem;
+enum DialogResponses {
+  ok = 'OK',
+  cancel = 'Cancel',
+}
+enum TreeItemTypes {
+  lab = 'lab',
+  assistant = 'assistant',
+  labheader = 'labheader',
+  assistantheader = 'assistantheader',
+}
 export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | void> = new vscode.EventEmitter<
     TreeItem | undefined | void
@@ -54,10 +64,10 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
       labsAndAssistants = findLabAndAssistantsInFiles(files);
     }
     if (element) {
-      if (element?.type === 'labheader') {
+      if (element?.type === TreeItemTypes.labheader) {
         const labs = labsAndAssistants.map((item) => {
-          if (item.type === 'lab') {
-            return new DataTreeItem(item.name, item.path, item.id, 'lab');
+          if (item.type === TreeItemTypes.lab) {
+            return new DataTreeItem(item.name, item.path, item.id, TreeItemTypes.lab);
           }
         });
         const compactedLabs = _.compact(labs);
@@ -65,10 +75,10 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
           return compactedLabs.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
         }
       }
-      if (element?.type === 'assistantheader') {
+      if (element?.type === TreeItemTypes.assistantheader) {
         const assistants = labsAndAssistants.map((item) => {
-          if (item.type === 'assistant') {
-            return new DataTreeItem(item.name, item.path, item.id, 'assistant');
+          if (item.type === TreeItemTypes.assistant) {
+            return new DataTreeItem(item.name, item.path, item.id, TreeItemTypes.assistant);
           }
         });
         const compactedAssistants = _.compact(assistants);
@@ -104,17 +114,17 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
     const server = config.getHost();
     const response = await vscode.window.showInformationMessage(
       'This will overwrite cloud data, Continue?',
-      'OK',
-      'Cancel'
+      DialogResponses.ok,
+      DialogResponses.cancel
     );
-    if (response === 'OK') {
-      if (element.type === 'assistant') {
+    if (response === DialogResponses.ok) {
+      if (element.type === TreeItemTypes.assistant) {
         await artificialTask(
           'Import Assistant',
           `cat ${element.filePath} | artificial-cli data importWorkflow --quiet -s ${server} -t ${token}`
         );
       }
-      if (element.type === 'lab') {
+      if (element.type === TreeItemTypes.lab) {
         await artificialTask(
           'Import Lab',
           `cat ${element.filePath} | artificial-cli data importLab --quiet -s ${server} -t ${token}`
@@ -126,13 +136,13 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
     const config = ConfigValues.getInstance();
     const token = config.getToken();
     const server = config.getHost();
-    if (element.type === 'assistant') {
+    if (element.type === TreeItemTypes.assistant) {
       await artificialTask(
         'Export Assistant',
         `artificial-cli data exportWorkflow ${element.id} --quiet -s ${server} -t ${token} > ${element.filePath}`
       );
     }
-    if (element.type === 'lab') {
+    if (element.type === TreeItemTypes.lab) {
       await artificialTask(
         'Export Lab',
         `artificial-cli data exportLab ${element.id}  --quiet --min -s ${server} -t ${token} > ${element.filePath}`
@@ -157,10 +167,10 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
     const server = config.getHost();
     const response = await vscode.window.showInformationMessage(
       'This will overwrite cloud data, Continue?',
-      'OK',
-      'Cancel'
+      DialogResponses.ok,
+      DialogResponses.cancel
     );
-    if (response === 'OK') {
+    if (response === DialogResponses.ok) {
       await artificialTask(
         'Import Labs/Assistants',
         `artificial-cli data importManifest --quiet -x 50000 -s ${server} -t ${token} -m data/manifest.yaml`
@@ -173,7 +183,7 @@ class LabHeaderTreeItem extends vscode.TreeItem {
   constructor(public readonly label: string) {
     super(label, vscode.TreeItemCollapsibleState.Collapsed);
     this.tooltip = `${this.label}`;
-    this.type = 'labheader';
+    this.type = TreeItemTypes.labheader;
   }
   resourceUri = vscode.Uri.parse('artificial/datatree/lab' + this.label);
 
@@ -187,7 +197,7 @@ class AssistantHeaderTreeItem extends vscode.TreeItem {
   constructor(public readonly label: string) {
     super(label, vscode.TreeItemCollapsibleState.Collapsed);
     this.tooltip = `${this.label}`;
-    this.type = 'assistantheader';
+    this.type = TreeItemTypes.assistantheader;
   }
   resourceUri = vscode.Uri.parse('artificial/datatree/lab' + this.label);
 
