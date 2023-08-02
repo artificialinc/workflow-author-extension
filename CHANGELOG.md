@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.7.1]
+
+- Add ability to list images for adapter updates
+- Add deadline to reflection calls
+
 ## [2.7.0]
 
 - Individual Lab/Assistant Import & Export

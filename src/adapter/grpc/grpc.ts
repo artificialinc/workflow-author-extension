@@ -9,14 +9,17 @@ export type AdapterClient = {
     methods: string[]
 };
 
+function callOptions(timeoutMs: number): grpc.CallOptions {
+    return {deadline: Date.now() + timeoutMs};
+}
+
 /**
  * Get adapter client
  * @param address address of adapter. Either localhost for a local address or a remote labmanager address
  * @param md metadata to pass to the adapter. Only used for remote adapters. Auth and forward-to are needed
  * @param ssl whether to use ssl or not
- * @param remote whether to use remote or local symbol. This might go away if the symbols can be the same
  */
-export async function getAdapterClients(address: string, md: grpc.Metadata, ssl: boolean = true, remote: boolean = true): Promise<Map<string, AdapterClient>> {
+export async function getAdapterClients(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<Map<string, AdapterClient>> {
     // Create metadata constructor
     const credsConstructor = () => {
         if (ssl) {
@@ -32,9 +35,7 @@ export async function getAdapterClients(address: string, md: grpc.Metadata, ssl:
     };
     // Connect with grpc server reflection
     const client = new GrpcReflection(address, credsConstructor());
-
-    const services = await client.listServices();
-
+    const services = await client.listServices(undefined, callOptions(timeoutMs));
     // Remove hidden services
     const filteredServices = services.filter((value) => {
         return !HIDDEN_SERVICES.includes(value);
@@ -46,7 +47,7 @@ export async function getAdapterClients(address: string, md: grpc.Metadata, ssl:
     for (const service of filteredServices) {
 
         // Get services without proto file for specific symbol or file name
-        const descriptor = await client.getDescriptorBySymbol(service);
+        const descriptor = await client.getDescriptorBySymbol(service, callOptions(timeoutMs));
 
         // Create package services
         const packageObject = descriptor.getPackageObject({

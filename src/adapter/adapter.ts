@@ -10,21 +10,22 @@ export class ArtificialAdapter {
 
   constructor(adapterClients: Map<string, AdapterClient>, remote: boolean = true) {
     this.adapterClients = adapterClients;
-    this.services = [ ...adapterClients.keys() ];
+    this.services = [...adapterClients.keys()];
     this.remote = remote;
   }
 
   public static async createLocalAdapter<T extends typeof ArtificialAdapter>(this: T): Promise<InstanceType<T>> {
-    const adapterClients = await getAdapterClients('localhost:5011', new grpc.Metadata(), false, false);
+    const adapterClients = await getAdapterClients('localhost:5011', new grpc.Metadata(), false);
     return new this(adapterClients, false) as InstanceType<T>;
   }
 
   // Lab is tbd. Might be its own "manager lab" or something similar
-  public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(address: string, prefix: string, org: string, lab: string, token: string): Promise<InstanceType<T>> {
+  public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(this: T, address: string, prefix: string, org: string, lab: string, token: string): Promise<InstanceType<T>> {
     const md = new grpc.Metadata();
     md.set("authorization", `Bearer ${token}`);
     md.set("forward-to", `${prefix}:${org}:${lab}:substrate`);
-    const adapterClients = await getAdapterClients(address, md, true, true);
+    var adapterClients: Map<string, AdapterClient>;
+    adapterClients = await getAdapterClients(address, md, true);
     return new this(adapterClients, true) as InstanceType<T>;
   }
 

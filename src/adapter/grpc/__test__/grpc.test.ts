@@ -22,7 +22,7 @@ describe('test grpc against local server', function () {
   });
 
   test('test grpc ok', async function () {
-    const adapter = await getAdapterClients(`127.0.0.1:${port}`, new grpc.Metadata(), false, false);
+    const adapter = await getAdapterClients(`127.0.0.1:${port}`, new grpc.Metadata(), false);
 
     const e = jest.fn();
 
@@ -51,7 +51,7 @@ describe('test grpc against real adapters', function () {
     let md = new grpc.Metadata();
     md.set("authorization", `Bearer ${process.env.ART_TOKEN}`);
     md.set("forward-to", "sprint-rc:artificial:adapter-manager-not-a-real-lab-2:substrate");
-    const adapter = await getAdapterClients('labmanager.sprint-rc.notartificial.xyz:443', md, true, true);
+    const adapter = await getAdapterClients('labmanager.sprint-rc.notartificial.xyz:443', md, true);
     const e = jest.fn();
 
     adapter.get('adapter.manager.management_actions.ManagementActions')?.client.updateAdapterImage({
@@ -76,7 +76,7 @@ describe('test grpc against real adapters', function () {
     }
     let md = new grpc.Metadata();
 
-    const adapter = await getAdapterClients('127.0.0.1:5011', md, false, false);
+    const adapter = await getAdapterClients('127.0.0.1:5011', md, false);
 
     const e = jest.fn();
 

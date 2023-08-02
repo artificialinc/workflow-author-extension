@@ -19,6 +19,9 @@ import * as parse from 'yaml';
 import * as path from 'path';
 import { pathExists } from '../utils';
 import * as fs from 'fs';
+import { GitExtension } from '../git/git';
+import { parse as envParse } from 'dotenv';
+
 export class ConfigValues {
   private static instance: ConfigValues;
   private constructor(
@@ -26,9 +29,12 @@ export class ConfigValues {
     private apiToken: string = '',
     private adapterActionStubPath = '',
     private assistantStubPath = '',
-     private prefix: string = '',
-     private orgId: string = '',
-     private labId: string = '',
+    private prefix: string = '',
+    private orgId: string = '',
+    private labId: string = '',
+    private gitRemote: string = '',
+    private githubUser: string = '',
+    private githubToken: string = '',
   ) {
     this.initialize();
   }
@@ -41,6 +47,9 @@ export class ConfigValues {
       vscode.window.showInformationMessage('No Root Path Found');
       rootPath = '';
     }
+    this.loadEnvFile(rootPath);
+    // Set git remote
+    this.gitRemote = this.getGitRemote() ?? '';
     const configPath = path.join(rootPath, 'tmp/merged.yaml');
 
     if (!pathExists(configPath)) {
@@ -106,4 +115,61 @@ export class ConfigValues {
   public reset() {
     this.initialize();
   }
+  public getGitRemoteUrl() {
+    return this.gitRemote;
+  }
+  public getGithubUser() {
+    return this.githubUser;
+  }
+  public getGithubToken() {
+    return this.githubToken;
+  }
+
+  private getGitRemote(): string | undefined {
+    const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
+    if (!gitExtension) {
+      vscode.window.showErrorMessage('Git extension required for Artificial Workflow');
+      return;
+    }
+    const git = gitExtension.exports;
+    const api = git.getAPI(1);
+
+    console.log('Looking for git repository');
+
+    if (api.repositories.length !== 1) {
+      vscode.window.showErrorMessage('Artificial Workflow requires a single git repository');
+      return;
+    }
+
+    const repository = api.repositories[0];
+
+    // Make sure remote origin is set
+    const origin = repository.state.remotes.find((remote) => remote.name === 'origin');
+    if (!origin) {
+      vscode.window.showErrorMessage('Artificial Workflow requires a remote origin');
+      return;
+    }
+
+    return origin.fetchUrl;
+  }
+
+  private loadEnvFile(rootPath: string) {
+    const envPath = path.join(rootPath, '.env');
+    if (!pathExists(envPath)) {
+      return;
+    }
+
+    const env = envParse(fs.readFileSync(envPath, 'utf-8'));
+    if (!env.PYPI_USER) {
+      vscode.window.showErrorMessage('PYPI_USER not found in .env file');
+      return;
+    }
+    this.githubUser = env.PYPI_USER;
+    if (!env.PYPI_PASSWORD) {
+      vscode.window.showErrorMessage('PYPI_PASSWORD not found in .env file');
+      return;
+    }
+    this.githubToken = env.PYPI_PASSWORD;
+  }
 }
+

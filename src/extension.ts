@@ -30,6 +30,7 @@ import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
 import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
+import { Registry } from './registry/registry';
 
 export async function activate(context: vscode.ExtensionContext) {
   // Config Setup
@@ -177,29 +178,53 @@ async function setupConfig(context: vscode.ExtensionContext) {
   return { configVals, rootPath };
 }
 
+
+
 function setupAdapterCommands(configVals: ConfigValues, context: vscode.ExtensionContext) {
   // Update adapter image command
   context.subscriptions.push(
     vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
-      const adapter = await ArtificialAdapterManager.createLocalAdapter();
-      const image = await vscode.window.showQuickPick(
-        new Promise<string[]>((resolve, reject) => {
-          resolve([
-            'ghcr.io/artificialinc/adapter-manager:v0.1.0',
-            'ghcr.io/artificialinc/adapter-manager:v0.1.1',
-            'ghcr.io/artificialinc/adapter-manager:v0.2.0',
-          ]);
-        }),
-        { placeHolder: 'Select an adapter image to update to' }
-      );
-      if (image === '') {
-        console.log(image);
-        vscode.window.showErrorMessage('An image is mandatory to execute this action');
+      const cancellationToken = new vscode.CancellationTokenSource();
+
+      // TODO: Get list of adapters and select one
+      const adapterName = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
+        resolve(['tutorial']);
+      }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
+
+      if (!adapterName) {
+        return;
       }
 
+      const r = Registry.createFromGithub(configVals.getGitRemoteUrl(), configVals.getGithubUser(), configVals.getGithubToken());
+      const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
+        r.listTags().then((tags) => {
+          resolve(tags);
+        });
+      }), { placeHolder: 'Select an adapter image to update to' }, cancellationToken.token);
+
       if (image !== undefined) {
-        console.log(image);
-        await adapter.updateAdapterImage('adapter_manager', image);
+        var adapter;
+        try {
+          adapter = await ArtificialAdapterManager.createRemoteAdapter(
+            `labmanager.${configVals.getHost()}`,
+            configVals.getPrefix(),
+            configVals.getOrgId(),
+            'adapter-manager-not-a-real-lab-2',
+            configVals.getToken(),
+          );
+        } catch (e) {
+          console.log(e);
+          vscode.window.showErrorMessage(`Failed to connect to labmanager.${configVals.getHost()}: ${e}`);
+          return;
+        }
+        try {
+          await adapter.updateAdapterImage(adapterName, image);
+        } catch (e) {
+          console.log(e);
+          vscode.window.showErrorMessage(`Failed to update adapter image: ${e}`);
+        }
+      } else {
+        vscode.window.showErrorMessage('An image is mandatory to execute this action');
       }
     })
   );
