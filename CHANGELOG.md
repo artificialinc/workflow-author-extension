@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.7.2]
+
+- Update extension dependencies
+
 ## [2.7.1]
 
 - Add ability to list images for adapter updates
