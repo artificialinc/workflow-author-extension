@@ -159,6 +159,14 @@ function configResetWatcher(
     assistantByLab.refresh();
   });
   context.subscriptions.push(watchMergedConfig);
+  const watchEnvFile = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(rootPath, '.env')
+  );
+  watchEnvFile.onDidChange((uri) => {
+    outputLog.log('.env file changed');
+    configVals.reset();
+  });
+  context.subscriptions.push(watchEnvFile);
 }
 
 async function setupConfig(context: vscode.ExtensionContext) {
@@ -188,7 +196,7 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
 
       // TODO: Get list of adapters and select one
       const adapterName = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
-        resolve(['tutorial']);
+        resolve(['demo']);
       }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
 
       if (!adapterName) {
@@ -209,7 +217,7 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
             `labmanager.${configVals.getHost()}`,
             configVals.getPrefix(),
             configVals.getOrgId(),
-            'adapter-manager-not-a-real-lab-2',
+            `${configVals.getLabId()}-manager`,
             configVals.getToken(),
           );
         } catch (e) {

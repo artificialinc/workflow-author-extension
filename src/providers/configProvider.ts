@@ -125,6 +125,13 @@ export class ConfigValues {
     return this.githubToken;
   }
 
+  private sanitizeGitRemote(gitRemote: string): string {
+    // Parse url
+    const url = new URL(gitRemote);
+    // Reconstruct with https and just path
+    return `https://${url.host}${url.pathname}`;
+  }
+
   private getGitRemote(): string | undefined {
     const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
     if (!gitExtension) {
@@ -150,7 +157,12 @@ export class ConfigValues {
       return;
     }
 
-    return origin.fetchUrl;
+    if (!origin.fetchUrl) {
+      vscode.window.showErrorMessage('Artificial Workflow requires a remote origin fetch url');
+      return;
+    }
+
+    return this.sanitizeGitRemote(origin.fetchUrl);
   }
 
   private loadEnvFile(rootPath: string) {
