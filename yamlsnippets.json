@@ -1,0 +1,10 @@
+{
+    "SecretTokenSetup": {
+        "prefix": "token",
+        "body": [
+            "artificial:",
+            "\ttoken: ${1:artificial_token}"
+        ],
+        "description": "Workflow with configuration"
+    }
+}

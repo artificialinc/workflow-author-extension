@@ -46,6 +46,12 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     let text = await dataTransferItem.asString();
     let element;
     let className = '';
+    if (text.includes('/loadConfigs/')) {
+      const splitText = text.split('/');
+      if (text.includes('/lab/')) {
+        text = splitText[splitText.length - 1];
+      }
+    }
     if (text.includes('/python/')) {
       element = this.funcTree.getTreeItemByUri(text);
     }
