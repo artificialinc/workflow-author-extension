@@ -158,15 +158,15 @@ function configResetWatcher(
     statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
     assistantByLab.refresh();
   });
-  context.subscriptions.push(watchMergedConfig);
-  const watchEnvFile = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(rootPath, '.env')
-  );
-  watchEnvFile.onDidChange((uri) => {
-    outputLog.log('.env file changed');
-    configVals.reset();
-  });
-  context.subscriptions.push(watchEnvFile);
+  // context.subscriptions.push(watchMergedConfig);
+  // const watchEnvFile = vscode.workspace.createFileSystemWatcher(
+  //   new vscode.RelativePattern(rootPath, '.env')
+  // );
+  // watchEnvFile.onDidChange((uri) => {
+  //   outputLog.log('.env file changed');
+  //   configVals.reset();
+  // });
+  // context.subscriptions.push(watchEnvFile);
 }
 
 async function setupConfig(context: vscode.ExtensionContext) {
