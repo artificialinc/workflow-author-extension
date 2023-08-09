@@ -1,6 +1,6 @@
 # Change Log
 
-## [2.7.3]
+## [2.7.4]
 
 - Fix bug dropping lab id's
 - Add snippet for secrets.yaml config "token"
