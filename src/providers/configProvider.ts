@@ -150,6 +150,11 @@ export class ConfigValues {
       return;
     }
 
+    if (!origin.fetchUrl) {
+      vscode.window.showErrorMessage('Artificial Workflow requires a remote origin fetch url');
+      return;
+    }
+
     return origin.fetchUrl;
   }
 

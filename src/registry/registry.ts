@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
  limitations under the License.
 */
 import { getTags } from "@snyk/docker-registry-v2-client";
+import githubUrlFromGit from 'github-url-from-git';
 
 export class Registry {
   username: string;
@@ -28,9 +29,21 @@ export class Registry {
     this.repository = repository;
   }
 
+  private static sanitizeGitRemote(gitRemote: string): string {
+    // Parse url
+    const url = githubUrlFromGit(gitRemote);
+    // Reconstruct with https and just path
+    return url;
+  }
+
   public static createFromGithub(githubURL: string, username: string, token: string): Registry {
     // Parse github remote url
-    const url = new URL(githubURL);
+    let url;
+    try {
+     url = new URL(Registry.sanitizeGitRemote(githubURL));
+    } catch (e) {
+      throw new Error(`Invalid github url: ${githubURL}`);
+    }
     // Strip trailing .git if exists
     const path = url.pathname.endsWith(".git") ? url.pathname.slice(0, -4) : url.pathname;
     // Strip leading slash
