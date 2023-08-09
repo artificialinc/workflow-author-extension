@@ -68,9 +68,15 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     if (text.includes('/configs/')) {
       const splitText = text.split('/');
       if (text.includes('/org/')) {
-        text = `config_value = get_org_config().configuration['${splitText[splitText.length - 1]}']`;
+        text = `config_value = get_org_config().configuration['${splitText[splitText.length - 1].replace(
+          '%20',
+          ' '
+        )}']`;
       } else if (text.includes('/lab/')) {
-        text = `config_value = get_lab_config().configuration['${splitText[splitText.length - 1]}']`;
+        text = `config_value = get_lab_config().configuration['${splitText[splitText.length - 1].replace(
+          '%20',
+          ' '
+        )}']`;
       }
     }
     if (token.isCancellationRequested) {
