@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.7.3]
+
+- Fix bug in handling git remote urls
+- Add file watch to .env file
+
 ## [2.7.2]
 
 - Update extension dependencies
