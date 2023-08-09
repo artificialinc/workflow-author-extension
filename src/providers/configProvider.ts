@@ -21,6 +21,7 @@ import { pathExists } from '../utils';
 import * as fs from 'fs';
 import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
+import githubUrlFromGit from 'github-url-from-git';
 
 export class ConfigValues {
   private static instance: ConfigValues;
@@ -127,9 +128,9 @@ export class ConfigValues {
 
   private sanitizeGitRemote(gitRemote: string): string {
     // Parse url
-    const url = new URL(gitRemote);
+    const url = githubUrlFromGit(gitRemote);
     // Reconstruct with https and just path
-    return `https://${url.host}${url.pathname}`;
+    return url;
   }
 
   private getGitRemote(): string | undefined {
