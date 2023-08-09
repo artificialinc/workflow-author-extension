@@ -195,9 +195,12 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       const cancellationToken = new vscode.CancellationTokenSource();
 
       // TODO: Get list of adapters and select one
-      const adapterName = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
-        resolve(['demo']);
-      }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
+      // const adapterName = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
+      //   resolve(['demo']);
+      // }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
+      const adapterName = await vscode.window.showInputBox({
+        prompt: 'Enter the name of the adapter to update'}, cancellationToken.token);
+
 
       if (!adapterName) {
         return;
