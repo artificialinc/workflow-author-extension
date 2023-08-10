@@ -38,7 +38,7 @@ describe('testregistry', function () {
   test('test list tags non-github', async function () {
     const spy = jest.spyOn(registryClient, "getTags").mockResolvedValue(["aidan-5"]);
 
-    expect(() => {Registry.createFromGithub("https://gitlab.com/artificialinc/artificial-adapter-template.git", "user", "token")}).toThrow("Invalid github url: https://gitlab.com/artificialinc/artificial-adapter-template.git");
+    expect(() => {Registry.createFromGithub("https://gitlab.com/artificialinc/artificial-adapter-template.git", "user", "token");}).toThrow("Invalid github url: https://gitlab.com/artificialinc/artificial-adapter-template.git");
    });
   test('test list tags real world', async function () {
     // Skip in CI

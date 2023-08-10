@@ -74,4 +74,22 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
       });
     });
   }
+
+  public async listAdapters(): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      const client = this.adapterClients.get(this.remote ? REMOTE_SYMBOL : LOCAL_SYMBOL)?.client;
+      if (client && 'listAdapters' in client) {
+        client.listAdapters({}, (err: Error, response: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            // Filter out adapter_manager here
+            resolve(response.value.filter((adapter: string) => adapter !== 'adapter_manager'));
+          }
+        });
+      } else {
+        reject(new Error('This adapter manager does not support listAdapters'));
+      }
+    });
+  }
 }

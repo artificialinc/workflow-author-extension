@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.8.0]
+
+- Add ability to list adapters
+
 ## [2.7.4]
 
 - Fix bug dropping lab id's

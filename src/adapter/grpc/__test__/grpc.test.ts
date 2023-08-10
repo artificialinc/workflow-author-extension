@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-import { getAdapterClients } from '../grpc';
+import { GetConnectionsResponse, getAdapterClients, getLabmanagerClient } from '../grpc';
 import * as grpc from '@grpc/grpc-js';
 import { expect, jest, test, describe, beforeEach } from '@jest/globals';
 import { startServer } from './server';
@@ -95,7 +95,6 @@ describe('test grpc against real adapters', function () {
     const e = jest.fn();
 
     adapter.get('manager.management_actions.ManagementActions')?.client.updateAdapterImage({
-      // "adapter_name": text.toObject(),
       "adapter_name": { value: "adapter_manager" }, // eslint-disable-line @typescript-eslint/naming-convention
       "image": { value: "ghcr.io/artificialinc/adapter-manager:aidan-5" },
     }, (err: Error, data: any) => {
@@ -107,4 +106,27 @@ describe('test grpc against real adapters', function () {
       expect(e).toHaveBeenCalled();
     });
   }, 10000);
+
+  test('test grpc.Labmanager client', async function() {
+    // Skip in CI
+    if (process.env.CI) {
+      console.log("Skipping test");
+      return;
+    }
+    let md = new grpc.Metadata();
+    md.set("authorization", `Bearer ${process.env.ART_TOKEN}`);
+    const lm = await getLabmanagerClient('labmanager.synthego-initial-rc.notartificial.xyz:443', md, true);
+    const e = jest.fn();
+
+    const scope = `synthego-initial-rc:artificial:lab_47ac7844-d68b-4f5d-bd3f-e1651e0dce44:`;
+    lm.getConnections({scope}, (err: grpc.ServiceError | null, data: GetConnectionsResponse) => {
+      expect(err).toBeNull();
+      expect(data.connections[0].client.name).toBe('lenient-bobcat-argo1');
+      e();
+    });
+
+    await waitForExpect(() => {
+      expect(e).toHaveBeenCalled();
+    });
+  });
 });

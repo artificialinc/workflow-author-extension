@@ -30,6 +30,7 @@ import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
 import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
+import { Labmanager } from './adapter/labmanager';
 import { Registry } from './registry/registry';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -194,13 +195,30 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
     vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
       const cancellationToken = new vscode.CancellationTokenSource();
 
-      // TODO: Get list of adapters and select one
-      // const adapterName = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
-      //   resolve(['demo']);
-      // }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
-      const adapterName = await vscode.window.showInputBox({
-        prompt: 'Enter the name of the adapter to update'}, cancellationToken.token);
+      var adapter: ArtificialAdapterManager;
+      try {
+        adapter = await ArtificialAdapterManager.createRemoteAdapter(
+          `labmanager.${configVals.getHost()}`,
+          configVals.getPrefix(),
+          configVals.getOrgId(),
+          `${configVals.getLabId()}-manager`,
+          configVals.getToken(),
+        );
+      } catch (e) {
+        console.log(e);
+        vscode.window.showErrorMessage(`Failed to connect to labmanager.${configVals.getHost()}: ${e}`);
+        return;
+      }
 
+      const adapterName = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
+        adapter.listAdapters().then((adapters) => {
+          resolve(adapters);
+        }).catch((e) => {
+          console.log(e);
+          vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
+          cancellationToken.cancel();
+        });
+      }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
 
       if (!adapterName) {
         return;
@@ -214,20 +232,6 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       }), { placeHolder: 'Select an adapter image to update to' }, cancellationToken.token);
 
       if (image !== undefined) {
-        var adapter;
-        try {
-          adapter = await ArtificialAdapterManager.createRemoteAdapter(
-            `labmanager.${configVals.getHost()}`,
-            configVals.getPrefix(),
-            configVals.getOrgId(),
-            `${configVals.getLabId()}-manager`,
-            configVals.getToken(),
-          );
-        } catch (e) {
-          console.log(e);
-          vscode.window.showErrorMessage(`Failed to connect to labmanager.${configVals.getHost()}: ${e}`);
-          return;
-        }
         try {
           await adapter.updateAdapterImage(adapterName, image);
         } catch (e) {
@@ -272,4 +276,4 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
   );
 }
 
-export function deactivate() {}
+export function deactivate() { }

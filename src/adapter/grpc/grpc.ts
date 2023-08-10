@@ -25,18 +25,11 @@ export type AdapterClient = {
 };
 
 function callOptions(timeoutMs: number): grpc.CallOptions {
-    return {deadline: Date.now() + timeoutMs};
+    return { deadline: Date.now() + timeoutMs };
 }
 
-/**
- * Get adapter client
- * @param address address of adapter. Either localhost for a local address or a remote labmanager address
- * @param md metadata to pass to the adapter. Only used for remote adapters. Auth and forward-to are needed
- * @param ssl whether to use ssl or not
- */
-export async function getAdapterClients(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<Map<string, AdapterClient>> {
-    // Create metadata constructor
-    const credsConstructor = () => {
+function credsConstructor(md: grpc.Metadata, ssl: boolean = true): () => grpc.ChannelCredentials {
+    return () => {
         if (ssl) {
             return grpc.credentials.combineChannelCredentials(
                 grpc.credentials.createSsl(),
@@ -48,8 +41,49 @@ export async function getAdapterClients(address: string, md: grpc.Metadata, ssl:
             return grpc.credentials.createInsecure();
         }
     };
+}
+
+async function extractServiceClientConstructor(client: GrpcReflection, service: string, timeoutMs: number): Promise<[grpc.ServiceClientConstructor, Array<string>]> {
+    // Get services without proto file for specific symbol or file name
+    const descriptor = await client.getDescriptorBySymbol(service, callOptions(timeoutMs));
+
+    // Create package services
+    const packageObject = descriptor.getPackageObject({
+        keepCase: true,
+        enums: String,
+        longs: String,
+    });
+
+    // It seems like there should be a better way to do this. But typscript unions were throwing things off
+
+    // Split symbol
+    const symbol = service.split('.');
+    // Get package
+    let protoFunc: grpc.GrpcObject = packageObject;
+    for (let i = 0; i < symbol.length; i++) {
+        // @ts-ignore
+        protoFunc = protoFunc[symbol[i]];
+    }
+
+    const localMethods: Array<string> = Object.keys(protoFunc.service).map((value) => {
+        // @ts-ignore
+        return protoFunc.service[value].originalName;
+    });
+
+    // @ts-ignore
+    return [protoFunc, localMethods];
+}
+
+/**
+ * Get adapter client
+ * @param address address of adapter. Either localhost for a local address or a remote labmanager address
+ * @param md metadata to pass to the adapter. Only used for remote adapters. Auth and forward-to are needed
+ * @param ssl whether to use ssl or not
+ */
+export async function getAdapterClients(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<Map<string, AdapterClient>> {
     // Connect with grpc server reflection
-    const client = new GrpcReflection(address, credsConstructor());
+    const creds = credsConstructor(md, ssl);
+    const client = new GrpcReflection(address, creds());
     const services = await client.listServices(undefined, callOptions(timeoutMs));
     // Remove hidden services
     const filteredServices = services.filter((value) => {
@@ -60,39 +94,61 @@ export async function getAdapterClients(address: string, md: grpc.Metadata, ssl:
     const clients = new Map<string, AdapterClient>();
 
     for (const service of filteredServices) {
-
-        // Get services without proto file for specific symbol or file name
-        const descriptor = await client.getDescriptorBySymbol(service, callOptions(timeoutMs));
-
-        // Create package services
-        const packageObject = descriptor.getPackageObject({
-            keepCase: true,
-            enums: String,
-            longs: String,
-        });
-
-        // Split symbol
-        const symbol = service.split('.');
-        // Get package
-        let protoFunc = packageObject;
-        for (let i = 0; i < symbol.length; i++) {
-            // @ts-ignore
-            protoFunc = protoFunc[symbol[i]];
-        }
-
-        const localMethods: any = Object.keys(protoFunc.service).map((value) => {
-            // @ts-ignore
-            return protoFunc.service[value].originalName;
-        });
+        const [clientConstructor, localMethods] = await extractServiceClientConstructor(client, service, timeoutMs);
 
         // Add to clients
-        // @ts-ignore
-        const proto = new protoFunc(
+        const grpcClient = new clientConstructor(
             address,
-            credsConstructor(),
+            creds(),
         );
-        clients.set(service, { client: proto, methods: localMethods });
+
+        clients.set(service, { client: grpcClient, methods: localMethods });
     }
 
     return clients;
+}
+
+// TODO: Consider installing the labmanager proto package instead of using reflection.
+export type GetConnectionsRequest = {
+    scope: string
+};
+
+export type GetConnectionsResponse = {
+    connections: Array<{
+        client: {
+            name: string
+        }
+    }>
+};
+
+export interface LabmanagerClient {
+    getConnections(request: GetConnectionsRequest, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
+    getConnections(request: GetConnectionsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
+    getConnections(request:GetConnectionsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
+}
+
+export async function getLabmanagerClient(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<LabmanagerClient> {
+    // Connect with grpc server reflection
+    const creds = credsConstructor(md, ssl);
+    const client = new GrpcReflection(address, creds());
+    const services = await client.listServices(undefined, callOptions(timeoutMs));
+
+    // Get labmanager service
+    const labmanagerService = services.find((value) => {
+        return value === 'artificial.api.labmanager.v1.LabManager';
+    });
+
+    if (!labmanagerService) {
+        throw new Error('Could not find labmanager service');
+    }
+
+    const [clientConstructor, localMethods] = await extractServiceClientConstructor(client, labmanagerService, timeoutMs);
+
+    const grpcClient = new clientConstructor(
+        address,
+        creds(),
+    );
+
+    // Force it to a LabmanagerClient type for use outside of this module
+    return grpcClient as unknown as LabmanagerClient;
 }

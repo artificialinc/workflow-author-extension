@@ -30,4 +30,19 @@ describe('test artificial adapter', function () {
       "image": { value: "ghcr.io/artificialinc/adapter-manager:aidan-5" },
     }, expect.any(Function));
   });
+
+  test('test list adapters with manager', async function () {
+    const m = mock<AdapterClient>();
+    m.client.listAdapters = jest.fn((_ , cb: (err: Error | null, data: any)=> void) => cb(null, {
+      "value": [
+        "adapter_manager",
+        "adapter1",
+      ]
+    }));
+    const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]), false);
+    const adapters = await adapter.listAdapters();
+
+    expect(adapters).toStrictEqual(["adapter1"]);
+    expect(m.client.listAdapters).toBeCalledWith({}, expect.any(Function));
+  });
 });
