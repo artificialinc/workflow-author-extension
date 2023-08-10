@@ -5,6 +5,6 @@
             "artificial:",
             "\ttoken: ${1:artificial_token}"
         ],
-        "description": "Workflow with configuration"
+        "description": "Secrets config format"
     }
 }
