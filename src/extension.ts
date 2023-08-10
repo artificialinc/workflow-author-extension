@@ -228,6 +228,10 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
         r.listTags().then((tags) => {
           resolve(tags);
+        }).catch((e) => {
+          console.log(e);
+          vscode.window.showErrorMessage(`Error getting adapter images: ${e}`);
+          cancellationToken.cancel();
         });
       }), { placeHolder: 'Select an adapter image to update to' }, cancellationToken.token);
 
