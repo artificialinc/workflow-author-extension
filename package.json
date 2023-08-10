@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "2.7.3",
+  "version": "2.7.4",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -62,6 +62,10 @@
       {
         "language": "python",
         "path": "./snippets.json"
+      },
+      {
+        "language": "yaml",
+        "path": "./yamlsnippets.json"
       }
     ],
     "viewsWelcome": [

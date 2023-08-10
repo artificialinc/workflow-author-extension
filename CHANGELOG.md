@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.7.4]
+
+- Fix bug dropping lab id's
+- Add snippet for secrets.yaml config "token"
+
 ## [2.7.3]
 
 - Fix bug in handling git remote urls
