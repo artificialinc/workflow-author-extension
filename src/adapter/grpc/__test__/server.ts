@@ -29,7 +29,7 @@ export const startServer = async (port: number): Promise<grpc.Server> => {
 
   const testPkg = grpc.loadPackageDefinition(
     protoLoader.loadSync(
-      __dirname + '../../../../../protos/test.proto',
+      __dirname + '../../../../../proto/test.proto',
       defOptions
     ));
 
