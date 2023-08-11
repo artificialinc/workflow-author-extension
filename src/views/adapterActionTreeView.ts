@@ -89,7 +89,7 @@ export class AdapterActionTreeView
         this.functionSignatures = await this.getFuncsInActionPython(this.stubPath);
         const modules = this.getModules();
         this.treeElements = this.treeElements.concat(modules);
-        return modules;
+        return modules.sort((a, b) => a.moduleName.localeCompare(b.moduleName, 'en', { numeric: true }));
       } else {
         return [];
       }
@@ -135,7 +135,7 @@ export class Function extends vscode.TreeItem {
   };
 }
 export class Module extends vscode.TreeItem {
-  constructor(private moduleName: string) {
+  constructor(public readonly moduleName: string) {
     super(moduleName, vscode.TreeItemCollapsibleState.Collapsed);
     this.tooltip = `${this.label}`;
   }
