@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.8.2]
+
+- Fix proto loading
+- Add logging around git config
+- Use new adapter list endpoint
+- Add grpc retry for all channels
+
 ## [2.8.1]
 
 - Alphabetize in assistant view and action modules
