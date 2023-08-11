@@ -44,23 +44,22 @@ function credsConstructor(md: grpc.Metadata, ssl: boolean = true): () => grpc.Ch
 }
 
 function channelOptions(): grpc.ChannelOptions {
-    return {'grpc.service_config': JSON.stringify({  // eslint-disable-line @typescript-eslint/naming-convention
-                    methodConfig: [
-                        {
-                            name: [
-                                { },
-                            ],
-                            retryPolicy: {
-                                maxAttempts: 5,
-                                initialBackoff: '.1s',
-                                maxBackoff: '10s',
-                                backoffMultiplier: 5,
-                                retryableStatusCodes: ["UNAVAILABLE","PERMISSION_DENIED","UNKNOWN"],
-                            },
-                        },
-                    ],
-                }),
-            }
+    return {
+        'grpc.service_config': JSON.stringify({  // eslint-disable-line @typescript-eslint/naming-convention
+            methodConfig: [
+                {
+                    name: [],
+                    retryPolicy: {
+                        maxAttempts: 5,
+                        initialBackoff: '1s',
+                        maxBackoff: '10s',
+                        backoffMultiplier: 5,
+                        retryableStatusCodes: ["UNAVAILABLE", "PERMISSION_DENIED", "UNKNOWN"],
+                    },
+                },
+            ],
+        }),
+    };
 }
 
 async function extractServiceClientConstructor(client: GrpcReflection, service: string, timeoutMs: number): Promise<[grpc.ServiceClientConstructor, Array<string>]> {
@@ -145,7 +144,7 @@ export type GetConnectionsResponse = {
 export interface LabmanagerClient {
     getConnections(request: GetConnectionsRequest, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
     getConnections(request: GetConnectionsRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
-    getConnections(request:GetConnectionsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
+    getConnections(request: GetConnectionsRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
 }
 
 export async function getLabmanagerClient(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<LabmanagerClient> {

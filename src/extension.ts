@@ -241,6 +241,8 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         } catch (e) {
           console.log(e);
           vscode.window.showErrorMessage(`Failed to update adapter image: ${e}`);
+        } finally {
+          vscode.window.showInformationMessage(`Updated adapter ${adapterName} to image ${image}`);
         }
       } else {
         vscode.window.showErrorMessage('An image is mandatory to execute this action');
