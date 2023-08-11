@@ -76,6 +76,12 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
   }
 
   public async listAdapters(): Promise<string[]> {
+    type AdapterInfo = {
+      name: string;
+      image: string;
+      is_manager: boolean; // eslint-disable-line @typescript-eslint/naming-convention
+    };
+
     return new Promise((resolve, reject) => {
       const client = this.adapterClients.get(this.remote ? REMOTE_SYMBOL : LOCAL_SYMBOL)?.client;
       if (client && 'listAdapters' in client) {
@@ -84,7 +90,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
             reject(err);
           } else {
             // Filter out adapter_manager here
-            resolve(response.value.filter((adapter: string) => adapter !== 'adapter_manager'));
+            resolve(response.value.filter((adapter: AdapterInfo) => !adapter.is_manager).map((adapter: AdapterInfo) => adapter.name));
           }
         });
       } else {
