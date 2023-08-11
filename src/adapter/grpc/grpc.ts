@@ -43,6 +43,26 @@ function credsConstructor(md: grpc.Metadata, ssl: boolean = true): () => grpc.Ch
     };
 }
 
+function channelOptions(): grpc.ChannelOptions {
+    return {'grpc.service_config': JSON.stringify({  // eslint-disable-line @typescript-eslint/naming-convention
+                    methodConfig: [
+                        {
+                            name: [
+                                { },
+                            ],
+                            retryPolicy: {
+                                maxAttempts: 5,
+                                initialBackoff: '.1s',
+                                maxBackoff: '10s',
+                                backoffMultiplier: 5,
+                                retryableStatusCodes: ["UNAVAILABLE","PERMISSION_DENIED","UNKNOWN"],
+                            },
+                        },
+                    ],
+                }),
+            }
+}
+
 async function extractServiceClientConstructor(client: GrpcReflection, service: string, timeoutMs: number): Promise<[grpc.ServiceClientConstructor, Array<string>]> {
     // Get services without proto file for specific symbol or file name
     const descriptor = await client.getDescriptorBySymbol(service, callOptions(timeoutMs));
@@ -83,7 +103,7 @@ async function extractServiceClientConstructor(client: GrpcReflection, service: 
 export async function getAdapterClients(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<Map<string, AdapterClient>> {
     // Connect with grpc server reflection
     const creds = credsConstructor(md, ssl);
-    const client = new GrpcReflection(address, creds());
+    const client = new GrpcReflection(address, creds(), channelOptions());
     const services = await client.listServices(undefined, callOptions(timeoutMs));
     // Remove hidden services
     const filteredServices = services.filter((value) => {
@@ -100,6 +120,7 @@ export async function getAdapterClients(address: string, md: grpc.Metadata, ssl:
         const grpcClient = new clientConstructor(
             address,
             creds(),
+            channelOptions(),
         );
 
         clients.set(service, { client: grpcClient, methods: localMethods });
@@ -130,7 +151,7 @@ export interface LabmanagerClient {
 export async function getLabmanagerClient(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<LabmanagerClient> {
     // Connect with grpc server reflection
     const creds = credsConstructor(md, ssl);
-    const client = new GrpcReflection(address, creds());
+    const client = new GrpcReflection(address, creds(), channelOptions());
     const services = await client.listServices(undefined, callOptions(timeoutMs));
 
     // Get labmanager service
@@ -147,6 +168,7 @@ export async function getLabmanagerClient(address: string, md: grpc.Metadata, ss
     const grpcClient = new clientConstructor(
         address,
         creds(),
+        channelOptions(),
     );
 
     // Force it to a LabmanagerClient type for use outside of this module

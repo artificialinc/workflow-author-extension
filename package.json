@@ -413,7 +413,7 @@
     "glob": "^8.0.3",
     "google-protobuf": "^3.21.2",
     "graphql": "^16.6.0",
-    "grpc-js-reflection-client": "1.2.6-beta2",
+    "grpc-js-reflection-client": "github:artificialinc/grpc-js-reflection-api-client#9884eb4",
     "lodash": "^4.17.21",
     "protobufjs": ">=7.2.4",
     "python-ast": "^0.1.0",
