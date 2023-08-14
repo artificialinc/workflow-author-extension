@@ -105,7 +105,7 @@ export class AssistantByLabTreeView
         }
       }
       this.treeElements = this.treeElements.concat(labs);
-      return labs;
+      return labs.sort((a, b) => a.label.localeCompare(b.label, 'en', { numeric: true }));
     }
   }
 

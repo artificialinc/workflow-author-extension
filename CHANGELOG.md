@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.8.1]
+
+- Alphabetize in assistant view and action modules
+- Fix codelens when files go missing from disk
+
 ## [2.8.0]
 
 - Add ability to list adapters
