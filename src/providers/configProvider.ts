@@ -21,9 +21,12 @@ import { pathExists } from '../utils';
 import * as fs from 'fs';
 import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
+import { OutputLog } from './outputLogProvider';
 
 export class ConfigValues {
   private static instance: ConfigValues;
+    private outputLog;
+
   private constructor(
     private hostName: string = '',
     private apiToken: string = '',
@@ -36,6 +39,7 @@ export class ConfigValues {
     private githubUser: string = '',
     private githubToken: string = '',
   ) {
+    this.outputLog = OutputLog.getInstance();
     this.initialize();
   }
   private initialize() {
@@ -134,7 +138,7 @@ export class ConfigValues {
     const git = gitExtension.exports;
     const api = git.getAPI(1);
 
-    console.log('Looking for git repository');
+    this.outputLog.log('Looking for git repository');
 
     if (api.repositories.length !== 1) {
       vscode.window.showErrorMessage('Artificial Workflow requires a single git repository');
@@ -143,9 +147,23 @@ export class ConfigValues {
 
     const repository = api.repositories[0];
 
+    this.outputLog.log(`Found git repository. Looking for remotes`);
+
+    // Loop for 10 tries waiting for remotes to load. Can't sleep because not in async function
+    let count = 0;
+    while (!repository.state.remotes && count < 10) {
+      count++;
+      this.outputLog.log(`Waiting for remotes to load. Attempt ${count}`);
+    }
+
+    if (!repository.state.remotes) {
+      vscode.window.showErrorMessage('Artificial Workflow requires a git repository with remotes. Error loading repository data');
+    }
+
     // Make sure remote origin is set
     const origin = repository.state.remotes.find((remote) => remote.name === 'origin');
     if (!origin) {
+      this.outputLog.log(`No remote named origin found. Remotes: ${repository.state.remotes.map((remote) => remote.name).join(', ')}`);
       vscode.window.showErrorMessage('Artificial Workflow requires a remote origin');
       return;
     }

@@ -21,7 +21,7 @@ import { AdapterClient } from '../grpc/grpc';
 describe('test artificial adapter', function () {
   test('test udpate adapter image with manager', async function () {
     const m = mock<AdapterClient>();
-    m.client.updateAdapterImage = jest.fn((_ , cb: (err: Error | null, data: any)=> void) => cb(null, {}));
+    m.client.updateAdapterImage = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {}));
     const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]), false);
     await adapter.updateAdapterImage("adapter_manager", "ghcr.io/artificialinc/adapter-manager:aidan-5");
 
@@ -33,16 +33,24 @@ describe('test artificial adapter', function () {
 
   test('test list adapters with manager', async function () {
     const m = mock<AdapterClient>();
-    m.client.listAdapters = jest.fn((_ , cb: (err: Error | null, data: any)=> void) => cb(null, {
+    m.client.listAdapters = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {
       "value": [
-        "adapter_manager",
-        "adapter1",
+        {
+          "name": "adapter1",
+          "image": "ghcr.io/artificialinc/adapter1:aidan-5",
+          "is_manager": false, // eslint-disable-line @typescript-eslint/naming-convention
+        },
+        {
+          "name": "adapter_manager",
+          "image": "ghcr.io/artificialinc/adapter-manager:aidan-5",
+          "is_manager": true,   // eslint-disable-line @typescript-eslint/naming-convention
+        },
       ]
     }));
     const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]), false);
-    const adapters = await adapter.listAdapters();
+    const adapters = await adapter.listNonManagerAdapters();
 
-    expect(adapters).toStrictEqual(["adapter1"]);
+    expect(adapters).toStrictEqual([{ name: "adapter1", image: "ghcr.io/artificialinc/adapter1:aidan-5", is_manager: false }]); // eslint-disable-line @typescript-eslint/naming-convention
     expect(m.client.listAdapters).toBeCalledWith({}, expect.any(Function));
   });
 });

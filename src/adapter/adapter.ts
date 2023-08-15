@@ -59,6 +59,12 @@ export class ArtificialAdapter {
 const LOCAL_SYMBOL = process.env.LOCAL_SYMBOL || 'manager.management_actions.ManagementActions';
 const REMOTE_SYMBOL = process.env.REMOTE_SYMBOL || 'adapter.manager.management_actions.ManagementActions';
 
+export     type AdapterInfo = {
+      name: string;
+      image: string;
+      is_manager: boolean; // eslint-disable-line @typescript-eslint/naming-convention
+    };
+
 export class ArtificialAdapterManager extends ArtificialAdapter {
   public async updateAdapterImage(adapterName: string, image: string): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -75,7 +81,8 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     });
   }
 
-  public async listAdapters(): Promise<string[]> {
+
+  public async listNonManagerAdapters(): Promise<AdapterInfo[]> {
     return new Promise((resolve, reject) => {
       const client = this.adapterClients.get(this.remote ? REMOTE_SYMBOL : LOCAL_SYMBOL)?.client;
       if (client && 'listAdapters' in client) {
@@ -84,7 +91,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
             reject(err);
           } else {
             // Filter out adapter_manager here
-            resolve(response.value.filter((adapter: string) => adapter !== 'adapter_manager'));
+            resolve(response.value.filter((adapter: AdapterInfo) => !adapter.is_manager));
           }
         });
       } else {
