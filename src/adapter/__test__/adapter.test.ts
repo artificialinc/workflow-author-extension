@@ -48,9 +48,9 @@ describe('test artificial adapter', function () {
       ]
     }));
     const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]), false);
-    const adapters = await adapter.listAdapters();
+    const adapters = await adapter.listNonManagerAdapters();
 
-    expect(adapters).toStrictEqual(["adapter1"]);
+    expect(adapters).toStrictEqual([{ name: "adapter1", image: "ghcr.io/artificialinc/adapter1:aidan-5", is_manager: false }]); // eslint-disable-line @typescript-eslint/naming-convention
     expect(m.client.listAdapters).toBeCalledWith({}, expect.any(Function));
   });
 });

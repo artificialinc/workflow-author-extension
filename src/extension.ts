@@ -29,7 +29,7 @@ import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
-import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
+import { AdapterInfo, ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Labmanager } from './adapter/labmanager';
 import { Registry } from './registry/registry';
 
@@ -210,9 +210,14 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         return;
       }
 
-      const adapterName = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
-        adapter.listAdapters().then((adapters) => {
-          resolve(adapters);
+      const adapterToUpdate = await vscode.window.showQuickPick(new Promise<vscode.QuickPickItem[]>((resolve, reject) => {
+        adapter.listNonManagerAdapters().then((adapters) => {
+          resolve(adapters.map((a) => {
+            return {
+              label: a.name,
+              description: a.image,
+            };
+          }));
         }).catch((e) => {
           console.log(e);
           vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
@@ -220,7 +225,7 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         });
       }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
 
-      if (!adapterName) {
+      if (!adapterToUpdate) {
         return;
       }
 
@@ -237,12 +242,12 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
 
       if (image !== undefined) {
         try {
-          await adapter.updateAdapterImage(adapterName, image);
+          await adapter.updateAdapterImage(adapterToUpdate.label, image);
         } catch (e) {
           console.log(e);
           vscode.window.showErrorMessage(`Failed to update adapter image: ${e}`);
         } finally {
-          vscode.window.showInformationMessage(`Updated adapter ${adapterName} to image ${image}`);
+          vscode.window.showInformationMessage(`Updated adapter ${adapterToUpdate} to image ${image}`);
         }
       } else {
         vscode.window.showErrorMessage('An image is mandatory to execute this action');
