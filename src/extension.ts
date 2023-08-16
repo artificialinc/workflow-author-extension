@@ -29,8 +29,7 @@ import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
-import { AdapterInfo, ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
-import { Labmanager } from './adapter/labmanager';
+import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -43,7 +42,7 @@ export async function activate(context: vscode.ExtensionContext) {
   //Provides Type Error Decoration
   new ViewFileDecorationProvider();
   // Workflow Publishing Tree
-  new WorkflowTreeView(rootPath, context);
+  const workflowTree = new WorkflowTreeView(rootPath, context);
   // Import/Export Buttons
   const dataTree = new DataTreeView(rootPath, context);
   // Config Tree
@@ -65,15 +64,23 @@ export async function activate(context: vscode.ExtensionContext) {
   // Handle config resets across components
   configResetWatcher(rootPath, configVals, statusBar, assistantByLab, context);
   // Handle terminal command exit code notifications
-  taskExitWatcher(dataTree);
+  taskExitWatcher(dataTree, workflowTree);
   // Setup adapter commands
   setupAdapterCommands(configVals, context);
 
   console.log('Artificial Workflow Extension is active');
 }
 
-function taskExitWatcher(dataTree: DataTreeView) {
+function taskExitWatcher(dataTree: DataTreeView, workflowTree: WorkflowTreeView) {
   vscode.tasks.onDidEndTaskProcess((e) => {
+    const r = workflowTree.taskResolvers[e.execution._id];
+    workflowTree.taskResolvers[e.execution._id] = undefined;
+    if (r && e.exitCode === 1) {
+      r.resolve(false);
+    } else if (r && e.exitCode === 0) {
+      r.resolve(true);
+    }
+
     if (e.exitCode === 0) {
       if (e.execution.task.name === 'Export Labs/Assistants') {
         dataTree.refresh();
@@ -160,9 +167,7 @@ function configResetWatcher(
     assistantByLab.refresh();
   });
   context.subscriptions.push(watchMergedConfig);
-  const watchEnvFile = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(rootPath, '.env')
-  );
+  const watchEnvFile = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(rootPath, '.env'));
   watchEnvFile.onDidChange((uri) => {
     outputLog.log('.env file changed');
     configVals.reset();
@@ -187,8 +192,6 @@ async function setupConfig(context: vscode.ExtensionContext) {
   return { configVals, rootPath };
 }
 
-
-
 function setupAdapterCommands(configVals: ConfigValues, context: vscode.ExtensionContext) {
   // Update adapter image command
   context.subscriptions.push(
@@ -202,7 +205,7 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
           configVals.getPrefix(),
           configVals.getOrgId(),
           `${configVals.getLabId()}-manager`,
-          configVals.getToken(),
+          configVals.getToken()
         );
       } catch (e) {
         console.log(e);
@@ -210,35 +213,54 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         return;
       }
 
-      const adapterToUpdate = await vscode.window.showQuickPick(new Promise<vscode.QuickPickItem[]>((resolve, reject) => {
-        adapter.listNonManagerAdapters().then((adapters) => {
-          resolve(adapters.map((a) => {
-            return {
-              label: a.name,
-              description: a.image,
-            };
-          }));
-        }).catch((e) => {
-          console.log(e);
-          vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
-          cancellationToken.cancel();
-        });
-      }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
+      const adapterToUpdate = await vscode.window.showQuickPick(
+        new Promise<vscode.QuickPickItem[]>((resolve, reject) => {
+          adapter
+            .listNonManagerAdapters()
+            .then((adapters) => {
+              resolve(
+                adapters.map((a) => {
+                  return {
+                    label: a.name,
+                    description: a.image,
+                  };
+                })
+              );
+            })
+            .catch((e) => {
+              console.log(e);
+              vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
+              cancellationToken.cancel();
+            });
+        }),
+        { placeHolder: 'Select an adapter to update' },
+        cancellationToken.token
+      );
 
       if (!adapterToUpdate) {
         return;
       }
 
-      const r = Registry.createFromGithub(configVals.getGitRemoteUrl(), configVals.getGithubUser(), configVals.getGithubToken());
-      const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
-        r.listTags().then((tags) => {
-          resolve(tags);
-        }).catch((e) => {
-          console.log(e);
-          vscode.window.showErrorMessage(`Error getting adapter images: ${e}`);
-          cancellationToken.cancel();
-        });
-      }), { placeHolder: 'Select an adapter image to update to' }, cancellationToken.token);
+      const r = Registry.createFromGithub(
+        configVals.getGitRemoteUrl(),
+        configVals.getGithubUser(),
+        configVals.getGithubToken()
+      );
+      const image = await vscode.window.showQuickPick(
+        new Promise<string[]>((resolve, reject) => {
+          r.listTags()
+            .then((tags) => {
+              resolve(tags);
+            })
+            .catch((e) => {
+              console.log(e);
+              vscode.window.showErrorMessage(`Error getting adapter images: ${e}`);
+              cancellationToken.cancel();
+            });
+        }),
+        { placeHolder: 'Select an adapter image to update to' },
+        cancellationToken.token
+      );
 
       if (image !== undefined) {
         try {
@@ -287,4 +309,4 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
   );
 }
 
-export function deactivate() { }
+export function deactivate() {}

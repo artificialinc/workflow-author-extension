@@ -91,9 +91,10 @@ export function findWorkflowsInFiles(files: string[]) {
 }
 
 export async function artificialTask(task: string, command: string) {
-  await vscode.tasks.executeTask(
+  const test = await vscode.tasks.executeTask(
     new vscode.Task({ type: 'shell' }, vscode.TaskScope.Global, task, 'Artificial', new vscode.ShellExecution(command))
   );
+  return test._id;
 }
 
 export function findLabAndAssistantsInFiles(files: string[]) {

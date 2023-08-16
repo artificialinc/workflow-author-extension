@@ -25,7 +25,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     WorkflowTreeElement | undefined | void
   >();
   readonly onDidChangeTreeData: vscode.Event<WorkflowTreeElement | undefined | void> = this._onDidChangeTreeData.event;
-
+  public taskResolvers: [{ resolve: (success: boolean) => void } | undefined] | [] = [];
   constructor(private stubPath: string, context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('workflows', {
       treeDataProvider: this,
@@ -59,7 +59,11 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   }
 
   async publishWorkflow(path: string, workflowIds: string[]): Promise<void> {
-    const success = await this.generateWorkflow(path, false);
+    const p = new Promise(async (resolve) => {
+      const taskId = await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path})`);
+      this.taskResolvers[taskId] = { resolve: resolve };
+    });
+    const success = await p;
     if (success) {
       // If there are multiple workflows in one file
       if (workflowIds.length > 1) {
