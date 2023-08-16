@@ -62,8 +62,8 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
   async publishWorkflow(path: string, workflowIds: string[]): Promise<void> {
     const outputLog = OutputLog.getInstance();
     const taskName = 'Generate Workflow';
-    const command = `(cd ${this.stubPath}/workflow; wfgen ${path})`;
-    const taskId = taskName + command;
+    const wfName = path.split('/').pop();
+    const taskId = taskName + ' ' + wfName;
     try {
       await artificialAwaitTask(taskId, `(cd ${this.stubPath}/workflow; wfgen ${path})`);
     } catch {
