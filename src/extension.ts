@@ -167,7 +167,9 @@ function configResetWatcher(
     assistantByLab.refresh();
   });
   context.subscriptions.push(watchMergedConfig);
-  const watchEnvFile = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(rootPath, '.env'));
+  const watchEnvFile = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(rootPath, '.env')
+  );
   watchEnvFile.onDidChange((uri) => {
     outputLog.log('.env file changed');
     configVals.reset();
@@ -191,6 +193,8 @@ async function setupConfig(context: vscode.ExtensionContext) {
   context.subscriptions.push(watchConfig);
   return { configVals, rootPath };
 }
+
+
 
 function setupAdapterCommands(configVals: ConfigValues, context: vscode.ExtensionContext) {
   // Update adapter image command
