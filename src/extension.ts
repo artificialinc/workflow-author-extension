@@ -205,7 +205,7 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
           configVals.getPrefix(),
           configVals.getOrgId(),
           `${configVals.getLabId()}-manager`,
-          configVals.getToken()
+          configVals.getToken(),
         );
       } catch (e) {
         console.log(e);
@@ -213,54 +213,35 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         return;
       }
 
-      const adapterToUpdate = await vscode.window.showQuickPick(
-        new Promise<vscode.QuickPickItem[]>((resolve, reject) => {
-          adapter
-            .listNonManagerAdapters()
-            .then((adapters) => {
-              resolve(
-                adapters.map((a) => {
-                  return {
-                    label: a.name,
-                    description: a.image,
-                  };
-                })
-              );
-            })
-            .catch((e) => {
-              console.log(e);
-              vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
-              cancellationToken.cancel();
-            });
-        }),
-        { placeHolder: 'Select an adapter to update' },
-        cancellationToken.token
-      );
+      const adapterToUpdate = await vscode.window.showQuickPick(new Promise<vscode.QuickPickItem[]>((resolve, reject) => {
+        adapter.listNonManagerAdapters().then((adapters) => {
+          resolve(adapters.map((a) => {
+            return {
+              label: a.name,
+              description: a.image,
+            };
+          }));
+        }).catch((e) => {
+          console.log(e);
+          vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
+          cancellationToken.cancel();
+        });
+      }), { placeHolder: 'Select an adapter to update' }, cancellationToken.token);
 
       if (!adapterToUpdate) {
         return;
       }
 
-      const r = Registry.createFromGithub(
-        configVals.getGitRemoteUrl(),
-        configVals.getGithubUser(),
-        configVals.getGithubToken()
-      );
-      const image = await vscode.window.showQuickPick(
-        new Promise<string[]>((resolve, reject) => {
-          r.listTags()
-            .then((tags) => {
-              resolve(tags);
-            })
-            .catch((e) => {
-              console.log(e);
-              vscode.window.showErrorMessage(`Error getting adapter images: ${e}`);
-              cancellationToken.cancel();
-            });
-        }),
-        { placeHolder: 'Select an adapter image to update to' },
-        cancellationToken.token
-      );
+      const r = Registry.createFromGithub(configVals.getGitRemoteUrl(), configVals.getGithubUser(), configVals.getGithubToken());
+      const image = await vscode.window.showQuickPick(new Promise<string[]>((resolve, reject) => {
+        r.listTags().then((tags) => {
+          resolve(tags);
+        }).catch((e) => {
+          console.log(e);
+          vscode.window.showErrorMessage(`Error getting adapter images: ${e}`);
+          cancellationToken.cancel();
+        });
+      }), { placeHolder: 'Select an adapter image to update to' }, cancellationToken.token);
 
       if (image !== undefined) {
         try {
@@ -309,4 +290,4 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
   );
 }
 
-export function deactivate() {}
+export function deactivate() { }
