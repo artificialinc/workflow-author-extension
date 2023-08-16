@@ -26,7 +26,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     WorkflowTreeElement | undefined | void
   >();
   readonly onDidChangeTreeData: vscode.Event<WorkflowTreeElement | undefined | void> = this._onDidChangeTreeData.event;
-  public taskResolvers: [{ resolve: () => void; reject: () => void } | undefined] | [] = [];
+  public taskResolvers: [{ resolve: (value: any) => void; reject: () => void } | undefined] | [] = [];
   constructor(private stubPath: string, context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('workflows', {
       treeDataProvider: this,
@@ -63,7 +63,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     const outputLog = OutputLog.getInstance();
     const p = new Promise(async (resolve, reject) => {
       const taskId = await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path})`);
-      this.taskResolvers[taskId] = { resolve: resolve, reject: reject };
+      this.taskResolvers[taskId] = { resolve, reject };
     });
     try {
       await p;

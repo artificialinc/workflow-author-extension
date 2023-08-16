@@ -76,7 +76,7 @@ function taskExitWatcher(dataTree: DataTreeView, workflowTree: WorkflowTreeView)
     const r = workflowTree.taskResolvers[e.execution._id];
     workflowTree.taskResolvers[e.execution._id] = undefined;
     if (r && e.exitCode === 0) {
-      r.resolve();
+      r.resolve('ok');
     } else if (r && e.exitCode === 1) {
       r.reject();
     }
