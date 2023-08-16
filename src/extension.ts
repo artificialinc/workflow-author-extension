@@ -42,7 +42,7 @@ export async function activate(context: vscode.ExtensionContext) {
   //Provides Type Error Decoration
   new ViewFileDecorationProvider();
   // Workflow Publishing Tree
-  const workflowTree = new WorkflowTreeView(rootPath, context);
+  new WorkflowTreeView(rootPath, context);
   // Import/Export Buttons
   const dataTree = new DataTreeView(rootPath, context);
   // Config Tree
@@ -64,23 +64,15 @@ export async function activate(context: vscode.ExtensionContext) {
   // Handle config resets across components
   configResetWatcher(rootPath, configVals, statusBar, assistantByLab, context);
   // Handle terminal command exit code notifications
-  taskExitWatcher(dataTree, workflowTree);
+  taskExitWatcher(dataTree);
   // Setup adapter commands
   setupAdapterCommands(configVals, context);
 
   console.log('Artificial Workflow Extension is active');
 }
 
-function taskExitWatcher(dataTree: DataTreeView, workflowTree: WorkflowTreeView) {
+function taskExitWatcher(dataTree: DataTreeView) {
   vscode.tasks.onDidEndTaskProcess((e) => {
-    const r = workflowTree.taskResolvers[e.execution._id];
-    workflowTree.taskResolvers[e.execution._id] = undefined;
-    if (r && e.exitCode === 0) {
-      r.resolve('ok');
-    } else if (r && e.exitCode === 1) {
-      r.reject();
-    }
-
     if (e.exitCode === 0) {
       if (e.execution.task.name === 'Export Labs/Assistants') {
         dataTree.refresh();

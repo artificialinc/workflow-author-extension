@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { artificialTask, pathExists } from '../utils';
+import { artificialAwaitTask, artificialTask, pathExists } from '../utils';
 import { glob } from 'glob';
 import { findWorkflowsInFiles } from '../utils';
 import { OutputLog } from '../providers/outputLogProvider';
@@ -61,14 +61,13 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
 
   async publishWorkflow(path: string, workflowIds: string[]): Promise<void> {
     const outputLog = OutputLog.getInstance();
-    const p = new Promise(async (resolve, reject) => {
-      const taskId = await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path})`);
-      this.taskResolvers[taskId] = { resolve, reject };
-    });
+    const taskName = 'Generate Workflow';
+    const command = `(cd ${this.stubPath}/workflow; wfgen ${path})`;
+    const taskId = taskName + command;
     try {
-      await p;
+      await artificialAwaitTask(taskId, `(cd ${this.stubPath}/workflow; wfgen ${path})`);
     } catch {
-      outputLog.log('WF Generation failed, skipping publish');
+      outputLog.log('Generate Failed, Skipping Publish');
       return;
     }
 
