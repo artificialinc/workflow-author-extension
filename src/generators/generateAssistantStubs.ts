@@ -72,6 +72,7 @@ export class GenerateAssistantStubs {
           pythonContent += `\t@staticmethod\n`;
           pythonContent += `\t@assistant('${sig.id}')\n`;
           pythonContent += this.buildAssistantParmDec(sig);
+
           pythonContent += this.buildAssistantReturnDec(sig);
           pythonContent += `\tasync def assistant_${snakeCase(sig.name)}(\n`;
           pythonContent += this.buildAssistantParams(sig);
@@ -94,6 +95,7 @@ export class GenerateAssistantStubs {
   }
 
   private buildAssistantParams(sig: Assistant): string {
+
     let returnString = '';
 
     for (const param of sig.parameters) {
@@ -155,6 +157,7 @@ export class GenerateAssistantStubs {
       if (param.input) {
         returnString += `\t@parameter('arg_${snakeCase(param.typeInfo.name)}', parameter_id='${param.id}')\n`;
       }
+
     }
     return returnString;
   }
