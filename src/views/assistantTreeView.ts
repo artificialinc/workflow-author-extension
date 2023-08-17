@@ -183,7 +183,9 @@ export class AssistantByLabTreeView
       stubNames.push(param.assistantName);
     }
     for (const param of assistant.parameters) {
-      assistantParamNames.push(param.typeInfo.name);
+      if (param.input) {
+        assistantParamNames.push(param.id);
+      }
     }
     const diff = _.difference(stubNames, assistantParamNames);
     const alabDiff = _.difference(assistantParamNames, stubNames);
@@ -193,10 +195,7 @@ export class AssistantByLabTreeView
     const valid: boolean[] = [];
     for (const param of stubSignature.parameters) {
       valid.push(
-        this.typeCheck(
-          param.type,
-          assistant.parameters.find((ele) => ele.typeInfo.name === param.assistantName)?.typeInfo
-        )
+        this.typeCheck(param.type, assistant.parameters.find((ele) => ele.id === param.assistantName)?.typeInfo)
       );
     }
     if (valid.every((ele) => ele === true)) {

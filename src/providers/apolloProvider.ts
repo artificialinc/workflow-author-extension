@@ -51,7 +51,8 @@ export interface Assistant {
   };
   parameters: [
     {
-      input: string;
+      id: string;
+      input: boolean;
       index: number;
       typeInfo: AssistantTypeInfo;
     }
@@ -203,6 +204,7 @@ export class ArtificialApollo {
                 labId
               }
               parameters {
+                id
                 input
                 index
                 typeInfo {
