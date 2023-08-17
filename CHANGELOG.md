@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.8.3]
+
+- Don't publish wf's when generate fails
+
 ## [2.8.2]
 
 - Fix proto loading
