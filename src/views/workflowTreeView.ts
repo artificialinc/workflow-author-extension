@@ -61,9 +61,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
 
   async publishWorkflow(path: string, workflowIds: string[]): Promise<void> {
     const outputLog = OutputLog.getInstance();
-    const taskName = 'Generate Workflow';
+    const taskName = 'Generate Workflow: ';
     const wfName = path.split('/').pop();
-    const taskId = taskName + ' ' + wfName;
+    const taskId = taskName + wfName;
     try {
       await artificialAwaitTask(taskId, `(cd ${this.stubPath}/workflow; wfgen ${path})`);
     } catch {
@@ -75,13 +75,13 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     if (workflowIds.length > 1) {
       for (const wfID of workflowIds) {
         await artificialTask(
-          'Publish Workflow',
+          'Publish Workflow: ' + wfID,
           `(wf publish ${path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`
         );
       }
     } else {
       //One workflow in the file
-      await artificialTask('Publish Workflow', `(wf publish ${path + '.bin'})`);
+      await artificialTask('Publish Workflow: ' + wfName, `(wf publish ${path + '.bin'})`);
     }
   }
 
@@ -89,21 +89,12 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  //TODO: Throw errors to vscode notification
-  async generateWorkflow(path: string, json: boolean): Promise<boolean> {
+  async generateWorkflow(path: string, json: boolean) {
     if (json) {
       await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path} -j)`);
     } else {
       await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; wfgen ${path})`);
     }
-    // TODO: No good way to tell if previous command has had time to complete
-    // For now just sleep 2s, so far wfgen is sub-second to complete.
-    // Adding this because sometimes we check to see if its generated too quickly and return false here
-    // which skips the publish
-    await this.sleep(2000);
-    // TODO: echo $1 > tmp/file the exit status code of wfgen
-    //       Read the file for 0 or 1, notify error and cancel publish
-    return true;
   }
 
   async getChildren(element?: WorkflowTreeElement): Promise<WorkflowTreeElement[]> {
@@ -142,7 +133,6 @@ class WorkflowTreeElement extends vscode.TreeItem {
     // TODO: HACK
     this.label = label.slice(index + 10);
     this.path = label;
-    // TODO: This open command isnt working inside a dev container
     this.command = {
       command: 'vscode.open',
       title: 'Open Call',

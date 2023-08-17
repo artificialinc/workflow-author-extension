@@ -83,8 +83,6 @@ export interface LabConfigReply {
   };
 }
 
-// TODO: This spams vscode error notifications for each query on startup if there is an issue.
-
 export class ArtificialApollo {
   private static instance: ArtificialApollo;
   public apollo: ApolloClient<NormalizedCacheObject>;
@@ -316,7 +314,6 @@ export class ArtificialApollo {
           }
         `,
       });
-      // TODO: Catch if a bad id is passed and nothing gets deleted
       if (result && result.data) {
         this.throwError.cancel();
         return result.data;
@@ -346,7 +343,7 @@ export class ArtificialApollo {
           }
         `,
       });
-
+      // TODO: Catch if a bad id is passed and nothing gets deleted
       if (result && result.data) {
         this.throwError.cancel();
         return result.data;
