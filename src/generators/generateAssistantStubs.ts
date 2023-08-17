@@ -174,7 +174,6 @@ export class GenerateAssistantStubs {
     if (returnParams) {
       returnParams = this.removeLastComma(returnParams);
       returnIds = this.removeLastComma(returnIds);
-      // action_parameter_name=[${returnParams}],
       returnString += `\t@return_parameter(parameter_id=[${returnIds}])\n`;
     }
     return returnString;
