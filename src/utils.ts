@@ -90,10 +90,27 @@ export function findWorkflowsInFiles(files: string[]) {
   return workflows;
 }
 
-export async function artificialTask(task: string, command: string) {
-  await vscode.tasks.executeTask(
-    new vscode.Task({ type: 'shell' }, vscode.TaskScope.Global, task, 'Artificial', new vscode.ShellExecution(command))
+export function artificialTask(name: string, command: string) {
+  return vscode.tasks.executeTask(
+    new vscode.Task({ type: 'shell' }, vscode.TaskScope.Global, name, 'Artificial', new vscode.ShellExecution(command))
   );
+}
+
+export async function artificialAwaitTask(name: string, command: string) {
+  await artificialTask(name, command);
+
+  return new Promise((resolve, reject) => {
+    const eventDisposable = vscode.tasks.onDidEndTaskProcess((e) => {
+      if (e.execution.task.name === name) {
+        if (e.exitCode === 0) {
+          resolve('ok');
+        } else {
+          reject();
+        }
+        eventDisposable.dispose();
+      }
+    });
+  });
 }
 
 export function findLabAndAssistantsInFiles(files: string[]) {

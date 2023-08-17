@@ -21,7 +21,7 @@ import { ArtificialApollo, Assistant, AssistantTypeInfo } from '../providers/apo
 import { OutputLog } from '../providers/outputLogProvider';
 import { snakeCase, camelCase } from 'lodash';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
-import { BuildAssistantSignatures } from '../parsers/parseAssistantSignatures';
+
 import * as _ from 'lodash';
 
 export class GenerateAssistantStubs {
@@ -49,7 +49,6 @@ export class GenerateAssistantStubs {
     const response = await client.queryAssistants();
     const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
     const fullPath = path.join(this.workspaceRoot, customAssistantStubPath);
-    const stubs = new BuildAssistantSignatures().build(fullPath);
 
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
@@ -69,12 +68,11 @@ export class GenerateAssistantStubs {
       for (const sig of response.assistants) {
         if (lab.id === sig.constraint.labId) {
           labContainsAssistants = true;
-          let allParamsSorted = this.getAllParamsSorted(sig, stubs);
           pythonContent += `\t@staticmethod\n`;
           pythonContent += `\t@assistant('${sig.id}')\n`;
-          pythonContent += this.buildAssistantParmDec(sig, allParamsSorted);
+          pythonContent += this.buildAssistantParmDec(sig);
           pythonContent += `\tasync def assistant_${snakeCase(sig.name)}(\n`;
-          pythonContent += this.buildAssistantParams(sig, allParamsSorted);
+          pythonContent += this.buildAssistantParams(sig);
           pythonContent += `\t) -> None:\n`;
           pythonContent += `\t\tpass\n\n\n`;
         }
@@ -91,48 +89,11 @@ export class GenerateAssistantStubs {
     });
   }
 
-  //TODO: Once we have fully updated all NS to use asst params with indices, this can be removed
-  private getAllParamsSorted(apolloSignature: Assistant, stubs: AssistantSignature[]): string[] {
-    let allParamsSorted: string[] = [];
-    let stubParams = [];
-    let alabParams = [];
-
-    // Check if asst params have indices set
-    let usingIndices = false;
-    for (let param of apolloSignature.parameters) {
-      alabParams.push(param.typeInfo.name);
-      if (param.index > 0) {
-        usingIndices = true;
-      }
-    }
-    if (usingIndices) {
-      return alabParams;
-    }
-    // If no explicit order set, fallback to using stubs as the order if they exist
-    if (stubs) {
-      const stubSignature = stubs.find((element) => element.actionId === apolloSignature.id);
-      if (stubSignature) {
-        for (let param of stubSignature?.parameters) {
-          stubParams.push(param.assistantName);
-        }
-      }
-      const sortedParams = _.intersection(stubParams, alabParams);
-      allParamsSorted = _.concat(sortedParams, _.difference(alabParams, sortedParams));
-    }
-
-    return allParamsSorted;
-  }
-
-  private buildAssistantParams(sig: Assistant, allParamsSorted: string[]): string {
+  private buildAssistantParams(sig: Assistant): string {
     let returnString = '';
 
-    for (const param of allParamsSorted) {
-      const paramSig = sig.parameters.find((element) => element.typeInfo.name === param);
-      if (paramSig) {
-        returnString += `\t\targ_${snakeCase(paramSig.typeInfo.name)}: ${this.convertToPythonType(
-          paramSig.typeInfo
-        )},\n`;
-      }
+    for (const param of sig.parameters) {
+      returnString += `\t\targ_${snakeCase(param.typeInfo.name)}: ${this.convertToPythonType(param.typeInfo)},\n`;
     }
     return returnString;
   }
@@ -165,15 +126,12 @@ export class GenerateAssistantStubs {
     return returnString;
   }
 
-  private buildAssistantParmDec(sig: Assistant, allParamsSorted: string[]): string {
+  private buildAssistantParmDec(sig: Assistant): string {
     let returnString = '';
-    for (const param of allParamsSorted) {
-      const paramSig = sig.parameters.find((element) => element.typeInfo.name === param);
-      if (paramSig) {
-        returnString += `\t@parameter('arg_${snakeCase(paramSig.typeInfo.name)}', action_parameter_name='${
-          paramSig.typeInfo.name
-        }')\n`;
-      }
+    for (const param of sig.parameters) {
+      returnString += `\t@parameter('arg_${snakeCase(param.typeInfo.name)}', action_parameter_name='${
+        param.typeInfo.name
+      }')\n`;
     }
     return returnString;
   }
