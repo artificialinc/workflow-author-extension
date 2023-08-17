@@ -36,6 +36,9 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     context.subscriptions.push(
       view,
       vscode.commands.registerCommand('workflows.refreshEntry', () => this.refresh()),
+      vscode.commands.registerCommand('workflows.publish', (path: string, workflowIDs: string[]) =>
+        this.publishWorkflow(path, workflowIDs)
+      ),
       vscode.commands.registerCommand('workflows.treePublish', (node: WorkflowTreeElement) =>
         this.publishWorkflow(node.path, node.workflowIds)
       ),

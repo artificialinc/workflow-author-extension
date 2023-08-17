@@ -163,6 +163,15 @@
         }
       },
       {
+        "command": "workflows.publish",
+        "title": "Publish Workflow",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/dark/upload.svg",
+          "dark": "resources/dark/upload.svg"
+        }
+      },
+      {
         "command": "workflows.treePublish",
         "title": "Publish Workflow",
         "category": "Artificial",
@@ -247,6 +256,10 @@
         },
         {
           "command": "labAsstData.exportDataSingle",
+          "when": "False"
+        },
+        {
+          "command": "workflows.publish",
           "when": "False"
         },
         {
