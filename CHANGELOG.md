@@ -1,10 +1,10 @@
 # Change Log
 
-## [2.10.0]
+## [2.9.0]
 
 - Generate Assistant Return Parameters
 
-## [2.9.0]
+## [2.8.3]
 
 - Don't publish wf's when generate fails
 
