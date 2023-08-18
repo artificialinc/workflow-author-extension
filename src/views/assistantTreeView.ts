@@ -159,7 +159,12 @@ export class AssistantByLabTreeView
         const found = treeElements.find((ele) => ele.functionSignature.actionId === assistant.id);
         if (!found) {
           if (assistant.constraint.labId === element.labId) {
-            const blankSignature: AssistantSignature = { actionId: '', parameters: [], name: '' };
+            const blankSignature: AssistantSignature = {
+              actionId: '',
+              parameters: [],
+              name: '',
+              outputParams: [],
+            };
             treeElements.push(
               new AssistantTreeElementError(
                 assistant.name,
@@ -177,25 +182,28 @@ export class AssistantByLabTreeView
   }
 
   private validParams(stubSignature: AssistantSignature, assistant: Assistant): AssistantTypeError {
-    const stubNames: string[] = [];
-    const assistantParamNames: string[] = [];
+    const stubParamIds: string[] = [];
+    const assistantParamIds: string[] = [];
+    const assistantOutputParamIds: string[] = [];
     for (const param of stubSignature.parameters) {
-      stubNames.push(param.assistantName);
+      stubParamIds.push(param.assistantParamId);
     }
     for (const param of assistant.parameters) {
       if (param.input) {
-        assistantParamNames.push(param.id);
+        assistantParamIds.push(param.id);
+      } else {
+        assistantOutputParamIds.push(param.id);
       }
     }
-    const diff = _.difference(stubNames, assistantParamNames);
-    const alabDiff = _.difference(assistantParamNames, stubNames);
+    const diff = _.difference(stubParamIds, assistantParamIds);
+    const alabDiff = _.difference(assistantParamIds, stubParamIds);
     if (diff.length > 0 || alabDiff.length > 0) {
       return { code: 1, error: 'Param length or naming mismatch between stub & cloud' };
     }
     const valid: boolean[] = [];
     for (const param of stubSignature.parameters) {
       valid.push(
-        this.typeCheck(param.type, assistant.parameters.find((ele) => ele.id === param.assistantName)?.typeInfo)
+        this.typeCheck(param.type, assistant.parameters.find((ele) => ele.id === param.assistantParamId)?.typeInfo)
       );
     }
     if (valid.every((ele) => ele === true)) {

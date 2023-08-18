@@ -48,12 +48,18 @@ interface AssistantSignature {
   actionId: string;
   parameters: AssistantParam[];
   name: string;
+  outputParams: AssistantOutputParams[];
 }
 
 interface AssistantParam {
   name: string;
   type: string;
-  assistantName: string;
+  assistantParamId: string;
+}
+
+interface AssistantOutputParams {
+  type: string;
+  assistantParamId: string;
 }
 
 interface AssistantTypeError {
