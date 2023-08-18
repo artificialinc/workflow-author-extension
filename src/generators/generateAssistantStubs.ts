@@ -53,6 +53,7 @@ export class GenerateAssistantStubs {
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
     pythonContent += '# flake8: noqa\n';
+    pythonContent += '# mypy: disable-error-code = empty-body\n';
     pythonContent += 'from typing import List\n';
     pythonContent += 'from typing import Tuple\n\n';
     pythonContent += 'from artificial.workflows.decorators import assistant, parameter, return_parameter\n\n\n';
