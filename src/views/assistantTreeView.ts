@@ -183,10 +183,14 @@ export class AssistantByLabTreeView
 
   private validParams(stubSignature: AssistantSignature, assistant: Assistant): AssistantTypeError {
     const stubParamIds: string[] = [];
+    const stubOutputParamIds: string[] = [];
     const assistantParamIds: string[] = [];
     const assistantOutputParamIds: string[] = [];
     for (const param of stubSignature.parameters) {
       stubParamIds.push(param.assistantParamId);
+    }
+    for (const param of stubSignature.outputParams) {
+      stubOutputParamIds.push(param.assistantParamId);
     }
     for (const param of assistant.parameters) {
       if (param.input) {
@@ -200,19 +204,41 @@ export class AssistantByLabTreeView
     if (diff.length > 0 || alabDiff.length > 0) {
       return { code: 1, error: 'Param length or naming mismatch between stub & cloud' };
     }
+
+    const outputDiff = _.difference(stubOutputParamIds, assistantOutputParamIds);
+    const alabOutputDiff = _.difference(assistantOutputParamIds, stubOutputParamIds);
+    if (outputDiff.length > 0 || alabOutputDiff.length > 0) {
+      return { code: 1, error: 'Return Param length or naming mismatch between stub & cloud' };
+    }
+
     const valid: boolean[] = [];
     for (const param of stubSignature.parameters) {
       valid.push(
         this.typeCheck(param.type, assistant.parameters.find((ele) => ele.id === param.assistantParamId)?.typeInfo)
       );
     }
+
+    const outputValid: boolean[] = [];
+    for (const param of stubSignature.outputParams) {
+      valid.push(
+        this.typeCheck(param.type, assistant.parameters.find((ele) => ele.id === param.assistantParamId)?.typeInfo)
+      );
+    }
+    let outputMatch = false;
+    let inputMatch = false;
+    if (outputValid.every((ele) => ele === true)) {
+      outputMatch = true; //{ code: 0, error: '' };
+    }
     if (valid.every((ele) => ele === true)) {
+      inputMatch = true;
+    }
+    if (outputMatch && inputMatch) {
       return { code: 0, error: '' };
     }
-    const indices = valid.flatMap((bool: boolean, index: number) => {
-      return !bool ? index : [];
-    });
-    return { code: 1, error: `Bad type on param at indices ${indices}` };
+    // const indices = valid.flatMap((bool: boolean, index: number) => {
+    //   return !bool ? index : [];
+    // });
+    return { code: 1, error: `Bad type on param or return` };
   }
 
   private typeCheck(stubParam: string, assistantParam: AssistantTypeInfo | undefined) {

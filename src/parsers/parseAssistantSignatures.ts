@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
+import { OutputLog } from '../providers/outputLogProvider';
 
 export class BuildAssistantSignatures {
   build(actionPythonPath: string): AssistantSignature[] {
@@ -87,12 +88,16 @@ export class BuildAssistantSignatures {
     }
     const returnType = ast.async_funcdef()?.funcdef()?.test()?.text.cleanQuotes() ?? '';
     if (returnType !== 'None') {
-      const regex = returnType.match(/\[(.*?)\]/);
+      const regex = returnType.match(/\[(.*)\]/);
       if (regex) {
         returnTypes = regex[1].split(',');
       }
     }
-    // TODO: Check that our return type and param IDs are the same length and error
+    if (paramIds.length !== returnTypes.length) {
+      const outputlog = OutputLog.getInstance();
+      outputlog.log('Malformed assistant stubs, number of params and return types do not match');
+      return outputs;
+    }
     for (let i = 0; i < paramIds.length; i++) {
       outputs.push({ type: returnTypes[i], assistantParamId: paramIds[i] });
     }
