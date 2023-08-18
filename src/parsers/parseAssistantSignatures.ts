@@ -87,7 +87,10 @@ export class BuildAssistantSignatures {
     }
     const returnType = ast.async_funcdef()?.funcdef()?.test()?.text.cleanQuotes() ?? '';
     if (returnType !== 'None') {
-      returnTypes = returnType.match(/\[(.*?)\]/)[1].split(',');
+      const regex = returnType.match(/\[(.*?)\]/);
+      if (regex) {
+        returnTypes = regex[1].split(',');
+      }
     }
     // TODO: Check that our return type and param IDs are the same length and error
     for (let i = 0; i < paramIds.length; i++) {
