@@ -1,8 +1,11 @@
 # Change Log
 
-## [2.9.0]
+## [3.0.0]
 
 - Generate Assistant Return Parameters
+- Will have significant changes to assistant stub files, swaps to param ID's instead of names
+  --The benefit here is changing assistant input/output names will no longer invalidate stubs
+- Should work with pre-assistant outputs
 
 ## [2.8.3]
 
