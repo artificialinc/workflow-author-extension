@@ -54,8 +54,7 @@ export class GenerateAssistantStubs {
     pythonContent += '# REGEN USING EXTENSION\n';
     pythonContent += '# flake8: noqa\n';
     pythonContent += '# mypy: disable-error-code = empty-body\n';
-    pythonContent += 'from typing import List\n';
-    pythonContent += 'from typing import Tuple\n\n';
+    pythonContent += 'from typing import List, Tuple\n';
     pythonContent += 'from artificial.workflows.decorators import assistant, parameter, return_parameter\n\n\n';
     if (!response?.assistants) {
       return;
