@@ -161,7 +161,7 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
     const server = config.getHost();
     await artificialTask(
       'Export Labs/Assistants',
-      `artificial-cli data exportManifest --quiet --min -x 50000 -s ${server} -t ${token} -d data -m data/manifest.yaml`
+      `artificial-cli data exportManifest --quiet --local --min -x 50000 -s ${server} -t ${token} -d data -m data/manifest.yaml`
     );
   }
   async importData() {
