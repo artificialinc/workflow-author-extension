@@ -21,3 +21,40 @@ jobs:
       - name: Run tests
         run: npm test
 
+  version-preview:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v3
+      - name: Versioning
+        id: versioning
+        uses: paulhatch/semantic-version@v5.0.3
+        with:
+          tag_prefix: "v"
+          major_pattern: "BREAKING CHANGE:"
+          minor_pattern: "feat:"
+          version_format: "${major}.${minor}.${patch}"
+          bump_each_commit: false
+      - name: set outputs
+        id: version_raw
+        run: |
+          echo "version_raw=${{ steps.versioning.outputs.major }}.${{ steps.versioning.outputs.minor }}.${{ steps.versioning.outputs.patch }}" >> $GITHUB_OUTPUT
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: this would result in **${{ github.event.repository.name }}**
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            If merged to `${{ github.event.repository.default_branch }}`, this would result in **${{ github.event.repository.name }}** version of **`v${{steps.version_raw.outputs.version_raw}}`**  
+
+            ( To update the MINOR version, include a commit with the message `feat:` )
+            ( To update the MAJOR version, include a commit with the message `BREAKING CHANGE` )
+            ( The PATCH version will increment automatically if neither of the above conditions are met... )
+          reactions: 'rocket'
+          edit-mode: replace
