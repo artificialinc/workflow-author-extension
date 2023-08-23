@@ -6,6 +6,7 @@
 - Will have significant changes to assistant stub files, swaps to param ID's instead of names
   --The benefit here is changing assistant input/output names will no longer invalidate stubs
 - Should work with pre-assistant outputs
+- NS requires workflows-service 0.2.15+
 
 ## [2.8.3]
 

@@ -91,9 +91,16 @@ export function findWorkflowsInFiles(files: string[]) {
 }
 
 export function artificialTask(name: string, command: string) {
-  return vscode.tasks.executeTask(
-    new vscode.Task({ type: 'shell' }, vscode.TaskScope.Global, name, 'Artificial', new vscode.ShellExecution(command))
+  const task = new vscode.Task(
+    { type: 'shell' },
+    vscode.TaskScope.Global,
+    name,
+    'Artificial',
+    new vscode.ShellExecution(command)
   );
+  task.presentationOptions.focus = false;
+  task.presentationOptions.reveal = vscode.TaskRevealKind.Silent;
+  return vscode.tasks.executeTask(task);
 }
 
 export async function artificialAwaitTask(name: string, command: string) {
