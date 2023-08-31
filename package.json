@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "2.8.3",
+  "version": "3.0.0",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -39,6 +39,11 @@
           "type": "string",
           "default": "workflow/stubs_actions.py",
           "description": "Path to generate adapter action stubs"
+        },
+        "artificial.workflow.author.modulePath": {
+          "type": "string",
+          "default": "main.plugin",
+          "description": "Name of Adapter Module"
         },
         "artificial.workflow.author.devMode": {
           "type": "boolean",
@@ -115,6 +120,11 @@
       {
         "command": "assistantsByLab.generateAssistantStubs",
         "title": "Generate Assistant Stubs",
+        "category": "Artificial"
+      },
+      {
+        "command": "adapterActions.generateActionStubs",
+        "title": "Generate Action Stubs",
         "category": "Artificial"
       },
       {
@@ -294,6 +304,11 @@
       "view/title": [
         {
           "command": "adapterActions.refreshEntry",
+          "when": "view == adapterActions",
+          "group": "navigation"
+        },
+        {
+          "command": "adapterActions.generateActionStubs",
           "when": "view == adapterActions",
           "group": "navigation"
         },

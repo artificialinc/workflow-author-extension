@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 import * as fs from 'fs';
 import { pathExists } from '../utils';
 import { parse, createVisitor, DecoratedContext } from 'python-ast';
+import { OutputLog } from '../providers/outputLogProvider';
 
 export class BuildAssistantSignatures {
   build(actionPythonPath: string): AssistantSignature[] {
@@ -31,10 +32,11 @@ export class BuildAssistantSignatures {
           visitDecorated: (ast) => {
             for (let decoratorIndex = 0; decoratorIndex < ast.decorators().childCount; decoratorIndex++) {
               if (ast.decorators().decorator(decoratorIndex).dotted_name().text === 'assistant') {
-                const signature: AssistantSignature = { actionId: '', parameters: [], name: '' };
+                const signature: AssistantSignature = { actionId: '', parameters: [], name: '', outputParams: [] };
                 signature.actionId = signature.name = this.findActionId(ast, decoratorIndex);
                 signature.name = this.findFuncName(ast);
                 signature.parameters = this.findAssistantParams(ast);
+                signature.outputParams = this.findAssistantOutputParams(ast);
                 signatureList.push(signature);
               }
             }
@@ -53,16 +55,54 @@ export class BuildAssistantSignatures {
     for (let x = 1; x < ast.decorators().decorator().length; x++) {
       if (ast.decorators().decorator(x).dotted_name().text === 'parameter') {
         const paramName = this.findName(ast, x, 0);
-        const assistantName = this.findName(ast, x, 1);
+        const assistantParamId = this.findName(ast, x, 1);
 
         let type = '';
         if (paramName) {
           type = this.findParamType(paramName, ast);
         }
-        paramList.push({ type: type, assistantName: assistantName, name: paramName });
+        paramList.push({ type: type, assistantParamId: assistantParamId, name: paramName });
       }
     }
     return paramList;
+  }
+
+  private findAssistantOutputParams(ast: DecoratedContext): AssistantOutputParams[] {
+    const outputs: AssistantOutputParams[] = [];
+    let paramIds: string[] | string = [];
+    let returnTypes: string[] = [];
+    for (let x = 1; x < ast.decorators().decorator().length; x++) {
+      if (ast.decorators().decorator(x).dotted_name().text === 'return_parameter') {
+        paramIds =
+          ast
+            .decorators()
+            .decorator(x)
+            .arglist()
+            ?.argument(0)
+            .test(1)
+            .text.cleanQuotes()
+            .replace('[', '')
+            .replace(']', '')
+            .split(',') ?? '';
+      }
+    }
+    const returnType = ast.async_funcdef()?.funcdef()?.test()?.text.cleanQuotes() ?? '';
+    if (returnType !== 'None') {
+      const regex = returnType.match(/\[(.*)\]/);
+      if (regex) {
+        returnTypes = regex[1].split(',');
+      }
+    }
+    if (paramIds.length !== returnTypes.length) {
+      const outputlog = OutputLog.getInstance();
+      outputlog.log('Malformed assistant stubs, number of params and return types do not match');
+      return outputs;
+    }
+    for (let i = 0; i < paramIds.length; i++) {
+      outputs.push({ type: returnTypes[i], assistantParamId: paramIds[i] });
+    }
+
+    return outputs;
   }
 
   private findActionId(ast: DecoratedContext, decoratorIndex: number): string {

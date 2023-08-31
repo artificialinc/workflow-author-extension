@@ -1,5 +1,16 @@
 # Change Log
 
+## [3.0.0]
+
+- Generate Assistant Return Parameters
+- Will have significant changes to assistant stub files, swaps to param ID's instead of names
+  --The benefit here is changing assistant input/output names will no longer invalidate stubs
+- Should work with pre-assistant outputs
+- NS requires workflows-service 0.2.15+
+- NS requires Lab Manager 10.12
+- Adapter requires artificial-workflows-tools 0.5.0
+- Adapter requires artificial-workflows 0.13.0
+
 ## [2.8.3]
 
 - Don't publish wf's when generate fails

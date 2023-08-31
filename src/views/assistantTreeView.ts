@@ -159,7 +159,12 @@ export class AssistantByLabTreeView
         const found = treeElements.find((ele) => ele.functionSignature.actionId === assistant.id);
         if (!found) {
           if (assistant.constraint.labId === element.labId) {
-            const blankSignature: AssistantSignature = { actionId: '', parameters: [], name: '' };
+            const blankSignature: AssistantSignature = {
+              actionId: '',
+              parameters: [],
+              name: '',
+              outputParams: [],
+            };
             treeElements.push(
               new AssistantTreeElementError(
                 assistant.name,
@@ -177,35 +182,60 @@ export class AssistantByLabTreeView
   }
 
   private validParams(stubSignature: AssistantSignature, assistant: Assistant): AssistantTypeError {
-    const stubNames: string[] = [];
-    const assistantParamNames: string[] = [];
-    for (const param of stubSignature.parameters) {
-      stubNames.push(param.assistantName);
-    }
+    const assistantParamIds: string[] = [];
+    const assistantOutputParamIds: string[] = [];
+
     for (const param of assistant.parameters) {
-      assistantParamNames.push(param.typeInfo.name);
+      if (param.input) {
+        assistantParamIds.push(param.id);
+      } else {
+        assistantOutputParamIds.push(param.id);
+      }
     }
-    const diff = _.difference(stubNames, assistantParamNames);
-    const alabDiff = _.difference(assistantParamNames, stubNames);
-    if (diff.length > 0 || alabDiff.length > 0) {
+
+    const iMatch = this.checkParamCounts(stubSignature.parameters, assistantParamIds);
+    const oMatch = this.checkParamCounts(stubSignature.outputParams, assistantOutputParamIds);
+    if (!iMatch || !oMatch) {
       return { code: 1, error: 'Param length or naming mismatch between stub & cloud' };
     }
+
+    const itMatch = this.checkParamTypes(stubSignature.parameters, assistant);
+    const otMatch = this.checkParamTypes(stubSignature.outputParams, assistant);
+
+    if (!itMatch && !otMatch) {
+      return { code: 1, error: `Bad type on param or return` };
+    }
+    // const indices = valid.flatMap((bool: boolean, index: number) => {
+    //   return !bool ? index : [];
+    // });
+    return { code: 0, error: '' };
+  }
+
+  private checkParamCounts(parameters: AssistantOutputParams[] | AssistantParam[], assistantParamIds: string[]) {
+    const stubParamIds: string[] = [];
+    for (const param of parameters) {
+      stubParamIds.push(param.assistantParamId);
+    }
+
+    const diff = _.difference(stubParamIds, assistantParamIds);
+    const alabDiff = _.difference(assistantParamIds, stubParamIds);
+    if (diff.length > 0 || alabDiff.length > 0) {
+      return false;
+    }
+    return true;
+  }
+
+  private checkParamTypes(parameters: AssistantOutputParams[] | AssistantParam[], assistant: Assistant) {
     const valid: boolean[] = [];
-    for (const param of stubSignature.parameters) {
+    for (const param of parameters) {
       valid.push(
-        this.typeCheck(
-          param.type,
-          assistant.parameters.find((ele) => ele.typeInfo.name === param.assistantName)?.typeInfo
-        )
+        this.typeCheck(param.type, assistant.parameters.find((ele) => ele.id === param.assistantParamId)?.typeInfo)
       );
     }
     if (valid.every((ele) => ele === true)) {
-      return { code: 0, error: '' };
+      return true; //{ code: 0, error: '' };
     }
-    const indices = valid.flatMap((bool: boolean, index: number) => {
-      return !bool ? index : [];
-    });
-    return { code: 1, error: `Bad type on param at indices ${indices}` };
+    return false;
   }
 
   private typeCheck(stubParam: string, assistantParam: AssistantTypeInfo | undefined) {

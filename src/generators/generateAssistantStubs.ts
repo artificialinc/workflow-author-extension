@@ -23,6 +23,7 @@ import { snakeCase, camelCase } from 'lodash';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 
 import * as _ from 'lodash';
+import { artificialTask } from '../utils';
 
 export class GenerateAssistantStubs {
   outputChannel = OutputLog.getInstance();
@@ -39,9 +40,15 @@ export class GenerateAssistantStubs {
   }
 
   async generateAssistantStubsCommand(): Promise<any> {
-    await this.generateAssistantStubs();
+    await this.generateAssistantStubsTerminal();
     await this.assistantByLab.refresh();
-    vscode.window.showInformationMessage('Created Assistant Stub File');
+  }
+
+  private async generateAssistantStubsTerminal(): Promise<void> {
+    const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
+    const fullPath = path.join(this.workspaceRoot, customAssistantStubPath);
+    artificialTask('Generate Assistant Stubs', `wf assistantstubs -o ${fullPath}`);
+    return;
   }
 
   private async generateAssistantStubs(): Promise<void> {
@@ -53,8 +60,9 @@ export class GenerateAssistantStubs {
     let pythonContent = '# GENERATED FILE: DO NOT EDIT BY HAND\n';
     pythonContent += '# REGEN USING EXTENSION\n';
     pythonContent += '# flake8: noqa\n';
-    pythonContent += 'from typing import List\n\n';
-    pythonContent += 'from artificial.workflows.decorators import assistant, parameter\n\n\n';
+    pythonContent += '# mypy: disable-error-code = empty-body\n';
+    pythonContent += 'from typing import List, Tuple\n';
+    pythonContent += 'from artificial.workflows.decorators import assistant, parameter, return_parameter\n\n\n';
     if (!response?.assistants) {
       return;
     }
@@ -71,9 +79,12 @@ export class GenerateAssistantStubs {
           pythonContent += `\t@staticmethod\n`;
           pythonContent += `\t@assistant('${sig.id}')\n`;
           pythonContent += this.buildAssistantParmDec(sig);
+          pythonContent += this.buildAssistantReturnDec(sig);
           pythonContent += `\tasync def assistant_${snakeCase(sig.name)}(\n`;
           pythonContent += this.buildAssistantParams(sig);
-          pythonContent += `\t) -> None:\n`;
+          pythonContent += `\t) -> `;
+          pythonContent += this.buildAssistantReturn(sig);
+          pythonContent += `:\n`;
           pythonContent += `\t\tpass\n\n\n`;
         }
       }
@@ -93,7 +104,26 @@ export class GenerateAssistantStubs {
     let returnString = '';
 
     for (const param of sig.parameters) {
-      returnString += `\t\targ_${snakeCase(param.typeInfo.name)}: ${this.convertToPythonType(param.typeInfo)},\n`;
+      if (param.input) {
+        returnString += `\t\targ_${snakeCase(param.typeInfo.name)}: ${this.convertToPythonType(param.typeInfo)},\n`;
+      }
+    }
+    return returnString;
+  }
+
+  private buildAssistantReturn(sig: Assistant): string {
+    let returnString = '';
+    let paramString = '';
+    for (const param of sig.parameters) {
+      if (!param.input) {
+        paramString += `${this.convertToPythonType(param.typeInfo)}, `;
+      }
+    }
+    if (!paramString) {
+      return 'None';
+    } else {
+      paramString = this.removeLastComma(paramString);
+      returnString += `Tuple[${paramString}]`;
     }
     return returnString;
   }
@@ -129,9 +159,29 @@ export class GenerateAssistantStubs {
   private buildAssistantParmDec(sig: Assistant): string {
     let returnString = '';
     for (const param of sig.parameters) {
-      returnString += `\t@parameter('arg_${snakeCase(param.typeInfo.name)}', action_parameter_name='${
-        param.typeInfo.name
-      }')\n`;
+      if (param.input) {
+        returnString += `\t@parameter('arg_${snakeCase(param.typeInfo.name)}', parameter_id='${param.id}')\n`;
+      }
+    }
+    return returnString;
+  }
+  private removeLastComma(str: string) {
+    return str.replace(/,(\s+)?$/, '');
+  }
+  private buildAssistantReturnDec(sig: Assistant): string {
+    let returnString = '';
+    let returnParams = '';
+    let returnIds = '';
+    for (const param of sig.parameters) {
+      if (!param.input) {
+        returnParams += `'arg_${snakeCase(param.typeInfo.name)}', `;
+        returnIds += `'${param.id}', `;
+      }
+    }
+    if (returnParams) {
+      returnParams = this.removeLastComma(returnParams);
+      returnIds = this.removeLastComma(returnIds);
+      returnString += `\t@return_parameter(parameter_id=[${returnIds}])\n`;
     }
     return returnString;
   }
