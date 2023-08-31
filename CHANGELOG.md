@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.0.1]
+
+- Fix drag and drop for assistants, casing was sometimes off
+
 ## [3.0.0]
 
 - Generate Assistant Return Parameters
