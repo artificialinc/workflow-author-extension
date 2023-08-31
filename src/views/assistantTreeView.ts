@@ -294,7 +294,7 @@ export class AssistantTreeElement extends vscode.TreeItem {
     this.functionSignature = functionSignature;
     this.contextValue = 'ASSISTANT';
   }
-  labClassName = this.labName.charAt(0).toUpperCase() + camelCase(this.labName).slice(1) + 'Assistants';
+  labClassName = this.labName.charAt(0).toUpperCase() + camelCase(this.labName.toLowerCase()).slice(1) + 'Assistants';
   resourceUri = vscode.Uri.parse('artificial/assistantByLab/assistant/' + this.labClassName + '/' + this.label);
   type = 'assistant';
   iconPath = {
