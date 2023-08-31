@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { pathExists } from '../utils';
+import { artificialTask, pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
 type TreeElement = Module | Function;
@@ -42,6 +42,9 @@ export class AdapterActionTreeView
     context.subscriptions.push(view);
     this.uriPath = 'artificial/python/';
     context.subscriptions.push(vscode.commands.registerCommand('adapterActions.refreshEntry', () => this.refresh()));
+    context.subscriptions.push(
+      vscode.commands.registerCommand('adapterActions.generateActionStubs', () => this.generateActionStubs())
+    );
   }
 
   async init() {
@@ -94,6 +97,13 @@ export class AdapterActionTreeView
         return [];
       }
     }
+  }
+  private async generateActionStubs(): Promise<void> {
+    const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
+    const types = this.stubPath.substring(0, this.stubPath.lastIndexOf('/'));
+
+    artificialTask('Generate Action Stubs', `(cd adapter; wf adapterstubs ${module} -o ${this.stubPath})`);
+    return;
   }
 
   private getModules() {

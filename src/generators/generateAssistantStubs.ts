@@ -23,6 +23,7 @@ import { snakeCase, camelCase } from 'lodash';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 
 import * as _ from 'lodash';
+import { artificialTask } from '../utils';
 
 export class GenerateAssistantStubs {
   outputChannel = OutputLog.getInstance();
@@ -39,9 +40,15 @@ export class GenerateAssistantStubs {
   }
 
   async generateAssistantStubsCommand(): Promise<any> {
-    await this.generateAssistantStubs();
+    await this.generateAssistantStubsTerminal();
     await this.assistantByLab.refresh();
-    vscode.window.showInformationMessage('Created Assistant Stub File');
+  }
+
+  private async generateAssistantStubsTerminal(): Promise<void> {
+    const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
+    const fullPath = path.join(this.workspaceRoot, customAssistantStubPath);
+    artificialTask('Generate Assistant Stubs', `wf assistantstubs -o ${fullPath}`);
+    return;
   }
 
   private async generateAssistantStubs(): Promise<void> {
