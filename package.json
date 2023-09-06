@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.0.1",
+  "version": "3.0.2",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -74,6 +74,10 @@
       }
     ],
     "viewsWelcome": [
+      {
+        "view": "adapterActions",
+        "contents": "No Adapter Stubs found, hit generate to get started.\n[Generate Stubs](command:adapterActions.generateActionStubs)"
+      },
       {
         "view": "assistantsByLab",
         "contents": "No Assistant Stubs found, hit generate to get started.\n[Generate Stubs](command:assistantsByLab.generateAssistantStubs)"

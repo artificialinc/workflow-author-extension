@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { createVisitor, parse } from 'python-ast';
+import { OutputLog } from './providers/outputLogProvider';
 
 export function pathExists(p: string): boolean {
   try {
@@ -29,35 +30,19 @@ export function pathExists(p: string): boolean {
 
 export async function initConfig(rootPath: string) {
   if (!pathExists(rootPath + '/tmp')) {
-    await artificialTask('tmp Directory Creation', 'mkdir tmp');
+    await artificialAwaitTask('tmp Directory Creation', 'mkdir tmp');
   }
-  await artificialTask('Setup Config', `afconfig view --yaml > tmp/merged.yaml`);
-
-  // This blocks during the initial activation of the extension,
-  // to allow time for the terminal command to complete and hydrate values
-  // Post activation of the extension, this sleep fires but doesn't block
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  try {
+    await artificialAwaitTask('Setup Config', `afconfig view --yaml > tmp/merged.yaml`);
+  } catch {
+    const log = OutputLog.getInstance();
+    log.log('Error Setting up Configuration');
+  }
 }
 
 String.prototype.cleanQuotes = function (): string {
   return this.replace(new RegExp('\'|"', 'g'), '');
 };
-
-export function findOrCreateTerminal(showTerminal: boolean = false): vscode.Terminal {
-  let terminal = undefined;
-  for (const term of vscode.window.terminals) {
-    if (term.name === 'Artificial-WF-Terminal') {
-      terminal = term;
-    }
-  }
-  if (!terminal) {
-    terminal = vscode.window.createTerminal(`Artificial-WF-Terminal`);
-  }
-  if (showTerminal) {
-    terminal.show();
-  }
-  return terminal;
-}
 
 export function findWorkflowsInFiles(files: string[]) {
   const workflows: { path: string; ids: string[] }[] = [];
