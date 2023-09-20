@@ -46,6 +46,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     let text = await dataTransferItem.asString();
     let element;
     let className = '';
+    let pythonCall = false;
     if (text.includes('/loadConfigs/')) {
       const splitText = text.split('/');
       if (text.includes('/lab/')) {
@@ -54,6 +55,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     }
     if (text.includes('/python/')) {
       element = this.funcTree.getTreeItemByUri(text);
+      pythonCall = true;
     }
     if (text.includes('/assistant/')) {
       element = this.assistantTreeByLab.getTreeItemByUri(text);
@@ -62,7 +64,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     if (element && 'functionSignature' in element) {
       const insertFuncCall = new InsertFunctionCall();
       // TODO: Change parser to put the class name in the function signature
-      text = insertFuncCall.buildFunctionCall(element.functionSignature, className);
+      text = insertFuncCall.buildFunctionCall(element.functionSignature, className, pythonCall);
     }
 
     if (text.includes('/configs/')) {

@@ -23,7 +23,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:python"
+    "onLanguage:python",
+    "onLanguage:yaml"
   ],
   "main": "./out/extension.js",
   "contributes": {

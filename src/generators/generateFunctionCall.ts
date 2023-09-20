@@ -22,22 +22,27 @@ export class InsertFunctionCall {
   insertFunction(node: Function): void {
     const editor = vscode.window.activeTextEditor;
     let className = '';
+    let pythonCall = true;
     if (editor) {
       if (node.resourceUri.toString().includes('/assistant/')) {
         className = node.resourceUri.toString().split('/')[6];
+        pythonCall = false;
       }
-      const functionCall = this.buildFunctionCall(node.functionSignature, className);
+      const functionCall = this.buildFunctionCall(node.functionSignature, className, pythonCall);
       editor.edit((editBuilder) => {
         editBuilder.insert(editor.selection.active, functionCall);
       });
     }
   }
-  buildFunctionCall(signature: FunctionSignature | AssistantSignature, className: string): string {
+  buildFunctionCall(signature: FunctionSignature | AssistantSignature, className: string, pythonCall: boolean): string {
     let content = '';
+    if (pythonCall) {
+      content += "'''action-ability-name: '''\n";
+    }
     if (className !== '') {
-      content = 'await ' + className + '.' + signature.name + '(\n';
+      content += 'await ' + className + '.' + signature.name + '(\n';
     } else {
-      content = 'await ' + signature.name + '(\n';
+      content += 'await ' + signature.name + '(\n';
     }
 
     let functionString = '';
