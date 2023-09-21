@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.0.2]
+
+- Various bug fixes and cleanup
+
 ## [3.0.1]
 
 - Fix drag and drop for assistants, casing was sometimes off

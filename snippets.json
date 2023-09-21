@@ -39,5 +39,41 @@
             "@parameter('${1:param_name}', {'required': True, 'uiTitle': '${2:Display Name}'})"
         ],
         "description": "Request UI Parameter"
+    },
+    "Action Module": {
+        "prefix": "action_module",
+        "body": [
+            "from __future__ import annotations",
+            "",
+            "import typing as t",
+            "",
+            "from artificial.adapter_common import BaseActionModule, action",
+            "from artificial.adapter_common.alabpy_base import AlabPyBase",
+            "from artificial.adapter_common.apis import AssetsApi",
+            "from artificial.logging import get_logger",
+            "",
+            "logger = get_logger(__name__)",
+            "class ${1:action_module_name}(BaseActionModule):",
+            "\t_alabpy_base: AlabPyBase",
+            "",
+            "\tdef __init__(self, alabpy: AlabPyBase, asset_api: AssetsApi) -> None:",
+            "\t\tsuper().__init__()",
+            "\t\tself._alabpy_base = alabpy",
+            "\t\tself._asset_api = asset_api",
+            "",
+            "\tasync def ainit(self) -> None:",
+            "\t\tpass",
+            "",
+            "\tasync def aclose(self) -> None:",
+            "\t\tpass",
+            "",
+            "\tasync def __aenter__(self) -> ${1:action_module_name}:",
+            "\t\tawait self.ainit()",
+            "\t\treturn self",
+            "",
+            "\tasync def __aexit__(self, exc_type: t.Any, exc_value: t.Any, traceback: t.Any) -> None:",
+            "\t\tawait self.aclose()"
+        ],
+        "description": "Action Module"
     }
 }

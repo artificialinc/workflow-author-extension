@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { artificialTask, pathExists } from '../utils';
+import { artificialAwaitTask, pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
 type TreeElement = Module | Function;
@@ -79,6 +79,7 @@ export class AdapterActionTreeView
 
   private treeElements!: TreeElement[];
   private functionSignatures!: FunctionSignature[];
+
   async getChildren(element?: TreeElement): Promise<TreeElement[]> {
     if (element) {
       if (element.type === 'module') {
@@ -100,10 +101,8 @@ export class AdapterActionTreeView
   }
   private async generateActionStubs(): Promise<void> {
     const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
-    const types = this.stubPath.substring(0, this.stubPath.lastIndexOf('/'));
-
-    artificialTask('Generate Action Stubs', `(cd adapter; wf adapterstubs ${module} -o ${this.stubPath})`);
-    return;
+    await artificialAwaitTask('Generate Action Stubs', `(cd adapter; wf adapterstubs ${module} -o ${this.stubPath})`);
+    await this.refresh();
   }
 
   private getModules() {
@@ -115,10 +114,12 @@ export class AdapterActionTreeView
     const moduleTreeItems = modules.map((module) => new Module(module));
     return moduleTreeItems;
   }
+
   private async getFuncsInActionPython(actionPythonPath: string): Promise<FunctionSignature[]> {
     const data = await new BuildPythonSignatures().build(actionPythonPath);
     return data?.sigsAndTypes.functions ? data?.sigsAndTypes.functions : [];
   }
+
   private getFunctions(moduleName: string | vscode.TreeItemLabel | undefined): Function[] {
     const signatures = this.functionSignatures.map((sig) => {
       if (sig.module === moduleName) {

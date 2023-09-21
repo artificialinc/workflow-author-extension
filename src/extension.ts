@@ -77,6 +77,11 @@ function taskExitWatcher(dataTree: DataTreeView) {
       if (e.execution.task.name === 'Export Labs/Assistants') {
         dataTree.refresh();
       }
+      if (e.execution.task.name === 'Setup Config') {
+        const log = OutputLog.getInstance();
+        log.log('Setup Config Completed');
+        return;
+      }
       vscode.window.showInformationMessage(`${e.execution.task.name} completed successfully`);
     } else {
       vscode.window.showErrorMessage(`${e.execution.task.name}: Please check terminal logs for error details`);

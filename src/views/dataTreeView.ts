@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import { ConfigValues } from '../providers/configProvider';
-import { artificialTask, pathExists } from '../utils';
+import { artificialAwaitTask, artificialTask, pathExists } from '../utils';
 import { glob } from 'glob';
 import { findLabAndAssistantsInFiles } from '../utils';
 import * as path from 'path';
@@ -154,7 +154,7 @@ export class DataTreeView implements vscode.TreeDataProvider<TreeItem> {
   }
   async exportData() {
     if (!pathExists(this.rootPath + '/data')) {
-      await artificialTask('Data Directory Creation', `mkdir data`);
+      await artificialAwaitTask('Data Directory Creation', `mkdir data`);
     }
     const config = ConfigValues.getInstance();
     const token = config.getToken();
