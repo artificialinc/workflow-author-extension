@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.0.2",
+  "version": "3.0.3",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -136,64 +136,43 @@
         "command": "adapterActions.addToFile",
         "title": "Add Action Function Call to Workflow",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/dark/add.svg",
-          "dark": "resources/dark/add.svg"
-        }
+        "icon": "$(plus)"
       },
       {
         "command": "adapterActions.refreshEntry",
         "title": "Refresh Python Functions",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "adapterActions.updateAdapterImage",
         "title": "Update Adapter Image",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "adapterActions.executeAdapterAction",
         "title": "Execute Adapter Action",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "workflows.refreshEntry",
         "title": "Refresh Workflows",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "workflows.publish",
         "title": "Publish Workflow",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/dark/upload.svg",
-          "dark": "resources/dark/upload.svg"
-        }
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "workflows.treePublish",
         "title": "Publish Workflow",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/dark/upload.svg",
-          "dark": "resources/dark/upload.svg"
-        }
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "workflows.generateBinary",
@@ -209,28 +188,19 @@
         "command": "assistantsByLab.addToFile",
         "title": "Add Assistant Call to Workflow",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/dark/add.svg",
-          "dark": "resources/dark/add.svg"
-        }
+        "icon": "$(plus)"
       },
       {
         "command": "assistantsByLab.refreshEntry",
         "title": "Refresh Assistants",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "configs.refreshEntry",
         "title": "Refresh Configs",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "labAsstData.exportData",
@@ -242,19 +212,13 @@
         "command": "labAsstData.importData",
         "title": "Publish ALL Lab and Assistant Data",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/dark/upload.svg",
-          "dark": "resources/dark/upload.svg"
-        }
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "labAsstData.importDataSingle",
         "title": "Publish Single Lab or Assistant",
         "category": "Artificial",
-        "icon": {
-          "light": "resources/dark/upload.svg",
-          "dark": "resources/dark/upload.svg"
-        }
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "labAsstData.exportDataSingle",
