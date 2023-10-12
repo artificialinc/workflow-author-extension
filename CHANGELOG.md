@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.0.3]
+
+- Use built-in icons to fix issues in Codespaces of custom icons not always loading properly
+
 ## [3.0.2]
 
 - Various bug fixes and cleanup
