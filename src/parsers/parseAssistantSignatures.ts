@@ -88,9 +88,15 @@ export class BuildAssistantSignatures {
     }
     const returnType = ast.async_funcdef()?.funcdef()?.test()?.text.cleanQuotes() ?? '';
     if (returnType !== 'None') {
-      const regex = returnType.match(/\[(.*)\]/);
-      if (regex) {
-        returnTypes = regex[1].split(',');
+      // If return type has no tuple, its just a single type, return it.
+      if (!returnType.includes('Tuple')) {
+        returnTypes.push(returnType);
+      } else {
+        // Split apart a return type of Tuple[str,int,str]
+        const regex = returnType.match(/\[(.*)\]/);
+        if (regex) {
+          returnTypes = regex[1].split(',');
+        }
       }
     }
     if (paramIds.length !== returnTypes.length) {
