@@ -15,33 +15,40 @@ See the License for the specific language governing permissions and
 */
 import { getAdapterClients as getAdapterClients, AdapterClient } from './grpc/grpc';
 import * as grpc from '@grpc/grpc-js';
-import * as vscode from 'vscode';
-import { ConfigValues } from '../providers/configProvider';
+import { OutputLog } from '../providers/outputLogProvider';
+
+
+const LOCAL_SYMBOL = process.env.LOCAL_SYMBOL || 'manager.management_actions.ManagementActions';
+const REMOTE_SYMBOL = process.env.REMOTE_SYMBOL || 'adapter.manager.management_actions.ManagementActions';
+
+export interface Output {
+  log: (value: string) => void;
+}
 
 export class ArtificialAdapter {
   adapterClients: Map<string, AdapterClient>;
   services: string[];
-  remote: boolean = true;
+  output: Output;
 
-  constructor(adapterClients: Map<string, AdapterClient>, remote: boolean = true) {
+  constructor(adapterClients: Map<string, AdapterClient>, output: Output = OutputLog.getInstance()) {
     this.adapterClients = adapterClients;
     this.services = [...adapterClients.keys()];
-    this.remote = remote;
+    this.output = output;
   }
 
-  public static async createLocalAdapter<T extends typeof ArtificialAdapter>(this: T): Promise<InstanceType<T>> {
+  public static async createLocalAdapter<T extends typeof ArtificialAdapter>(this: T, output: Output = OutputLog.getInstance()): Promise<InstanceType<T>> {
     const adapterClients = await getAdapterClients('localhost:5011', new grpc.Metadata(), false);
-    return new this(adapterClients, false) as InstanceType<T>;
+    return new this(adapterClients, output) as InstanceType<T>;
   }
 
   // Lab is tbd. Might be its own "manager lab" or something similar
-  public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(this: T, address: string, prefix: string, org: string, lab: string, token: string): Promise<InstanceType<T>> {
+  public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(this: T, address: string, prefix: string, org: string, lab: string, token: string, output: Output = OutputLog.getInstance()): Promise<InstanceType<T>> {
     const md = new grpc.Metadata();
     md.set("authorization", `Bearer ${token}`);
     md.set("forward-to", `${prefix}:${org}:${lab}:substrate`);
     var adapterClients: Map<string, AdapterClient>;
     adapterClients = await getAdapterClients(address, md, true);
-    return new this(adapterClients, true) as InstanceType<T>;
+    return new this(adapterClients, output) as InstanceType<T>;
   }
 
   public listActions(): string[] {
@@ -54,12 +61,21 @@ export class ArtificialAdapter {
     return actions;
   }
 
+  public getManagementClient(): AdapterClient {
+    // Try the two ways these things seem to get registered. At least until we fully standardize
+    if (this.adapterClients.has(LOCAL_SYMBOL)) {
+      return this.adapterClients.get(LOCAL_SYMBOL)!;
+    } else if (this.adapterClients.has(REMOTE_SYMBOL)) {
+      return this.adapterClients.get(REMOTE_SYMBOL)!;
+    } else {
+      this.output.log('Could not find management client, available clients are: ' + Array.from(this.adapterClients.keys()).join(', '));
+      throw new Error('Could not find adapter manager client');
+    }
+  }
 }
 
-const LOCAL_SYMBOL = process.env.LOCAL_SYMBOL || 'manager.management_actions.ManagementActions';
-const REMOTE_SYMBOL = process.env.REMOTE_SYMBOL || 'adapter.manager.management_actions.ManagementActions';
 
-export     type AdapterInfo = {
+export type AdapterInfo = {
       name: string;
       image: string;
       is_manager: boolean; // eslint-disable-line @typescript-eslint/naming-convention
@@ -68,7 +84,7 @@ export     type AdapterInfo = {
 export class ArtificialAdapterManager extends ArtificialAdapter {
   public async updateAdapterImage(adapterName: string, image: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.adapterClients.get(this.remote ? REMOTE_SYMBOL : LOCAL_SYMBOL)?.client.updateAdapterImage({
+      this.getManagementClient().client.updateAdapterImage({
         "adapter_name": { value: adapterName }, // eslint-disable-line @typescript-eslint/naming-convention
         "image": { value: image },
       }, (err: Error, _: any) => {
@@ -84,7 +100,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
 
   public async listNonManagerAdapters(): Promise<AdapterInfo[]> {
     return new Promise((resolve, reject) => {
-      const client = this.adapterClients.get(this.remote ? REMOTE_SYMBOL : LOCAL_SYMBOL)?.client;
+      const client = this.getManagementClient().client;
       if (client && 'listAdapters' in client) {
         client.listAdapters({}, (err: Error, response: any) => {
           if (err) {
@@ -95,6 +111,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
           }
         });
       } else {
+        this.output.log('This adapter manager does not support listAdapters. Available clients are: ' + Array.from(client.keys()).join(', '));
         reject(new Error('This adapter manager does not support listAdapters'));
       }
     });
