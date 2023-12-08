@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.0.5]
+
+- Try both forms of looking for management actions.
+
 ## [3.0.4]
 
 - Fix assistant type matching for single return type
