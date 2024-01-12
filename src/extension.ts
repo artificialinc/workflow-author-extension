@@ -32,12 +32,41 @@ import { DataTreeView } from './views/dataTreeView';
 import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
 
+async function externalUri(context: vscode.ExtensionContext, extensionId: string) {
+    // Register a URI handler for the authentication callback
+  vscode.window.registerUriHandler({
+    handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+      // Add your code for what to do when the authentication completes here.
+      if (uri.path === '/auth-complete') {
+        vscode.window.showInformationMessage('Sign in successful!');
+      }
+    }
+  });
+
+  // Register a sign in command
+  context.subscriptions.push(
+    vscode.commands.registerCommand(`adapterActions.signin`, async () => {
+      // Get an externally addressable callback URI for the handler that the authentication provider can use
+      const callbackUri = await vscode.env.asExternalUri(
+        vscode.Uri.parse(`http://localhost:4000/vscode-login?redirect=${vscode.env.uriScheme}://${extensionId}/auth-complete`)
+      );
+
+      // Add your code to integrate with an authentication provider here - we'll fake it.
+      vscode.env.openExternal(callbackUri);
+    })
+  );
+
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   // Config Setup
   const { configVals, rootPath } = await setupConfig(context);
   if (!rootPath) {
     return;
   }
+
+  // External URI
+  externalUri(context, 'artificial.artificial-workflow-extension');
 
   //Provides Type Error Decoration
   new ViewFileDecorationProvider();

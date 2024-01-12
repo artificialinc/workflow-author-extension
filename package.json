@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.0.5",
+  "version": "3.0.4",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -145,6 +145,15 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "adapterActions.signin",
+        "title": "Sign In",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
         "command": "adapterActions.updateAdapterImage",
         "title": "Update Adapter Image",
         "category": "Artificial",
@@ -266,7 +275,7 @@
           "when": "config.artificial.workflow.author.devMode"
         },
         {
-          "command": "adapterActions.updateAdapterImage",
+          "command": "adapterActions.signin",
           "when": "config.artificial.workflow.author.devMode"
         }
       ],
