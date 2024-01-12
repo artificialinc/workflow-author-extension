@@ -55,6 +55,6 @@ export class Registry {
     const tags = await getTags(this.registryBase, this.repository, this.username, this.password);
     return tags.map((tag) => {
       return `${this.registryBase}/${this.repository}:${tag}`;
-    });
+    }).reverse(); // Although explicitly not guarateed, the tags are returned in reverse chronological order, so we reverse them to get the correct order
   }
 }
