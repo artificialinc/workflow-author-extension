@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.1.0]
+
+- Enable update adapter image outside of dev mode
+
 ## [3.0.5]
 
 - Try both forms of looking for management actions.
