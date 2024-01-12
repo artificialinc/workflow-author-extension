@@ -154,6 +154,15 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "adapterActions.signin",
+        "title": "Sign In",
+        "category": "Artificial",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
         "command": "adapterActions.updateAdapterImage",
         "title": "Update Adapter Image",
         "category": "Artificial",
@@ -279,6 +288,9 @@
         {
           "command": "adapterActions.executeAdapterAction",
           "when": "config.artificial.workflow.author.devMode"
+        },
+        {
+          "command": "adapterActions.signin"
         }
       ],
       "view/title": [
@@ -416,8 +428,7 @@
     "grpc-js-reflection-client": "^1.2.14",
     "lodash": "^4.17.21",
     "protobufjs": ">=7.2.5",
-    "python-ast": "^0.1.0",
-    "yaml": "^2.1.1"
+    "python-ast": "^0.1.0"
   },
   "extensionDependencies": [
     "vscode.git"
