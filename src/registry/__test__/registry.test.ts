@@ -17,7 +17,17 @@ import { Registry } from '../registry';
 import * as registryClient from "@snyk/docker-registry-v2-client";
 
 describe('testregistry', function () {
-  test('test list tags', async function () {
+  test('test list tags - normal', async function () {
+    const spy = jest.spyOn(registryClient, "getTags").mockResolvedValue(["aidan-5", "aidan-6"]);
+
+    const r = Registry.createFromGithub("https://github.com/artificialinc/artificial-ADAPTER-template.git", "user", "token");
+    const tags = await r.listTags();
+    expect(tags).toContain("ghcr.io/artificialinc/artificial-adapter-template:aidan-5");
+    expect(spy).toBeCalledWith("ghcr.io", "artificialinc/artificial-adapter-template", "user", "token");
+    expect(tags).toStrictEqual(["ghcr.io/artificialinc/artificial-adapter-template:aidan-6", "ghcr.io/artificialinc/artificial-adapter-template:aidan-5"])
+   });
+
+     test('test list tags - capitals in name', async function () {
     const spy = jest.spyOn(registryClient, "getTags").mockResolvedValue(["aidan-5", "aidan-6"]);
 
     const r = Registry.createFromGithub("https://github.com/artificialinc/artificial-adapter-template.git", "user", "token");
