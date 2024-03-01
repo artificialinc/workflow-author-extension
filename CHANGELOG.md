@@ -2,6 +2,10 @@
 
 ## [3.1.1]
 
+- Fix missing remote origin on startup by forcing lowercase repo
+
+## [3.1.1]
+
 - Reverse returned list of tags from ghcr.io
 
 ## [3.1.0]
