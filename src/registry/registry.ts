@@ -32,8 +32,8 @@ export class Registry {
   private static sanitizeGitRemote(gitRemote: string): string {
     // Parse url
     const url = githubUrlFromGit(gitRemote);
-    // Reconstruct with https and just path
-    return url;
+    // convert to lower case
+    return url.toLowerCase();
   }
 
   public static createFromGithub(githubURL: string, username: string, token: string): Registry {
