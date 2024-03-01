@@ -1,6 +1,6 @@
 # Change Log
 
-## [3.1.1]
+## [3.1.2]
 
 - Fix missing remote origin on startup by forcing lowercase repo
 
