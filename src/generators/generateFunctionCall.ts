@@ -36,9 +36,6 @@ export class InsertFunctionCall {
   }
   buildFunctionCall(signature: FunctionSignature | AssistantSignature, className: string, pythonCall: boolean): string {
     let content = '';
-    if (pythonCall) {
-      content += "'''action-ability-name: '''\n";
-    }
     if (className !== '') {
       content += 'await ' + className + '.' + signature.name + '(\n';
     } else {
