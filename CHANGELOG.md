@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.1.4]
+
+- Remove action ability doc string for dropped functions
+
 ## [3.1.2]
 
 - Fix missing remote origin on startup by forcing lowercase repo
