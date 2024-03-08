@@ -23,6 +23,7 @@ import { AssistantByLabTreeView } from './views/assistantTreeView';
 import { ViewFileDecorationProvider } from './providers/decorationProvider';
 import { WorkflowTreeView } from './views/workflowTreeView';
 import { ConfigTreeView } from './views/configTreeView';
+import { LoadingConfigByLabTreeView } from './views/loadingConfigView';
 import { ConfigValues } from './providers/configProvider';
 import { initConfig } from './utils';
 import { ArtificialApollo } from './providers/apolloProvider';
@@ -48,6 +49,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const dataTree = new DataTreeView(rootPath, context);
   // Config Tree
   new ConfigTreeView(context);
+  // Loading Config Tree
+  const loadconfigs = new LoadingConfigByLabTreeView(context);
+  loadconfigs.init();
   // Commands to insert & drag/drop functions
   setupDragAndDrop(context);
   // Adapter Function Tree
@@ -57,7 +61,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Command to generate assistant stubs
   new GenerateAssistantStubs(context, rootPath, assistantByLab);
   //Drop handler for document editor
-  const selector = setupDropHandler(context, funcTree, assistantByLab);
+  const selector = setupDropHandler(context, funcTree, assistantByLab, loadconfigs);
   // Status Bar for Connection Info
   const statusBar = setupStatusBar(configVals, context);
   // Code Lens for WF Publish
@@ -117,11 +121,15 @@ function setupDragAndDrop(context: vscode.ExtensionContext) {
 function setupDropHandler(
   context: vscode.ExtensionContext,
   funcTree: AdapterActionTreeView,
-  assistantByLab: AssistantByLabTreeView
+  assistantByLab: AssistantByLabTreeView,
+  loadConfigs: LoadingConfigByLabTreeView
 ) {
   const selector: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
   context.subscriptions.push(
-    vscode.languages.registerDocumentDropEditProvider(selector, new DropProvider(context, funcTree, assistantByLab))
+    vscode.languages.registerDocumentDropEditProvider(
+      selector,
+      new DropProvider(context, funcTree, assistantByLab, loadConfigs)
+    )
   );
   return selector;
 }

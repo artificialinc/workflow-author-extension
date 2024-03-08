@@ -112,6 +112,10 @@
           "name": "Configuration"
         },
         {
+          "id": "loadingConfigByLab",
+          "name": "Loading Configs"
+        },
+        {
           "id": "workflows",
           "name": "Workflow Publishing"
         },
@@ -198,6 +202,12 @@
       },
       {
         "command": "configs.refreshEntry",
+        "title": "Refresh Configs",
+        "category": "Artificial",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "loadingConfigByLab.refreshEntry",
         "title": "Refresh Configs",
         "category": "Artificial",
         "icon": "$(refresh)"
