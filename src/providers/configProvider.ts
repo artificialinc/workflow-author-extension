@@ -25,7 +25,7 @@ import { OutputLog } from './outputLogProvider';
 
 export class ConfigValues {
   private static instance: ConfigValues;
-    private outputLog;
+  private outputLog;
 
   private constructor(
     private hostName: string = '',
@@ -158,13 +158,17 @@ export class ConfigValues {
     }
 
     if (!repository.state.remotes) {
-      vscode.window.showErrorMessage('Artificial Workflow requires a git repository with remotes. Error loading repository data');
+      vscode.window.showErrorMessage(
+        'Artificial Workflow requires a git repository with remotes. Error loading repository data'
+      );
     }
 
     // Make sure remote origin is set
     const origin = repository.state.remotes.find((remote) => remote.name === 'origin');
     if (!origin) {
-      this.outputLog.log(`No remote named origin found. Remotes: ${repository.state.remotes.map((remote) => remote.name).join(', ')}`);
+      this.outputLog.log(
+        `No remote named origin found. Remotes: ${repository.state.remotes.map((remote) => remote.name).join(', ')}`
+      );
       vscode.window.showErrorMessage('Artificial Workflow requires a remote origin');
       return;
     }
