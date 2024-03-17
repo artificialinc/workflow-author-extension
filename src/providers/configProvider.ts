@@ -137,9 +137,9 @@ export class ConfigValues {
       return this.openTokenPrompt;
     }
 
-    if (!pathIsDirectory(path.join(this.artificialConfigRoot, this.getActiveContext()))) {
+    if (!this.isActiveContextValid()) {
       vscode.window.showErrorMessage(
-        'Invalid active context. Please edit context.yaml to point to a valid config directory.'
+        'Invalid active context. Please set contexts/context.yaml to point to a valid config folder.'
       );
       return;
     }
@@ -174,9 +174,19 @@ export class ConfigValues {
       const allContexts = this.listConfigContexts();
       if (allContexts.length === 1) {
         return allContexts[0];
-      } else {
-        throw error;
       }
+      throw error;
+    }
+  }
+
+  private isActiveContextValid(): boolean {
+    try {
+      const activeContextPath = path.join(this.artificialConfigRoot, this.getActiveContext());
+      this.outputLog.log(activeContextPath);
+      return pathIsDirectory(activeContextPath);
+    } catch (err: any) {
+      this.outputLog.log(err.toString());
+      return false;
     }
   }
 
