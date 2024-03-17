@@ -17,15 +17,17 @@ See the License for the specific language governing permissions and
 import * as vscode from 'vscode';
 import YAML from 'yaml';
 import * as path from 'path';
-import { pathExists } from '../utils';
+import { pathExists, pathIsDirectory } from '../utils';
 import * as fs from 'fs';
 import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
 import { OutputLog } from './outputLogProvider';
+import { defaultsDeep } from 'lodash';
 
 export class ConfigValues {
   private static instance: ConfigValues;
   private outputLog;
+  private openTokenPrompt: Thenable<string | undefined> | null = null;
 
   private constructor(
     private hostName: string = '',
@@ -128,6 +130,78 @@ export class ConfigValues {
   }
   public getGithubToken() {
     return this.githubToken;
+  }
+
+  public promptForToken = async () => {
+    if (this.openTokenPrompt) {
+      return this.openTokenPrompt;
+    }
+
+    if (!pathIsDirectory(path.join(this.artificialConfigRoot, this.getActiveContext()))) {
+      vscode.window.showErrorMessage(
+        'Invalid active context. Please edit context.yaml to point to a valid config directory.'
+      );
+      return;
+    }
+
+    this.openTokenPrompt = vscode.window.showInputBox({
+      password: true,
+      title: 'Artificial API Token',
+      prompt: `Please enter your Artificial API token`,
+      placeHolder: 'art_YTQ2OWE3ZGMtZDIzNy00ZDMxLThmMjYtNDkzYTQyNjJmNmNk',
+    });
+
+    const token = await this.openTokenPrompt;
+    this.openTokenPrompt = null;
+
+    if (!token) {
+      this.outputLog.log(`No token given. Enter one when you're ready`);
+      return;
+    }
+
+    const activeSecrets = this.getActiveSecrets();
+    const newSecrets = defaultsDeep({ artificial: { token } }, activeSecrets);
+    fs.writeFileSync(this.getActiveSecretsFilePath(), YAML.stringify(newSecrets));
+  };
+
+  private getActiveContext(): string {
+    const contextFilePath = path.join(this.artificialConfigRoot, 'context.yaml');
+
+    try {
+      const rawContextFile = fs.readFileSync(contextFilePath, 'utf-8');
+      return YAML.parse(rawContextFile).activeContext;
+    } catch (error) {
+      const allContexts = this.listConfigContexts();
+      if (allContexts.length === 1) {
+        return allContexts[0];
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  private listConfigContexts(): string[] {
+    try {
+      const entries = fs.readdirSync(this.artificialConfigRoot, { withFileTypes: true });
+      const folders = entries.filter((dirent) => dirent.isDirectory()).map((dirent) => dirent.name);
+      return folders;
+    } catch (error) {
+      console.error(`Error reading contexts from ${this.artificialConfigRoot}`, error);
+      return [];
+    }
+  }
+
+  private getActiveSecrets(): any {
+    try {
+      const prevSecrets = fs.readFileSync(this.getActiveSecretsFilePath(), 'utf-8');
+      return YAML.parse(prevSecrets);
+    } catch (err) {
+      return {};
+    }
+  }
+
+  private getActiveSecretsFilePath() {
+    return path.join(this.artificialConfigRoot, this.getActiveContext(), 'secrets.yaml');
   }
 
   private getGitRemote(): string | undefined {
