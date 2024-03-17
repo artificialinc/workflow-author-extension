@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import * as parse from 'yaml';
+import YAML from 'yaml';
 import * as path from 'path';
 import { pathExists } from '../utils';
 import * as fs from 'fs';
@@ -65,7 +65,7 @@ export class ConfigValues {
       return;
     }
 
-    const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
+    const config: any = YAML.parse(fs.readFileSync(configPath, 'utf-8'));
     if (!config) {
       this.hostName = '';
       this.apiToken = '';
