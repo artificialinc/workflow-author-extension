@@ -153,6 +153,9 @@ export class ArtificialApollo {
 
   private throwError = debounce((error: any) => {
     this.outputLog.log(`Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`);
+    if (error.networkError.statusCode === 403) {
+      ConfigValues.getInstance().promptForToken();
+    }
     vscode.window.showErrorMessage(
       `Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`
     );

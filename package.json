@@ -225,6 +225,12 @@
         "title": "Export Single Lab or Assistant",
         "category": "Artificial",
         "icon": "$(cloud-download)"
+      },
+      {
+        "command": "extension.promptForAPIToken",
+        "title": "Enter API Token for Active Context",
+        "category": "Artificial",
+        "icon": "$(notebook-mimetype)"
       }
     ],
     "menus": {

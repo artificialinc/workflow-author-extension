@@ -185,7 +185,10 @@ async function setupConfig(context: vscode.ExtensionContext) {
   watchConfig.onDidChange((uri) => {
     initConfig(rootPath);
   });
-  context.subscriptions.push(watchConfig);
+  context.subscriptions.push(
+    watchConfig,
+    vscode.commands.registerCommand('extension.promptForAPIToken', configVals.promptForToken)
+  );
   return { configVals, rootPath };
 }
 
