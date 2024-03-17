@@ -28,6 +28,14 @@ export function pathExists(p: string): boolean {
   return true;
 }
 
+export function pathIsDirectory(p: string): boolean {
+  return pathExists(p) && fs.lstatSync(p).isDirectory();
+}
+
+export function pathIsFile(p: string): boolean {
+  return pathExists(p) && fs.lstatSync(p).isFile();
+}
+
 export async function initConfig(rootPath: string) {
   if (!pathExists(rootPath + '/tmp')) {
     await artificialAwaitTask('tmp Directory Creation', 'mkdir tmp');
