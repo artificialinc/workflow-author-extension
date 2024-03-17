@@ -38,6 +38,7 @@ export class ConfigValues {
     private gitRemote: string = '',
     private githubUser: string = '',
     private githubToken: string = '',
+    private artificialConfigRoot: string = ''
   ) {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
@@ -193,6 +194,11 @@ export class ConfigValues {
       return;
     }
     this.githubToken = env.PYPI_PASSWORD;
+
+    if (!env.ARTIFICIAL_CONFIG_ROOT) {
+      vscode.window.showErrorMessage('ARTIFICIAL_CONFIG_ROOT not set');
+      return;
+    }
+    this.artificialConfigRoot = env.ARTIFICIAL_CONFIG_ROOT;
   }
 }
-
