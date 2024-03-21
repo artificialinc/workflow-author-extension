@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.1.5]
+
+- Get namespace/org from labmanager when available
+
 ## [3.1.4]
 
 - Remove action ability doc string for dropped functions

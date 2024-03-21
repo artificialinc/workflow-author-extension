@@ -17,8 +17,6 @@ import * as grpc from '@grpc/grpc-js';
 import wrapServerWithReflection from 'grpc-node-server-reflection';
 import * as protoLoader from '@grpc/proto-loader';
 
-// Start a server with reflection
-export const startServer = async (port: number): Promise<grpc.Server> => {
   const defOptions = {
     keepCase: true,
     longs: String,
@@ -27,13 +25,26 @@ export const startServer = async (port: number): Promise<grpc.Server> => {
     oneofs: true
   };
 
-  const testPkg = grpc.loadPackageDefinition(
+export const testPkg = grpc.loadPackageDefinition(
     protoLoader.loadSync(
       __dirname + '../../../../../proto/test.proto',
       defOptions
     ));
 
+export const labmanagerPkg = grpc.loadPackageDefinition(
+    protoLoader.loadSync(
+      __dirname + '../../../../../proto/labmanager.proto',
+      defOptions
+    ));
 
+export const labmanagerNoScopePkg = grpc.loadPackageDefinition(
+    protoLoader.loadSync(
+      __dirname + '../../../../../proto/labmanager_no_get_scope.proto',
+      defOptions
+    ));
+
+// Start a server with reflection
+export const startServer = async (port: number): Promise<grpc.Server> => {
   // This wraps the instance of gRPC server with the Server Reflection service and returns it.
   const server = wrapServerWithReflection(new grpc.Server());
 
