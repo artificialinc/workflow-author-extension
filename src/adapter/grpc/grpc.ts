@@ -93,6 +93,64 @@ async function extractServiceClientConstructor(client: GrpcReflection, service: 
     return [protoFunc, localMethods];
 }
 
+export class UnimplementedError extends Error {
+    constructor(message: string) {
+        super(message);
+    }
+}
+
+export type RemoteScope = {
+    namespace: string,
+    orgId: string,
+    labId: string,
+};
+
+export async function getRemoteScope(address: string, lab: string, token: string, ssl: boolean = true, timeoutMs: number = 5000): Promise<RemoteScope> {
+    // Connect with grpc server reflection
+    const md = new grpc.Metadata();
+    md.set("authorization", `Bearer ${token}`);
+    const creds = credsConstructor(md, ssl);
+    const client = new GrpcReflection(address, creds(), channelOptions());
+    const services = await client.listServices(undefined, callOptions(timeoutMs));
+
+    // Get labmanager service
+    const labmanagerService = services.find((value) => {
+        return value === 'artificial.api.labmanager.v1.LabManager';
+    });
+
+    if (!labmanagerService) {
+        throw new Error('Could not find labmanager service');
+    }
+
+    const [clientConstructor, localMethods] = await extractServiceClientConstructor(client, labmanagerService, timeoutMs);
+
+    if (localMethods.includes('getScope') === false) {
+        throw new UnimplementedError('Labmanager client does not have GetScope method');
+    }
+
+    const grpcClient = new clientConstructor(
+        address,
+        creds(),
+        channelOptions(),
+    );
+
+    return new Promise((resolve, reject) => {
+        grpcClient.getScope(
+            { lab_id: lab }, // eslint-disable-line @typescript-eslint/naming-convention
+            (err: Error, response: any) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve({
+                    namespace: response.namespace,
+                    orgId: response.org_id,
+                    labId: response.lab_id,
+                });
+            }
+        });
+    });
+}
+
 /**
  * Get adapter client
  * @param address address of adapter. Either localhost for a local address or a remote labmanager address

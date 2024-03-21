@@ -24,7 +24,7 @@ describe('testregistry', function () {
     const tags = await r.listTags();
     expect(tags).toContain("ghcr.io/artificialinc/artificial-adapter-template:aidan-5");
     expect(spy).toBeCalledWith("ghcr.io", "artificialinc/artificial-adapter-template", "user", "token");
-    expect(tags).toStrictEqual(["ghcr.io/artificialinc/artificial-adapter-template:aidan-6", "ghcr.io/artificialinc/artificial-adapter-template:aidan-5"])
+    expect(tags).toStrictEqual(["ghcr.io/artificialinc/artificial-adapter-template:aidan-6", "ghcr.io/artificialinc/artificial-adapter-template:aidan-5"]);
    });
 
      test('test list tags - capitals in name', async function () {
@@ -34,7 +34,7 @@ describe('testregistry', function () {
     const tags = await r.listTags();
     expect(tags).toContain("ghcr.io/artificialinc/artificial-adapter-template:aidan-5");
     expect(spy).toBeCalledWith("ghcr.io", "artificialinc/artificial-adapter-template", "user", "token");
-    expect(tags).toStrictEqual(["ghcr.io/artificialinc/artificial-adapter-template:aidan-6", "ghcr.io/artificialinc/artificial-adapter-template:aidan-5"])
+    expect(tags).toStrictEqual(["ghcr.io/artificialinc/artificial-adapter-template:aidan-6", "ghcr.io/artificialinc/artificial-adapter-template:aidan-5"]);
    });
 
   test('test list tags ssh', async function () {

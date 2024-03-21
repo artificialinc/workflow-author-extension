@@ -1,0 +1,18 @@
+syntax = "proto3";
+package artificial.api.labmanager.v1;
+
+service LabManager {
+  rpc NotGetScope(GetScopeRequest) returns (GetScopeResponse) {};
+}
+
+message GetScopeRequest {
+	string lab_id = 1;
+	string service_id = 2;
+}
+
+message GetScopeResponse {
+	string namespace = 1;
+	string org_id = 2;
+	string lab_id = 3;
+	string service_id = 4;
+}

@@ -31,6 +31,7 @@ import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
 import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
+import { UnimplementedError, getRemoteScope } from './adapter/grpc/grpc';
 
 export async function activate(context: vscode.ExtensionContext) {
   // Config Setup
@@ -196,6 +197,8 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       const cancellationToken = new vscode.CancellationTokenSource();
 
       var adapter: ArtificialAdapterManager;
+      var namespace: string;
+      var org: string;
       try {
         adapter = await ArtificialAdapterManager.createRemoteAdapter(
           `labmanager.${configVals.getHost()}`,

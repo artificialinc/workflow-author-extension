@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-import { getAdapterClients as getAdapterClients, AdapterClient } from './grpc/grpc';
+import { getAdapterClients as getAdapterClients, AdapterClient, getRemoteScope, UnimplementedError } from './grpc/grpc';
 import * as grpc from '@grpc/grpc-js';
 import { OutputLog } from '../providers/outputLogProvider';
 
@@ -43,6 +43,21 @@ export class ArtificialAdapter {
 
   // Lab is tbd. Might be its own "manager lab" or something similar
   public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(this: T, address: string, prefix: string, org: string, lab: string, token: string, output: Output = OutputLog.getInstance()): Promise<InstanceType<T>> {
+    try {
+      OutputLog.getInstance().log('Attempting to get remote scope');
+      const remoteScope = await getRemoteScope(address, lab, token);
+      OutputLog.getInstance().log(`Got remote scope: ${remoteScope.namespace}:${remoteScope.orgId}:${remoteScope.labId}`);
+      prefix = remoteScope.namespace;
+      org = remoteScope.orgId;
+      lab = remoteScope.labId;
+    } catch (e) {
+      if (e instanceof UnimplementedError) {
+        OutputLog.getInstance().log('Labmanager does not support getScope method, falling back to local namespace/org');
+      } else {
+        throw e;
+      }
+    }
+
     const md = new grpc.Metadata();
     md.set("authorization", `Bearer ${token}`);
     md.set("forward-to", `${prefix}:${org}:${lab}:substrate`);
@@ -76,10 +91,10 @@ export class ArtificialAdapter {
 
 
 export type AdapterInfo = {
-      name: string;
-      image: string;
-      is_manager: boolean; // eslint-disable-line @typescript-eslint/naming-convention
-    };
+  name: string;
+  image: string;
+  is_manager: boolean; // eslint-disable-line @typescript-eslint/naming-convention
+};
 
 export class ArtificialAdapterManager extends ArtificialAdapter {
   public async updateAdapterImage(adapterName: string, image: string): Promise<void> {
