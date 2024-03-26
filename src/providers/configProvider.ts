@@ -271,7 +271,7 @@ export class ConfigValues {
       return;
     }
 
-    const env = envParse(fs.readFileSync(envPath, 'utf-8'));
+    const env = defaultsDeep(envParse(fs.readFileSync(envPath, 'utf-8')), process.env);
     if (!env.PYPI_USER) {
       vscode.window.showErrorMessage('PYPI_USER not found in .env file');
       return;
