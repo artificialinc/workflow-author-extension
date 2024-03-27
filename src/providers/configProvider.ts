@@ -28,6 +28,7 @@ export class ConfigValues {
   private static instance: ConfigValues;
   private outputLog;
   private openTokenPrompt: Thenable<string | undefined> | null = null;
+  private openDeployTargetPrompt: Thenable<string | undefined> | null = null;
 
   private constructor(
     private hostName: string = '',
@@ -40,7 +41,8 @@ export class ConfigValues {
     private gitRemote: string = '',
     private githubUser: string = '',
     private githubToken: string = '',
-    private artificialConfigRoot: string = ''
+    private artificialConfigRoot: string = '',
+    private contextFilePath: string = ''
   ) {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
@@ -133,6 +135,10 @@ export class ConfigValues {
   }
 
   public promptForToken = async () => {
+    if (this.openDeployTargetPrompt) {
+      return;
+    }
+
     if (this.openTokenPrompt) {
       return this.openTokenPrompt;
     }
@@ -165,10 +171,8 @@ export class ConfigValues {
   };
 
   private getActiveContext(): string {
-    const contextFilePath = path.join(this.artificialConfigRoot, 'context.yaml');
-
     try {
-      const rawContextFile = fs.readFileSync(contextFilePath, 'utf-8');
+      const rawContextFile = fs.readFileSync(this.contextFilePath, 'utf-8');
       return YAML.parse(rawContextFile).activeContext;
     } catch (error) {
       const allContexts = this.listConfigContexts();
@@ -179,10 +183,23 @@ export class ConfigValues {
     }
   }
 
+  private setActiveContext(context: string) {
+    try {
+      let currentContext = {};
+      if (fs.existsSync(this.contextFilePath)) {
+        const rawContextFile = fs.readFileSync(this.contextFilePath, 'utf-8');
+        currentContext = YAML.parse(rawContextFile);
+      }
+      const newContext = defaultsDeep({ activeContext: context }, currentContext);
+      fs.writeFileSync(this.contextFilePath, YAML.stringify(newContext));
+    } catch (error) {
+      vscode.window.showErrorMessage(`Error setting active context.`);
+    }
+  }
+
   private isActiveContextValid(): boolean {
     try {
       const activeContextPath = path.join(this.artificialConfigRoot, this.getActiveContext());
-      this.outputLog.log(activeContextPath);
       return pathIsDirectory(activeContextPath);
     } catch (err: any) {
       this.outputLog.log(err.toString());
@@ -212,6 +229,78 @@ export class ConfigValues {
 
   private getActiveSecretsFilePath() {
     return path.join(this.artificialConfigRoot, this.getActiveContext(), 'secrets.yaml');
+  }
+
+  private getConfigFilePath(config: string): string {
+    return path.join(this.artificialConfigRoot, config, 'config.yaml');
+  }
+
+  public promptForNewDeployTarget = async () => {
+    if (this.openDeployTargetPrompt) {
+      return this.openDeployTargetPrompt;
+    }
+
+    this.openDeployTargetPrompt = vscode.window.showInputBox({
+      title: 'Set deployment target',
+      prompt: `Enter the URL of the instance to deploy to`,
+      placeHolder: 'https://sales.artificial.com/app/#/ops/lab_3581adc9-2998-4903-beec-12d64a2f74c9',
+    });
+
+    const deployUrl = await this.openDeployTargetPrompt;
+    this.openDeployTargetPrompt = null;
+
+    if (!deployUrl) {
+      this.outputLog.log(`No deploy target given. Enter one when you're ready`);
+      return;
+    }
+
+    this.outputLog.log(`Setting new deploy target: ${deployUrl}`);
+
+    this.setDeployTarget(deployUrl);
+  };
+
+  private setDeployTarget(rawTargetUrl: string) {
+    const { host, lab } = this.parseDeployConfigFromUrl(rawTargetUrl);
+
+    if (!host || !lab) {
+      vscode.window.showErrorMessage(
+        'Invalid deploy target URL. Should be of the form https://sales.artificial.com/app/#/ops/lab_3581adc9-2998-4903-beec-12d64a2f74c9'
+      );
+      return;
+    }
+
+    const configFolderPath = path.join(this.artificialConfigRoot, host);
+    if (!fs.existsSync(configFolderPath)) {
+      fs.mkdirSync(configFolderPath, { recursive: true });
+    }
+
+    const configFilePath = this.getConfigFilePath(host);
+    const currentConfig = this.getConfig(host);
+    const newConfig = defaultsDeep({ artificial: { host, lab } }, currentConfig);
+    fs.writeFileSync(configFilePath, YAML.stringify(newConfig), 'utf-8');
+
+    this.setActiveContext(host);
+  }
+
+  private parseDeployConfigFromUrl(rawUrl: string) {
+    try {
+      const targetUrl = new URL(rawUrl);
+      const hostname = targetUrl.hostname;
+      const labId = targetUrl.hash.match(/\/ops\/([^\/]+)\/?/)?.[1];
+      return { host: hostname, lab: labId };
+    } catch (err) {
+      return {};
+    }
+  }
+
+  private getConfig(configName: string): any {
+    try {
+      const configFilePath = this.getConfigFilePath(configName);
+      const currentConfig = fs.readFileSync(configFilePath, 'utf-8');
+      return YAML.parse(currentConfig);
+    } catch (err) {
+      return {};
+    }
   }
 
   private getGitRemote(): string | undefined {
@@ -288,5 +377,6 @@ export class ConfigValues {
       return;
     }
     this.artificialConfigRoot = env.ARTIFICIAL_CONFIG_ROOT;
+    this.contextFilePath = path.join(this.artificialConfigRoot, 'context.yaml');
   }
 }

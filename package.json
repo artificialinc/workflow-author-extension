@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.1.5",
+  "version": "3.1.6",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -231,6 +231,12 @@
         "title": "Enter API Token for Active Context",
         "category": "Artificial",
         "icon": "$(notebook-mimetype)"
+      },
+      {
+        "command": "extension.promptForDeployTarget",
+        "title": "Set New Deployment Target",
+        "category": "Artificial",
+        "icon": "$(debug-step-into)"
       }
     ],
     "menus": {

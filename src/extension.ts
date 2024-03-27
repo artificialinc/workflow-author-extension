@@ -187,7 +187,8 @@ async function setupConfig(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(
     watchConfig,
-    vscode.commands.registerCommand('extension.promptForAPIToken', configVals.promptForToken)
+    vscode.commands.registerCommand('extension.promptForAPIToken', configVals.promptForToken),
+    vscode.commands.registerCommand('extension.promptForDeployTarget', configVals.promptForNewDeployTarget)
   );
   return { configVals, rootPath };
 }
