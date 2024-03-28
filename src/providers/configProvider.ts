@@ -150,6 +150,16 @@ export class ConfigValues {
       return;
     }
 
+    const rawSecrets = this.getRawSecrets();
+
+    // Test whether setting the token will work before we prompt
+    try {
+      this.getNewSecrets(rawSecrets, '');
+    } catch (err) {
+      vscode.window.showErrorMessage(`Error parsing ${this.getActiveSecretsFilePath()}`);
+      return;
+    }
+
     this.openTokenPrompt = vscode.window.showInputBox({
       password: true,
       title: 'Artificial API Token',
@@ -165,9 +175,8 @@ export class ConfigValues {
       return;
     }
 
-    const activeSecrets = this.getActiveSecrets();
-    const newSecrets = defaultsDeep({ artificial: { token } }, activeSecrets);
-    fs.writeFileSync(this.getActiveSecretsFilePath(), YAML.stringify(newSecrets));
+    const newSecrets = this.getNewSecrets(rawSecrets, token);
+    fs.writeFileSync(this.getActiveSecretsFilePath(), newSecrets.toString());
   };
 
   private getActiveContext(): string {
@@ -207,13 +216,49 @@ export class ConfigValues {
     }
   }
 
-  private getActiveSecrets(): any {
-    try {
-      const prevSecrets = fs.readFileSync(this.getActiveSecretsFilePath(), 'utf-8');
-      return YAML.parse(prevSecrets);
-    } catch (err) {
-      return {};
+  private getRawSecrets(): string {
+    if (pathExists(this.getActiveSecretsFilePath())) {
+      return fs.readFileSync(this.getActiveSecretsFilePath(), 'utf-8');
     }
+
+    return '';
+  }
+
+  private getNewSecrets(rawSecrets: string, token: string): YAML.Document {
+    // if yaml can't parse the document, intentionally throw an error
+    const secrets = YAML.parseDocument(rawSecrets);
+
+    if (!secrets.contents) {
+      return new YAML.Document({ artificial: { token } });
+    }
+
+    if (!YAML.isMap(secrets.contents)) {
+      throw new Error('Secrets file must be a YAML map.');
+    }
+
+    if (!secrets.has('artificial')) {
+      secrets.set('artificial', secrets.createNode({ token }));
+    }
+
+    let artificialNode = secrets.get('artificial', true) as YAML.Node;
+
+    if (YAML.isScalar(artificialNode)) {
+      if (artificialNode.value === null || artificialNode.value === 'token') {
+        const oldNode = artificialNode;
+        artificialNode = secrets.createNode({ token });
+        artificialNode.commentBefore = oldNode.commentBefore;
+        artificialNode.comment = oldNode.comment;
+        artificialNode.spaceBefore = oldNode.spaceBefore;
+        secrets.set('artificial', artificialNode);
+      }
+    }
+
+    if (!YAML.isMap(artificialNode)) {
+      throw new Error('Secrets file must have an artificial key that is a map.');
+    }
+
+    artificialNode.set('token', token);
+    return secrets;
   }
 
   private getActiveSecretsFilePath() {
