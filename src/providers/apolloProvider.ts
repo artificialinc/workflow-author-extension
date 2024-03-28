@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import { ApolloClient, HttpLink, from, gql } from '@apollo/client/core';
@@ -88,6 +88,7 @@ export class ArtificialApollo {
   private static instance: ArtificialApollo;
   public apollo: ApolloClient<NormalizedCacheObject>;
   private outputLog;
+  private lastPrompt = 0;
   constructor() {
     this.outputLog = OutputLog.getInstance();
     this.apollo = this.createApollo();
@@ -153,6 +154,10 @@ export class ArtificialApollo {
 
   private throwError = debounce((error: any) => {
     this.outputLog.log(`Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`);
+    if (error.networkError.statusCode === 403 && Date.now() - this.lastPrompt > 30 * 1000) {
+      this.lastPrompt = Date.now();
+      ConfigValues.getInstance().promptForToken();
+    }
     vscode.window.showErrorMessage(
       `Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`
     );

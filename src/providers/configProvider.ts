@@ -15,17 +15,19 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import * as parse from 'yaml';
+import YAML from 'yaml';
 import * as path from 'path';
-import { pathExists } from '../utils';
+import { pathExists, pathIsDirectory } from '../utils';
 import * as fs from 'fs';
 import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
 import { OutputLog } from './outputLogProvider';
+import { defaultsDeep } from 'lodash';
 
 export class ConfigValues {
   private static instance: ConfigValues;
-    private outputLog;
+  private outputLog;
+  private openTokenPrompt: Thenable<string | undefined> | null = null;
 
   private constructor(
     private hostName: string = '',
@@ -38,6 +40,7 @@ export class ConfigValues {
     private gitRemote: string = '',
     private githubUser: string = '',
     private githubToken: string = '',
+    private artificialConfigRoot: string = ''
   ) {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
@@ -65,7 +68,13 @@ export class ConfigValues {
       return;
     }
 
-    const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
+    let config = null;
+    try {
+      config = YAML.parse(fs.readFileSync(configPath, 'utf-8'));
+    } catch (err) {
+      vscode.window.showErrorMessage(`Error parsing active config`);
+    }
+
     if (!config) {
       this.hostName = '';
       this.apiToken = '';
@@ -129,6 +138,133 @@ export class ConfigValues {
     return this.githubToken;
   }
 
+  public promptForToken = async () => {
+    if (this.openTokenPrompt) {
+      return this.openTokenPrompt;
+    }
+
+    if (!this.isActiveContextValid()) {
+      vscode.window.showErrorMessage(
+        'Invalid active context. Please set contexts/context.yaml to point to a valid config folder.'
+      );
+      return;
+    }
+
+    const rawSecrets = this.getRawSecrets();
+
+    // Test whether setting the token will work before we prompt
+    try {
+      this.getNewSecrets(rawSecrets, '');
+    } catch (err) {
+      vscode.window.showErrorMessage(`Error parsing ${this.getActiveSecretsFilePath()}`);
+      return;
+    }
+
+    this.openTokenPrompt = vscode.window.showInputBox({
+      password: true,
+      title: 'Artificial API Token',
+      prompt: `Please enter your Artificial API token`,
+      placeHolder: 'art_YTQ2OWE3ZGMtZDIzNy00ZDMxLThmMjYtNDkzYTQyNjJmNmNk',
+    });
+
+    const token = await this.openTokenPrompt;
+    this.openTokenPrompt = null;
+
+    if (!token) {
+      this.outputLog.log(`No token given. Enter one when you're ready`);
+      return;
+    }
+
+    const newSecrets = this.getNewSecrets(rawSecrets, token);
+    fs.writeFileSync(this.getActiveSecretsFilePath(), newSecrets.toString());
+  };
+
+  private getActiveContext(): string {
+    const contextFilePath = path.join(this.artificialConfigRoot, 'context.yaml');
+
+    try {
+      const rawContextFile = fs.readFileSync(contextFilePath, 'utf-8');
+      return YAML.parse(rawContextFile).activeContext;
+    } catch (error) {
+      const allContexts = this.listConfigContexts();
+      if (allContexts.length === 1) {
+        return allContexts[0];
+      }
+      throw error;
+    }
+  }
+
+  private isActiveContextValid(): boolean {
+    try {
+      const activeContextPath = path.join(this.artificialConfigRoot, this.getActiveContext());
+      this.outputLog.log(activeContextPath);
+      return pathIsDirectory(activeContextPath);
+    } catch (err: any) {
+      this.outputLog.log(err.toString());
+      return false;
+    }
+  }
+
+  private listConfigContexts(): string[] {
+    try {
+      const entries = fs.readdirSync(this.artificialConfigRoot, { withFileTypes: true });
+      const folders = entries.filter((dirent) => dirent.isDirectory()).map((dirent) => dirent.name);
+      return folders;
+    } catch (error) {
+      console.error(`Error reading contexts from ${this.artificialConfigRoot}`, error);
+      return [];
+    }
+  }
+
+  private getRawSecrets(): string {
+    if (pathExists(this.getActiveSecretsFilePath())) {
+      return fs.readFileSync(this.getActiveSecretsFilePath(), 'utf-8');
+    }
+
+    return '';
+  }
+
+  private getNewSecrets(rawSecrets: string, token: string): YAML.Document {
+    // if yaml can't parse the document, intentionally throw an error
+    const secrets = YAML.parseDocument(rawSecrets);
+
+    if (!secrets.contents) {
+      return new YAML.Document({ artificial: { token } });
+    }
+
+    if (!YAML.isMap(secrets.contents)) {
+      throw new Error('Secrets file must be a YAML map.');
+    }
+
+    if (!secrets.has('artificial')) {
+      secrets.set('artificial', secrets.createNode({ token }));
+    }
+
+    let artificialNode = secrets.get('artificial', true) as YAML.Node;
+
+    if (YAML.isScalar(artificialNode)) {
+      if (artificialNode.value === null || artificialNode.value === 'token') {
+        const oldNode = artificialNode;
+        artificialNode = secrets.createNode({ token });
+        artificialNode.commentBefore = oldNode.commentBefore;
+        artificialNode.comment = oldNode.comment;
+        artificialNode.spaceBefore = oldNode.spaceBefore;
+        secrets.set('artificial', artificialNode);
+      }
+    }
+
+    if (!YAML.isMap(artificialNode)) {
+      throw new Error('Secrets file must have an artificial key that is a map.');
+    }
+
+    artificialNode.set('token', token);
+    return secrets;
+  }
+
+  private getActiveSecretsFilePath() {
+    return path.join(this.artificialConfigRoot, this.getActiveContext(), 'secrets.yaml');
+  }
+
   private getGitRemote(): string | undefined {
     const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
     if (!gitExtension) {
@@ -157,13 +293,17 @@ export class ConfigValues {
     }
 
     if (!repository.state.remotes) {
-      vscode.window.showErrorMessage('Artificial Workflow requires a git repository with remotes. Error loading repository data');
+      vscode.window.showErrorMessage(
+        'Artificial Workflow requires a git repository with remotes. Error loading repository data'
+      );
     }
 
     // Make sure remote origin is set
     const origin = repository.state.remotes.find((remote) => remote.name === 'origin');
     if (!origin) {
-      this.outputLog.log(`No remote named origin found. Remotes: ${repository.state.remotes.map((remote) => remote.name).join(', ')}`);
+      this.outputLog.log(
+        `No remote named origin found. Remotes: ${repository.state.remotes.map((remote) => remote.name).join(', ')}`
+      );
       vscode.window.showErrorMessage('Artificial Workflow requires a remote origin');
       return;
     }
@@ -182,7 +322,7 @@ export class ConfigValues {
       return;
     }
 
-    const env = envParse(fs.readFileSync(envPath, 'utf-8'));
+    const env = defaultsDeep(envParse(fs.readFileSync(envPath, 'utf-8')), process.env);
     if (!env.PYPI_USER) {
       vscode.window.showErrorMessage('PYPI_USER not found in .env file');
       return;
@@ -193,6 +333,11 @@ export class ConfigValues {
       return;
     }
     this.githubToken = env.PYPI_PASSWORD;
+
+    if (!env.ARTIFICIAL_CONFIG_ROOT) {
+      vscode.window.showErrorMessage('ARTIFICIAL_CONFIG_ROOT not set');
+      return;
+    }
+    this.artificialConfigRoot = env.ARTIFICIAL_CONFIG_ROOT;
   }
 }
-
