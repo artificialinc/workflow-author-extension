@@ -68,7 +68,13 @@ export class ConfigValues {
       return;
     }
 
-    const config: any = YAML.parse(fs.readFileSync(configPath, 'utf-8'));
+    let config = null;
+    try {
+      config = YAML.parse(fs.readFileSync(configPath, 'utf-8'));
+    } catch (err) {
+      vscode.window.showErrorMessage(`Error parsing active config`);
+    }
+
     if (!config) {
       this.hostName = '';
       this.apiToken = '';
