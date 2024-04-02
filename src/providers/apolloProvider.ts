@@ -88,6 +88,7 @@ export class ArtificialApollo {
   private static instance: ArtificialApollo;
   public apollo: ApolloClient<NormalizedCacheObject>;
   private outputLog;
+  private lastPrompt = 0;
   constructor() {
     this.outputLog = OutputLog.getInstance();
     this.apollo = this.createApollo();
@@ -153,7 +154,8 @@ export class ArtificialApollo {
 
   private throwError = debounce((error: any) => {
     this.outputLog.log(`Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`);
-    if (error.networkError.statusCode === 403) {
+    if (error.networkError.statusCode === 403 && Date.now() - this.lastPrompt > 30 * 1000) {
+      this.lastPrompt = Date.now();
       ConfigValues.getInstance().promptForToken();
     }
     vscode.window.showErrorMessage(
