@@ -159,7 +159,7 @@ export class ConfigValues {
     }
 
     const activeSecretsFilePath = this.getActiveSecretsFilePath();
-    const rawSecrets = this.getRawContents(activeSecretsFilePath);
+    const rawSecrets = safeReadFileSync(activeSecretsFilePath);
 
     // Test whether setting the token will work before we prompt
     try {
@@ -186,6 +186,49 @@ export class ConfigValues {
 
     const newSecrets = mergeArtificialConfig(rawSecrets, { token });
     fs.writeFileSync(activeSecretsFilePath, newSecrets);
+  };
+
+  public promptForNewDeployTarget = async () => {
+    if (this.openDeployTargetPrompt) {
+      return this.openDeployTargetPrompt;
+    }
+
+    this.openDeployTargetPrompt = vscode.window.showInputBox({
+      title: 'Set deployment target',
+      prompt: `Enter the URL of the instance to deploy to`,
+      placeHolder: 'https://sales.artificial.com/app/#/ops/lab_3581adc9-2998-4903-beec-12d64a2f74c9',
+    });
+
+    const deployUrl = await this.openDeployTargetPrompt;
+    this.openDeployTargetPrompt = null;
+
+    if (!deployUrl) {
+      this.outputLog.log(`No deploy target given. Enter one when you're ready`);
+      return;
+    }
+
+    this.outputLog.log(`Setting new deploy target: ${deployUrl}`);
+
+    const { host, lab } = this.parseDeployConfigFromUrl(deployUrl);
+
+    if (!host || !lab) {
+      vscode.window.showErrorMessage(
+        'Invalid deploy target URL. Should be of the form https://sales.artificial.com/app/#/ops/lab_3581adc9-2998-4903-beec-12d64a2f74c9'
+      );
+      return;
+    }
+
+    const configFolderPath = path.join(this.artificialConfigRoot, host);
+    if (!fs.existsSync(configFolderPath)) {
+      fs.mkdirSync(configFolderPath, { recursive: true });
+    }
+
+    const configFilePath = this.getConfigFilePath(host);
+    const currentConfig = safeReadFileSync(configFilePath);
+    const newConfig = mergeArtificialConfig(currentConfig, { host, lab });
+    fs.writeFileSync(configFilePath, newConfig, 'utf-8');
+
+    this.setActiveContext(host);
   };
 
   private getActiveContext(): string {
@@ -236,14 +279,6 @@ export class ConfigValues {
     }
   }
 
-  private getRawContents(path: string): string {
-    if (pathExists(path)) {
-      return fs.readFileSync(path, 'utf-8');
-    }
-
-    return '';
-  }
-
   private getActiveSecretsFilePath() {
     return path.join(this.artificialConfigRoot, this.getActiveContext(), 'secrets.yaml');
   }
@@ -251,49 +286,6 @@ export class ConfigValues {
   private getConfigFilePath(config: string): string {
     return path.join(this.artificialConfigRoot, config, 'config.yaml');
   }
-
-  public promptForNewDeployTarget = async () => {
-    if (this.openDeployTargetPrompt) {
-      return this.openDeployTargetPrompt;
-    }
-
-    this.openDeployTargetPrompt = vscode.window.showInputBox({
-      title: 'Set deployment target',
-      prompt: `Enter the URL of the instance to deploy to`,
-      placeHolder: 'https://sales.artificial.com/app/#/ops/lab_3581adc9-2998-4903-beec-12d64a2f74c9',
-    });
-
-    const deployUrl = await this.openDeployTargetPrompt;
-    this.openDeployTargetPrompt = null;
-
-    if (!deployUrl) {
-      this.outputLog.log(`No deploy target given. Enter one when you're ready`);
-      return;
-    }
-
-    this.outputLog.log(`Setting new deploy target: ${deployUrl}`);
-
-    const { host, lab } = this.parseDeployConfigFromUrl(deployUrl);
-
-    if (!host || !lab) {
-      vscode.window.showErrorMessage(
-        'Invalid deploy target URL. Should be of the form https://sales.artificial.com/app/#/ops/lab_3581adc9-2998-4903-beec-12d64a2f74c9'
-      );
-      return;
-    }
-
-    const configFolderPath = path.join(this.artificialConfigRoot, host);
-    if (!fs.existsSync(configFolderPath)) {
-      fs.mkdirSync(configFolderPath, { recursive: true });
-    }
-
-    const configFilePath = this.getConfigFilePath(host);
-    const currentConfig = this.getRawContents(configFilePath);
-    const newConfig = mergeArtificialConfig(currentConfig, { host, lab });
-    fs.writeFileSync(configFilePath, newConfig, 'utf-8');
-
-    this.setActiveContext(host);
-  };
 
   private parseDeployConfigFromUrl(rawUrl: string) {
     try {
@@ -422,4 +414,12 @@ export const mergeArtificialConfig = (rawBaseConfig: string, newConfig: Artifici
     artificialNode.set(key, value);
   }
   return baseConfig.toString();
+};
+
+const safeReadFileSync = (path: string): string => {
+  if (pathExists(path)) {
+    return fs.readFileSync(path, 'utf-8');
+  }
+
+  return '';
 };
