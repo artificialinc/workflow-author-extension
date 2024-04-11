@@ -209,7 +209,7 @@ export class ConfigValues {
 
     this.outputLog.log(`Setting new deploy target: ${deployUrl}`);
 
-    const { host, lab } = this.parseDeployConfigFromUrl(deployUrl);
+    const { host, lab } = parseDeployConfigFromUrl(deployUrl);
 
     if (!host || !lab) {
       vscode.window.showErrorMessage(
@@ -285,17 +285,6 @@ export class ConfigValues {
 
   private getConfigFilePath(config: string): string {
     return path.join(this.artificialConfigRoot, config, 'config.yaml');
-  }
-
-  private parseDeployConfigFromUrl(rawUrl: string) {
-    try {
-      const targetUrl = new URL(rawUrl);
-      const hostname = targetUrl.hostname;
-      const labId = targetUrl.hash.match(/\/ops\/([^\/]+)\/?/)?.[1];
-      return { host: hostname, lab: labId };
-    } catch (err) {
-      return {};
-    }
   }
 
   private getGitRemote(): string | undefined {
@@ -414,6 +403,17 @@ export const mergeArtificialConfig = (rawBaseConfig: string, newConfig: Artifici
     artificialNode.set(key, value);
   }
   return baseConfig.toString();
+};
+
+export const parseDeployConfigFromUrl = (rawUrl: string) => {
+  try {
+    const targetUrl = new URL(rawUrl);
+    const hostname = targetUrl.hostname;
+    const labId = targetUrl.hash.split('?')[0].match(/\/ops\/([^\/]+)\/?/)?.[1];
+    return { host: hostname, lab: labId };
+  } catch (err) {
+    return {};
+  }
 };
 
 const safeReadFileSync = (path: string): string => {

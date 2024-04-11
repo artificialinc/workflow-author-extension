@@ -1,4 +1,4 @@
-import { mergeArtificialConfig } from '../configProvider';
+import { mergeArtificialConfig, parseDeployConfigFromUrl } from '../configProvider';
 
 const c = (rawYaml: string) => rawYaml.trim() + '\n';
 
@@ -100,5 +100,34 @@ artificial:
 `;
 
     expect(mergeArtificialConfig(baseConfig, newConfig)).toBe(c(resultConfig));
+  });
+});
+
+describe('parseDeployConfigFromUrl', () => {
+  test('should parse deploy config from URL', () => {
+    const urlsThatShouldWork = [
+      'https://sales.artificial.com/app/#/ops/lab_a73a05f3-6045-47c5-bd54-59d7e78a628c',
+      'https://sales.artificial.com/app/#/ops/lab_a73a05f3-6045-47c5-bd54-59d7e78a628c?view=plan',
+      'https://sales.artificial.com/app/#/ops/lab_a73a05f3-6045-47c5-bd54-59d7e78a628c/job_c9ba767d-26c5-4a0a-9583-0d2c3529d401',
+      'https://sales.artificial.com/app/#/ops/lab_a73a05f3-6045-47c5-bd54-59d7e78a628c/job_c9ba767d-26c5-4a0a-9583-0d2c3529d401?view=plan',
+    ];
+
+    urlsThatShouldWork.forEach((url) => {
+      const { host, lab } = parseDeployConfigFromUrl(url);
+      expect(host).toEqual('sales.artificial.com');
+      expect(lab).toEqual('lab_a73a05f3-6045-47c5-bd54-59d7e78a628c');
+    });
+
+    const urlsThatShouldntWork = [
+      'https://google.com',
+      'https://sales.artificial.com/app/#/settings?menu=labs&labId=lab_a73a05f3-6045-47c5-bd54-59d7e78a628c',
+      'https://sales.artificial.com/app/#/lab-editor?labId=lab_a73a05f3-6045-47c5-bd54-59d7e78a628c',
+      'jfkldsjfksdljdk',
+    ];
+
+    urlsThatShouldntWork.forEach((url) => {
+      const { host, lab } = parseDeployConfigFromUrl(url);
+      expect(host && lab).toBeFalsy();
+    });
   });
 });
