@@ -24,10 +24,13 @@ import { parse as envParse } from 'dotenv';
 import { OutputLog } from './outputLogProvider';
 import { defaultsDeep } from 'lodash';
 
+type ArtificialConfig = { [key: string]: string };
+
 export class ConfigValues {
   private static instance: ConfigValues;
   private outputLog;
   private openTokenPrompt: Thenable<string | undefined> | null = null;
+  private openDeployTargetPrompt: Thenable<string | undefined> | null = null;
 
   private constructor(
     private hostName: string = '',
@@ -40,7 +43,8 @@ export class ConfigValues {
     private gitRemote: string = '',
     private githubUser: string = '',
     private githubToken: string = '',
-    private artificialConfigRoot: string = ''
+    private artificialConfigRoot: string = '',
+    private contextFilePath: string = ''
   ) {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
@@ -139,6 +143,10 @@ export class ConfigValues {
   }
 
   public promptForToken = async () => {
+    if (this.openDeployTargetPrompt) {
+      return;
+    }
+
     if (this.openTokenPrompt) {
       return this.openTokenPrompt;
     }
@@ -150,13 +158,14 @@ export class ConfigValues {
       return;
     }
 
-    const rawSecrets = this.getRawSecrets();
+    const activeSecretsFilePath = this.getActiveSecretsFilePath();
+    const rawSecrets = safeReadFileSync(activeSecretsFilePath);
 
     // Test whether setting the token will work before we prompt
     try {
-      this.getNewSecrets(rawSecrets, '');
+      mergeArtificialConfig(rawSecrets);
     } catch (err) {
-      vscode.window.showErrorMessage(`Error parsing ${this.getActiveSecretsFilePath()}`);
+      vscode.window.showErrorMessage(`Error parsing ${activeSecretsFilePath}`);
       return;
     }
 
@@ -175,15 +184,56 @@ export class ConfigValues {
       return;
     }
 
-    const newSecrets = this.getNewSecrets(rawSecrets, token);
-    fs.writeFileSync(this.getActiveSecretsFilePath(), newSecrets.toString());
+    const newSecrets = mergeArtificialConfig(rawSecrets, { token });
+    fs.writeFileSync(activeSecretsFilePath, newSecrets);
+  };
+
+  public promptForNewDeployTarget = async () => {
+    if (this.openDeployTargetPrompt) {
+      return this.openDeployTargetPrompt;
+    }
+
+    this.openDeployTargetPrompt = vscode.window.showInputBox({
+      title: 'Set deployment target',
+      prompt: `Enter the URL of the instance to deploy to`,
+      placeHolder: 'https://sales.artificial.com/app/#/ops/lab_3581adc9-2998-4903-beec-12d64a2f74c9',
+    });
+
+    const deployUrl = await this.openDeployTargetPrompt;
+    this.openDeployTargetPrompt = null;
+
+    if (!deployUrl) {
+      this.outputLog.log(`No deploy target given. Enter one when you're ready`);
+      return;
+    }
+
+    this.outputLog.log(`Setting new deploy target: ${deployUrl}`);
+
+    const { host, lab } = parseDeployConfigFromUrl(deployUrl);
+
+    if (!host || !lab) {
+      vscode.window.showErrorMessage(
+        'Invalid deploy target URL. Should be of the form https://sales.artificial.com/app/#/ops/lab_3581adc9-2998-4903-beec-12d64a2f74c9'
+      );
+      return;
+    }
+
+    const configFolderPath = path.join(this.artificialConfigRoot, host);
+    if (!fs.existsSync(configFolderPath)) {
+      fs.mkdirSync(configFolderPath, { recursive: true });
+    }
+
+    const configFilePath = this.getConfigFilePath(host);
+    const currentConfig = safeReadFileSync(configFilePath);
+    const newConfig = mergeArtificialConfig(currentConfig, { host, lab });
+    fs.writeFileSync(configFilePath, newConfig, 'utf-8');
+
+    this.setActiveContext(host);
   };
 
   private getActiveContext(): string {
-    const contextFilePath = path.join(this.artificialConfigRoot, 'context.yaml');
-
     try {
-      const rawContextFile = fs.readFileSync(contextFilePath, 'utf-8');
+      const rawContextFile = fs.readFileSync(this.contextFilePath, 'utf-8');
       return YAML.parse(rawContextFile).activeContext;
     } catch (error) {
       const allContexts = this.listConfigContexts();
@@ -194,10 +244,23 @@ export class ConfigValues {
     }
   }
 
+  private setActiveContext(context: string) {
+    try {
+      let currentContext = {};
+      if (fs.existsSync(this.contextFilePath)) {
+        const rawContextFile = fs.readFileSync(this.contextFilePath, 'utf-8');
+        currentContext = YAML.parse(rawContextFile);
+      }
+      const newContext = defaultsDeep({ activeContext: context }, currentContext);
+      fs.writeFileSync(this.contextFilePath, YAML.stringify(newContext));
+    } catch (error) {
+      vscode.window.showErrorMessage(`Error setting active context.`);
+    }
+  }
+
   private isActiveContextValid(): boolean {
     try {
       const activeContextPath = path.join(this.artificialConfigRoot, this.getActiveContext());
-      this.outputLog.log(activeContextPath);
       return pathIsDirectory(activeContextPath);
     } catch (err: any) {
       this.outputLog.log(err.toString());
@@ -216,53 +279,12 @@ export class ConfigValues {
     }
   }
 
-  private getRawSecrets(): string {
-    if (pathExists(this.getActiveSecretsFilePath())) {
-      return fs.readFileSync(this.getActiveSecretsFilePath(), 'utf-8');
-    }
-
-    return '';
-  }
-
-  private getNewSecrets(rawSecrets: string, token: string): YAML.Document {
-    // if yaml can't parse the document, intentionally throw an error
-    const secrets = YAML.parseDocument(rawSecrets);
-
-    if (!secrets.contents) {
-      return new YAML.Document({ artificial: { token } });
-    }
-
-    if (!YAML.isMap(secrets.contents)) {
-      throw new Error('Secrets file must be a YAML map.');
-    }
-
-    if (!secrets.has('artificial')) {
-      secrets.set('artificial', secrets.createNode({ token }));
-    }
-
-    let artificialNode = secrets.get('artificial', true) as YAML.Node;
-
-    if (YAML.isScalar(artificialNode)) {
-      if (artificialNode.value === null || artificialNode.value === 'token') {
-        const oldNode = artificialNode;
-        artificialNode = secrets.createNode({ token });
-        artificialNode.commentBefore = oldNode.commentBefore;
-        artificialNode.comment = oldNode.comment;
-        artificialNode.spaceBefore = oldNode.spaceBefore;
-        secrets.set('artificial', artificialNode);
-      }
-    }
-
-    if (!YAML.isMap(artificialNode)) {
-      throw new Error('Secrets file must have an artificial key that is a map.');
-    }
-
-    artificialNode.set('token', token);
-    return secrets;
-  }
-
   private getActiveSecretsFilePath() {
     return path.join(this.artificialConfigRoot, this.getActiveContext(), 'secrets.yaml');
+  }
+
+  private getConfigFilePath(config: string): string {
+    return path.join(this.artificialConfigRoot, config, 'config.yaml');
   }
 
   private getGitRemote(): string | undefined {
@@ -339,5 +361,65 @@ export class ConfigValues {
       return;
     }
     this.artificialConfigRoot = env.ARTIFICIAL_CONFIG_ROOT;
+    this.contextFilePath = path.join(this.artificialConfigRoot, 'context.yaml');
   }
 }
+
+export const mergeArtificialConfig = (rawBaseConfig: string, newConfig: ArtificialConfig = {}): string => {
+  const baseConfig = YAML.parseDocument(rawBaseConfig);
+
+  if (!baseConfig.contents) {
+    return YAML.stringify({ artificial: newConfig });
+  }
+
+  if (!YAML.isMap(baseConfig.contents)) {
+    throw new Error('File must be a YAML map.');
+  }
+
+  if (!baseConfig.has('artificial')) {
+    baseConfig.set('artificial', baseConfig.createNode(newConfig));
+    return baseConfig.toString();
+  }
+
+  let artificialNode = baseConfig.get('artificial', true) as YAML.Node;
+
+  if (YAML.isScalar(artificialNode)) {
+    if (artificialNode.value === null) {
+      const oldNode = artificialNode;
+      const newArtificialNode = baseConfig.createNode(newConfig);
+      newArtificialNode.commentBefore = oldNode.commentBefore ?? '' + oldNode.comment ?? '';
+      newArtificialNode.spaceBefore = oldNode.spaceBefore;
+      baseConfig.set('artificial', newArtificialNode);
+      const firstKey = Object.keys(newConfig)[0];
+      return baseConfig.toString();
+    }
+  }
+
+  if (!YAML.isMap(artificialNode)) {
+    throw new Error('Secrets file must have an artificial key that is a map.');
+  }
+
+  for (const [key, value] of Object.entries(newConfig)) {
+    artificialNode.set(key, value);
+  }
+  return baseConfig.toString();
+};
+
+export const parseDeployConfigFromUrl = (rawUrl: string) => {
+  try {
+    const targetUrl = new URL(rawUrl);
+    const hostname = targetUrl.hostname;
+    const labId = targetUrl.hash.split('?')[0].match(/\/ops\/([^\/]+)\/?/)?.[1];
+    return { host: hostname, lab: labId };
+  } catch (err) {
+    return {};
+  }
+};
+
+const safeReadFileSync = (path: string): string => {
+  if (pathExists(path)) {
+    return fs.readFileSync(path, 'utf-8');
+  }
+
+  return '';
+};
