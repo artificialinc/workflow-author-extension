@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { AdapterActionTreeView } from '../views/adapterActionTreeView';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { InsertFunctionCall } from '../generators/generateFunctionCall';
-import { LoadingConfigByLabTreeView } from '../views/loadingConfigView';
+import { LoadConfigTreeElement, LoadingConfigByLabTreeView } from '../views/loadingConfigView';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;
   private assistantTreeByLab;
@@ -67,8 +67,8 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     }
     if (text.includes('/loadingConfig/')) {
       element = this.loadConfigTree.getTreeItemByUri(text);
-      if (element && element.configId) {
-        text = `await create_loading_config(load_config_id='${element.configId}')`;
+      if (element && element instanceof LoadConfigTreeElement && element.configId) {
+        text = `${element.configId}`;
       }
     }
     if (element && 'functionSignature' in element) {
