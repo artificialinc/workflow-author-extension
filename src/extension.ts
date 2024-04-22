@@ -69,6 +69,20 @@ export async function activate(context: vscode.ExtensionContext) {
   // Setup adapter commands
   setupAdapterCommands(configVals, context);
 
+  // a-wf-uri://callback?token=YOUR_AUTH_TOKEN
+  let disposable = vscode.window.registerUriHandler({
+    handleUri(uri) {
+      if (uri.path === '/callback') {
+        const query = new URLSearchParams(uri.query);
+        const token = query.get('token');
+        console.log("I MADE IT");
+        // Use the token
+      }
+    }
+  });
+
+  context.subscriptions.push(disposable);
+
   console.log('Artificial Workflow Extension is active');
 }
 
@@ -309,4 +323,4 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
   );
 }
 
-export function deactivate() {}
+export function deactivate() { }

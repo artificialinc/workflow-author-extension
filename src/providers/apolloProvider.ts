@@ -151,11 +151,16 @@ export class ArtificialApollo {
     this.apollo = this.createApollo();
   }
 
-  private throwError = debounce((error: any) => {
+  private throwError = debounce(async (error: any) => {
+    const configVals = ConfigValues.getInstance();
     this.outputLog.log(`Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`);
-    vscode.window.showErrorMessage(
-      `Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`
+    const redirect = await vscode.window.showErrorMessage(
+      `Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`,
+      "Authenticate with Artificial"
     );
+    if (redirect !== undefined) {
+      vscode.env.openExternal(vscode.Uri.parse('https://' + configVals.getHost() + `&redirect_uri=${vscode.env.uriScheme}://artificial.artificial-workflow-extension`));
+    }
   }, 2000);
 
   public async queryWorkflows() {
