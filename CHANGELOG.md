@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.1.6]
+
+- Dependency Updates
+
 ## [3.1.5]
 
 - Get namespace/org from labmanager when available
