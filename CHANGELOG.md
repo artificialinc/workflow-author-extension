@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.1.7]
+
+- Dependency Updates
+
 ## [3.1.6]
 
 - Dependency Updates
