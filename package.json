@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.1.6",
+  "version": "3.1.7",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -384,7 +384,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
-    "@grpc/grpc-js": "^1.8.20",
+    "@grpc/grpc-js": "^1.10.9",
     "@grpc/proto-loader": "0.7.8",
     "@snyk/docker-registry-v2-client": "^2.10.1",
     "apollo-link-timeout": "^4.0.0",
