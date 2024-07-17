@@ -33,7 +33,7 @@ export async function initConfig(rootPath: string) {
     await artificialAwaitTask('tmp Directory Creation', 'mkdir tmp');
   }
   try {
-    //await artificialAwaitTask('Setup Config', `afconfig view --yaml > tmp/merged.yaml`);
+    await artificialAwaitTask('Setup Config', `afconfig view --yaml > tmp/merged.yaml`);
   } catch {
     const log = OutputLog.getInstance();
     log.log('Error Setting up Configuration');
