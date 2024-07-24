@@ -133,10 +133,7 @@ export class LoadConfigTreeElement extends vscode.TreeItem {
     'artificial/loadingConfigsByLab/loadingConfig/' + this.labClassName + '/' + this.label
   );
   type = 'loadingConfig';
-  iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
-  };
+  iconPath = new vscode.ThemeIcon('beaker');
 }
 
 export class LabTreeElement extends vscode.TreeItem {
