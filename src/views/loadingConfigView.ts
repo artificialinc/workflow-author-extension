@@ -44,8 +44,12 @@ export class LoadingConfigByLabTreeView
     });
     context.subscriptions.push(view);
     this.treeElements = [];
+    
     context.subscriptions.push(
-      vscode.commands.registerCommand('loadingConfigByLab.refreshEntry', () => this.refresh())
+      vscode.commands.registerCommand('loadingConfigByLab.refreshEntry', () => this.refresh()),
+      vscode.commands.registerCommand('loadingConfigByLab.copyID', (node: LoadConfigTreeElement) =>
+        this.copyID(node.configId)
+      ),
     );
   }
 
@@ -71,6 +75,10 @@ export class LoadingConfigByLabTreeView
     token: vscode.CancellationToken
   ): Promise<void> {}
 
+  copyID(configId: string): void {
+    vscode.env.clipboard.writeText(configId);
+  }
+  
   getTreeItem(element: TreeElement): vscode.TreeItem {
     return element;
   }

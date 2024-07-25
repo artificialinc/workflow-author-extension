@@ -127,6 +127,11 @@
     },
     "commands": [
       {
+        "command": "loadingConfigByLab.copyID",
+        "title": "Copy Loading Config ID",
+        "category": "Artificial"
+      },
+      {
         "command": "assistantsByLab.generateAssistantStubs",
         "title": "Generate Assistant Stubs",
         "category": "Artificial"
@@ -319,6 +324,10 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "loadingConfigByLab.copyID",
+          "when": "view == loadingConfigByLab && viewItem == LOADINGCONFIG"
+        },
         {
           "command": "adapterActions.addToFile",
           "when": "view == adapterActions && viewItem == FUNCTION",
