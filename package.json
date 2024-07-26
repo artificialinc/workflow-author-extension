@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.1.7",
+  "version": "3.1.8",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -112,6 +112,10 @@
           "name": "Configuration"
         },
         {
+          "id": "loadingConfigByLab",
+          "name": "Loading Configs"
+        },
+        {
           "id": "workflows",
           "name": "Workflow Publishing"
         },
@@ -122,6 +126,11 @@
       ]
     },
     "commands": [
+      {
+        "command": "loadingConfigByLab.copyID",
+        "title": "Copy Loading Config ID",
+        "category": "Artificial"
+      },
       {
         "command": "assistantsByLab.generateAssistantStubs",
         "title": "Generate Assistant Stubs",
@@ -198,6 +207,12 @@
       },
       {
         "command": "configs.refreshEntry",
+        "title": "Refresh Configs",
+        "category": "Artificial",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "loadingConfigByLab.refreshEntry",
         "title": "Refresh Configs",
         "category": "Artificial",
         "icon": "$(refresh)"
@@ -309,6 +324,10 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "loadingConfigByLab.copyID",
+          "when": "view == loadingConfigByLab && viewItem == LOADINGCONFIG"
+        },
         {
           "command": "adapterActions.addToFile",
           "when": "view == adapterActions && viewItem == FUNCTION",

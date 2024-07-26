@@ -27,17 +27,7 @@ export interface LabReply {
   labs: [{ name: string; id: string }];
 }
 export interface ConfigReply {
-  lab: {
-    assets: [
-      {
-        id: string;
-        loadingConfigId: string;
-        loadingConfigOrder: number;
-        labId: string;
-        name: string;
-      }
-    ];
-  };
+  labs: [{ id: string; name: string; loadingConfigs: [{ id: string; name: string }] }];
 }
 export interface AssistantReply {
   assistants: Assistant[];
@@ -260,25 +250,21 @@ export class ArtificialApollo {
       }
     }
   }
-  public async queryConfigs(labId: string): Promise<ConfigReply | undefined> {
+  public async queryConfigs(): Promise<ConfigReply | undefined> {
     try {
       if (!this.apollo) {
         console.error('ApolloClient missing.');
         return;
       }
       const result = await this.apollo.query({
-        variables: {
-          labId,
-        },
         query: gql`
-          query configs($labId: ID!) {
-            lab(id: $labId) {
-              assets {
+          query loadconfigs {
+            labs {
+              id
+              name
+              loadingConfigs {
                 id
                 name
-                loadingConfigId
-                loadingConfigOrder
-                labId
               }
             }
           }

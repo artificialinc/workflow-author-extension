@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.1.8]
+
+- Loading Config View
+
 ## [3.1.7]
 
 - Dependency Updates

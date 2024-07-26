@@ -18,17 +18,21 @@ import * as vscode from 'vscode';
 import { AdapterActionTreeView } from '../views/adapterActionTreeView';
 import { AssistantByLabTreeView } from '../views/assistantTreeView';
 import { InsertFunctionCall } from '../generators/generateFunctionCall';
+import { LoadConfigTreeElement, LoadingConfigByLabTreeView } from '../views/loadingConfigView';
 export class DropProvider implements vscode.DocumentDropEditProvider {
   private funcTree;
   private assistantTreeByLab;
+  private loadConfigTree;
   private context;
   constructor(
     context: vscode.ExtensionContext,
     functionTree: AdapterActionTreeView,
-    assistantTreeByLab: AssistantByLabTreeView
+    assistantTreeByLab: AssistantByLabTreeView,
+    loadingConfigByLabTreeView: LoadingConfigByLabTreeView
   ) {
     this.funcTree = functionTree;
     this.assistantTreeByLab = assistantTreeByLab;
+    this.loadConfigTree = loadingConfigByLabTreeView;
     this.context = context;
   }
   async provideDocumentDropEdits(
@@ -60,6 +64,12 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     if (text.includes('/assistant/')) {
       element = this.assistantTreeByLab.getTreeItemByUri(text);
       className = text.split('/')[6];
+    }
+    if (text.includes('/loadingConfig/')) {
+      element = this.loadConfigTree.getTreeItemByUri(text);
+      if (element && element instanceof LoadConfigTreeElement && element.configId) {
+        text = `${element.configId}`;
+      }
     }
     if (element && 'functionSignature' in element) {
       const insertFuncCall = new InsertFunctionCall();
