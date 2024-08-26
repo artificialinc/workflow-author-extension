@@ -387,6 +387,7 @@
     "@grpc/grpc-js": "^1.8.20",
     "@grpc/proto-loader": "0.7.8",
     "@snyk/docker-registry-v2-client": "^2.10.1",
+    "@vscode/python-extension": "^1.0.5",
     "apollo-link-timeout": "^4.0.0",
     "cross-fetch": "^3.1.5",
     "dotenv": "^16.0.3",
@@ -398,9 +399,11 @@
     "lodash": "^4.17.21",
     "protobufjs": ">=7.2.4",
     "python-ast": "^0.1.0",
+    "vscode-languageclient": "^9.0.1",
     "yaml": "^2.1.1"
   },
   "extensionDependencies": [
-    "vscode.git"
+    "vscode.git",
+    "ms-python.python"
   ]
 }

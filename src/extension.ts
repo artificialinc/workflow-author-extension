@@ -32,8 +32,37 @@ import { DataTreeView } from './views/dataTreeView';
 import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
 import { UnimplementedError, getRemoteScope } from './adapter/grpc/grpc';
+import { stopLangServer, startLangServer, executeServerCommand } from './lsp/lsp';
 
 export async function activate(context: vscode.ExtensionContext) {
+	// register a dynamic configuration provider for 'artificial-workflow' debug type
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('artificial-workflows-tools', {
+		provideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined): vscode.ProviderResult<vscode.DebugConfiguration[]> {
+			return [
+				{
+            "name": "pygls: Debug Server",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "${config:pygls.server.debugHost}",
+                "port": "${config:pygls.server.debugPort}"
+            },
+            "justMyCode": false,
+				}
+			];
+		}
+	}, vscode.DebugConfigurationProviderTriggerKind.Dynamic));
+
+
+  // Start the language server
+  await startLangServer();
+      // Execute command... command
+    context.subscriptions.push(
+        vscode.commands.registerCommand("assistantsByLab.generateAssistantStubs", async () => {
+            await executeServerCommand()
+        })
+    )
+
   // Config Setup
   const { configVals, rootPath } = await setupConfig(context);
   if (!rootPath) {
@@ -309,4 +338,6 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
   );
 }
 
-export function deactivate() {}
+export function deactivate(): Thenable<void> {
+  return stopLangServer();
+}
