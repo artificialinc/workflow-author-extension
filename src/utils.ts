@@ -45,7 +45,7 @@ export async function addFileToContext(file: string, filename: string) {
     await artificialAwaitTask('Add File to Context', `afconfig add-file ${filename} '${file}'`);
   } catch {
     const log = OutputLog.getInstance();
-    log.log('Error Adding File to Context. The artificial-common package may be outdated. v0.2.2 or newer is required.');
+    log.log('Error Adding File to Context. The artificial-common package may be outdated. v0.2.3 or newer is required.');
   }
 }
 
