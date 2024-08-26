@@ -428,7 +428,8 @@
     "grpc-js-reflection-client": "^1.2.14",
     "lodash": "^4.17.21",
     "protobufjs": ">=7.2.5",
-    "python-ast": "^0.1.0"
+    "python-ast": "^0.1.0",
+    "yaml": "^2.1.1"
   },
   "extensionDependencies": [
     "vscode.git"
