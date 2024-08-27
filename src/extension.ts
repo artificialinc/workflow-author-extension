@@ -33,8 +33,14 @@ import { DataTreeView } from './views/dataTreeView';
 import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
 import { UnimplementedError, getRemoteScope } from './adapter/grpc/grpc';
+import { authExternalUriRegistration } from './auth/auth';
+
+
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Setup authentication URI handler before config so it can be used to fill out config
+  authExternalUriRegistration(context);
+
   // Config Setup
   const { configVals, rootPath } = await setupConfig(context);
   if (!rootPath) {
@@ -192,6 +198,12 @@ async function setupConfig(context: vscode.ExtensionContext) {
     new vscode.RelativePattern(rootPath + '/configs', '**/*.yaml')
   );
   watchConfig.onDidChange((uri) => {
+    initConfig(rootPath);
+  });
+  watchConfig.onDidCreate((uri) => {
+    initConfig(rootPath);
+  });
+  watchConfig.onDidDelete((uri) => {
     initConfig(rootPath);
   });
   context.subscriptions.push(watchConfig);

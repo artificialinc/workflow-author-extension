@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.2.0]
+
+- Add Sign-In feature
+
 ## [3.1.8]
 
 - Loading Config View
