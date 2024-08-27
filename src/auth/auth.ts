@@ -61,7 +61,7 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
       });
 
       if (instanceUrl === undefined) {
-        vscode.window.showErrorMessage('Sign in failed: missing instane URL');
+        vscode.window.showErrorMessage('Sign in failed: missing instance URL');
         return;
       }
       try {
