@@ -200,6 +200,12 @@ async function setupConfig(context: vscode.ExtensionContext) {
   watchConfig.onDidChange((uri) => {
     initConfig(rootPath);
   });
+  watchConfig.onDidCreate((uri) => {
+    initConfig(rootPath);
+  });
+  watchConfig.onDidDelete((uri) => {
+    initConfig(rootPath);
+  });
   context.subscriptions.push(watchConfig);
   return { configVals, rootPath };
 }
