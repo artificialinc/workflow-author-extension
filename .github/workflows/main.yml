@@ -14,13 +14,13 @@ jobs:
       version: ${{ steps.setup_id.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Versioning
         id: versioning
-        uses: paulhatch/semantic-version@v5.0.3
+        uses: paulhatch/semantic-version@v5.4.0
         with:
           tag_prefix: "v"
           major_pattern: "BREAKING CHANGE:"
@@ -37,7 +37,7 @@ jobs:
 
       - name: Tag Build
         continue-on-error: true
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           github-token: ${{ github.token }}
           script: |
@@ -54,10 +54,10 @@ jobs:
     needs: tag
     if: github.event_name == 'release'
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
           registry-url: https://registry.npmjs.org/
 
       - name: Install the dependencies
@@ -68,4 +68,3 @@ jobs:
 
       - name: Publish
         run: vsce publish -p ${{ secrets.AZURE_MARKETPLACE_TOKEN }}
-
