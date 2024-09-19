@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.2.2]
+
+- Remove command from command palette
+
 ## [3.2.0]
 
 - Add Sign-In feature
