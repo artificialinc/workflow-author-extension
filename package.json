@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.2.0",
+  "version": "3.2.1",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -253,6 +253,10 @@
     ],
     "menus": {
       "commandPalette": [
+        {
+          "command": "loadingConfigByLab.copyID",
+          "when":  "False"
+        },
         {
           "command": "labAsstData.importDataSingle",
           "when": "False"
