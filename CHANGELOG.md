@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.2.3]
+
+- Fix Codespace login
+
 ## [3.2.2]
 
 - Remove command from command palette

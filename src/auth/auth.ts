@@ -76,9 +76,10 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
       // Get an externally addressable callback URI for the handler that the authentication provider can use
       const extensionId = 'artificial.artificial-workflow-extension';
       const callbackUri = await vscode.env.asExternalUri(
-        vscode.Uri.parse(`${instanceUrl}/app/#/vscode-login?instanceURL=${instanceUrl}&redirect=${vscode.env.uriScheme}://${extensionId}/auth-complete`)
+        vscode.Uri.parse(`${vscode.env.uriScheme}://${extensionId}/auth-complete`)
       );
-      vscode.env.openExternal(callbackUri);
+      const authUri = vscode.Uri.parse(`${instanceUrl}/app/#/vscode-login?instanceURL=${instanceUrl}&redirect=${callbackUri}`);
+      vscode.env.openExternal(authUri);
     })
   );
 
