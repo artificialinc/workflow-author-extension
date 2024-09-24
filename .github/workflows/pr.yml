@@ -16,7 +16,7 @@ jobs:
           cache: 'npm'
 
       - name: Authenticate with private NPM package
-        run: echo "//prod.artifacts.artificial.com/repository/npm-priv/:_auth=$(echo artificial-build:${{ secrets.GH_TOKEN }} | base64 -w 0)" >> .npmrc
+        run: echo "//prod.artifacts.artificial.com/repository/npm-priv/:_auth=$(echo artificial-build:${{ secrets.PUBLIC_GH_TOKEN }} | base64 -w 0)" >> .npmrc
 
       - name: Install the dependencies
         run: npm ci
