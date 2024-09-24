@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
+import { GetConnectionsRequest } from "@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_pb";
 import { LabmanagerClient, getLabmanagerClient } from "./grpc/grpc";
 import * as grpc from '@grpc/grpc-js';
 
@@ -44,12 +45,12 @@ export class Labmanager {
    */
   public async getAdapters(): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
-      this.client.getConnections({ scope: `${this.prefix}:${this.org}:${this.lab}:` }, (err, res) => {
+      this.client.getConnections(new GetConnectionsRequest().setScope(`${this.prefix}:${this.org}:${this.lab}:`), (err, res) => {
         if (err) {
           reject(err);
           return;
         }
-        resolve(res.connections.map((c) => c.client.name));
+        resolve(res.getConnectionsList().map((c) => c.getClient()?.getName() || "unknown name"));
       });
     });
   }

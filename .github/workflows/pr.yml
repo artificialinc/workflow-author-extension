@@ -15,6 +15,9 @@ jobs:
           registry-url: https://registry.npmjs.org/
           cache: 'npm'
 
+      - name: Authenticate with private NPM package
+        run: echo "//prod.artifacts.artificial.com/repository/npm-priv/:_auth=$(echo artificial-build:${{ secrets.GH_TOKEN }} | base64 -w 0)" >> .npmrc
+
       - name: Install the dependencies
         run: npm ci
 
@@ -23,7 +26,7 @@ jobs:
 
   version-preview:
     runs-on: ubuntu-latest
-    steps: 
+    steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -53,7 +56,7 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            If merged to `${{ github.event.repository.default_branch }}`, this would result in **${{ github.event.repository.name }}** version of **`v${{steps.version_raw.outputs.version_raw}}`**  
+            If merged to `${{ github.event.repository.default_branch }}`, this would result in **${{ github.event.repository.name }}** version of **`v${{steps.version_raw.outputs.version_raw}}`**
 
             ( To update the MINOR version, include a commit with the message `feat:` )
             ( To update the MAJOR version, include a commit with the message `BREAKING CHANGE` )

@@ -13,11 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-import { GetConnectionsResponse, getAdapterClients, getLabmanagerClient, getRemoteScope } from '../grpc';
+import { getAdapterClients, getLabmanagerClient, getRemoteScope } from '../grpc';
 import * as grpc from '@grpc/grpc-js';
 import { expect, jest, test, describe, beforeEach } from '@jest/globals';
 import { startServer, labmanagerPkg, labmanagerNoScopePkg } from './server';
 import waitForExpect from 'wait-for-expect';
+import { GetConnectionsRequest, GetConnectionsResponse } from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_pb';
 
 describe('test grpc against local server', function () {
   let server: grpc.Server | undefined;
@@ -153,9 +154,9 @@ describe('test grpc against real adapters', function () {
     const e = jest.fn();
 
     const scope = `synthego-initial-rc:artificial:lab_47ac7844-d68b-4f5d-bd3f-e1651e0dce44:`;
-    lm.getConnections({ scope }, (err: grpc.ServiceError | null, data: GetConnectionsResponse) => {
+    lm.getConnections(new GetConnectionsRequest().setScope(scope), (err: grpc.ServiceError | null, data: GetConnectionsResponse) => {
       expect(err).toBeNull();
-      expect(data.connections[0].client.name).toBe('lenient-bobcat-argo1');
+      expect(data.getConnectionsList()[0].getClient()?.getName()).toBe('lenient-bobcat-argo1');
       e();
     });
 
