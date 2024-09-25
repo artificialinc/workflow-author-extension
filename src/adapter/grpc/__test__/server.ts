@@ -17,31 +17,31 @@ import * as grpc from '@grpc/grpc-js';
 import wrapServerWithReflection from 'grpc-node-server-reflection';
 import * as protoLoader from '@grpc/proto-loader';
 
-  const defOptions = {
-    keepCase: true,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true
-  };
+const defOptions = {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+};
 
 export const testPkg = grpc.loadPackageDefinition(
-    protoLoader.loadSync(
-      __dirname + '../../../../../proto/test.proto',
-      defOptions
-    ));
+  protoLoader.loadSync(
+    __dirname + '../../../../../proto/test.proto',
+    defOptions
+  ));
 
 export const labmanagerPkg = grpc.loadPackageDefinition(
-    protoLoader.loadSync(
-      __dirname + '../../../../../proto/labmanager.proto',
-      defOptions
-    ));
+  protoLoader.loadSync(
+    __dirname + '../../../../../proto/labmanager.proto',
+    defOptions
+  ));
 
 export const labmanagerNoScopePkg = grpc.loadPackageDefinition(
-    protoLoader.loadSync(
-      __dirname + '../../../../../proto/labmanager_no_get_scope.proto',
-      defOptions
-    ));
+  protoLoader.loadSync(
+    __dirname + '../../../../../proto/labmanager_no_get_scope.proto',
+    defOptions
+  ));
 
 // Start a server with reflection
 export const startServer = async (port: number): Promise<grpc.Server> => {
@@ -62,12 +62,14 @@ export const startServer = async (port: number): Promise<grpc.Server> => {
 
   // Choose a random port
   // TODO: Don't return until server has started
-  server.bindAsync(`127.0.0.1:${port}`, grpc.ServerCredentials.createInsecure(), (err: any) => {
-    if (err) {
-      throw err;
-    }
-    server.start();
-    console.log(`Server started on port ${port}`);
+  await new Promise<void>((resolve) => {
+    server.bindAsync(`127.0.0.1:${port}`, grpc.ServerCredentials.createInsecure(), (err: any) => {
+      if (err) {
+        throw err;
+      }
+      console.log(`Server started on port ${port}`);
+      resolve();
+    });
   });
 
   return server;

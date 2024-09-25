@@ -115,7 +115,7 @@ export async function getRemoteScope(address: string, lab: string, token: string
     const client = new LabManagerClient(address, creds(), channelOptions());
     return new Promise((resolve, reject) => {
         client.getScope(
-            new GetScopeRequest().setLabId(lab), // eslint-disable-line @typescript-eslint/naming-convention
+            new GetScopeRequest().setLabId(lab),
             (err: grpc.ServiceError | null, response: GetScopeResponse) => {
             if (err) {
                 reject(err);
