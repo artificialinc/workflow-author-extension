@@ -13,11 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-import { GetConnectionsResponse, getAdapterClients, getLabmanagerClient, getRemoteScope } from '../grpc';
+import { getAdapterClients, getLabmanagerClient, getRemoteScope } from '../grpc';
 import * as grpc from '@grpc/grpc-js';
 import { expect, jest, test, describe, beforeEach } from '@jest/globals';
 import { startServer, labmanagerPkg, labmanagerNoScopePkg } from './server';
 import waitForExpect from 'wait-for-expect';
+import { GetConnectionsRequest, GetConnectionsResponse, GetScopeRequest, GetScopeResponse } from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_pb';
+import { LabManagerService } from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_grpc_pb';
 
 describe('test grpc against local server', function () {
   let server: grpc.Server | undefined;
@@ -31,8 +33,12 @@ describe('test grpc against local server', function () {
 
   afterEach(async function () {
     if (server) {
-      server.forceShutdown();
-    }
+        server.tryShutdown((err) => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      }
   });
 
   test('test grpc ok', async function () {
@@ -64,19 +70,15 @@ describe('test grpc against local server', function () {
       }
     });
     await expect(getRemoteScope(`127.0.0.1:${port}`, 'lab', 'token', false)).rejects.toThrow(
-      "Labmanager client does not have GetScope method"
+      "12 UNIMPLEMENTED: The server does not implement the method /artificial.api.labmanager.v1.LabManager/GetScope"
     );
   });
 
-    test('test get scope', async function () {
+  test('test get scope', async function () {
     //@ts-ignore
-    server?.addService(labmanagerPkg.artificial.api.labmanager.v1.LabManager.service, {
-      GetScope: (_: any, callback: any) => { // eslint-disable-line @typescript-eslint/naming-convention
-        callback(null, {
-          lab_id: "lab", // eslint-disable-line @typescript-eslint/naming-convention
-          namespace: "namespace",
-          org_id: "org", // eslint-disable-line @typescript-eslint/naming-convention
-        });
+    server?.addService(LabManagerService, {
+      getScope: (call: grpc.ServerUnaryCall<GetScopeRequest, GetScopeResponse>, callback: grpc.sendUnaryData<GetScopeResponse>) => {
+        callback(null, new GetScopeResponse().setLabId("lab").setNamespace("namespace").setOrgId("org"));
       }
     });
     await expect(getRemoteScope(`127.0.0.1:${port}`, 'lab', 'token', false)).resolves.toStrictEqual(
@@ -153,9 +155,9 @@ describe('test grpc against real adapters', function () {
     const e = jest.fn();
 
     const scope = `synthego-initial-rc:artificial:lab_47ac7844-d68b-4f5d-bd3f-e1651e0dce44:`;
-    lm.getConnections({ scope }, (err: grpc.ServiceError | null, data: GetConnectionsResponse) => {
+    lm.getConnections(new GetConnectionsRequest().setScope(scope), (err: grpc.ServiceError | null, data: GetConnectionsResponse) => {
       expect(err).toBeNull();
-      expect(data.connections[0].client.name).toBe('lenient-bobcat-argo1');
+      expect(data.getConnectionsList()[0].getClient()?.getName()).toBe('lenient-bobcat-argo1');
       e();
     });
 

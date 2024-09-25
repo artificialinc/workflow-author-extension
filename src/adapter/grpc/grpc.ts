@@ -16,6 +16,8 @@ See the License for the specific language governing permissions and
 import * as grpc from '@grpc/grpc-js';
 import { ServiceClient } from '@grpc/grpc-js/build/src/make-client';
 import { GrpcReflection } from 'grpc-js-reflection-client';
+import { LabManagerClient } from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_grpc_pb';
+import { GetConnectionsRequest, GetConnectionsResponse, GetScopeRequest, GetScopeResponse } from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_pb';
 
 const HIDDEN_SERVICES = ["grpc.reflection.v1alpha.ServerReflection", "grpc.reflection.v1.ServerReflection", "artificial.adapter_common.InternalActions"];
 
@@ -28,7 +30,7 @@ function callOptions(timeoutMs: number): grpc.CallOptions {
     return { deadline: Date.now() + timeoutMs };
 }
 
-function credsConstructor(md: grpc.Metadata, ssl: boolean = true): () => grpc.ChannelCredentials {
+export function credsConstructor(md: grpc.Metadata, ssl: boolean = true): () => grpc.ChannelCredentials {
     return () => {
         if (ssl) {
             return grpc.credentials.combineChannelCredentials(
@@ -110,41 +112,18 @@ export async function getRemoteScope(address: string, lab: string, token: string
     const md = new grpc.Metadata();
     md.set("authorization", `Bearer ${token}`);
     const creds = credsConstructor(md, ssl);
-    const client = new GrpcReflection(address, creds(), channelOptions());
-    const services = await client.listServices(undefined, callOptions(timeoutMs));
-
-    // Get labmanager service
-    const labmanagerService = services.find((value) => {
-        return value === 'artificial.api.labmanager.v1.LabManager';
-    });
-
-    if (!labmanagerService) {
-        throw new Error('Could not find labmanager service');
-    }
-
-    const [clientConstructor, localMethods] = await extractServiceClientConstructor(client, labmanagerService, timeoutMs);
-
-    if (localMethods.includes('getScope') === false) {
-        throw new UnimplementedError('Labmanager client does not have GetScope method');
-    }
-
-    const grpcClient = new clientConstructor(
-        address,
-        creds(),
-        channelOptions(),
-    );
-
+    const client = new LabManagerClient(address, creds(), channelOptions());
     return new Promise((resolve, reject) => {
-        grpcClient.getScope(
-            { lab_id: lab }, // eslint-disable-line @typescript-eslint/naming-convention
-            (err: Error, response: any) => {
+        client.getScope(
+            new GetScopeRequest().setLabId(lab),
+            (err: grpc.ServiceError | null, response: GetScopeResponse) => {
             if (err) {
                 reject(err);
             } else {
                 resolve({
-                    namespace: response.namespace,
-                    orgId: response.org_id,
-                    labId: response.lab_id,
+                    namespace: response.getNamespace(),
+                    orgId: response.getOrgId(),
+                    labId: response.getLabId(),
                 });
             }
         });
@@ -187,17 +166,17 @@ export async function getAdapterClients(address: string, md: grpc.Metadata, ssl:
 }
 
 // TODO: Consider installing the labmanager proto package instead of using reflection.
-export type GetConnectionsRequest = {
-    scope: string
-};
+// export type GetConnectionsRequest = {
+//     scope: string
+// };
 
-export type GetConnectionsResponse = {
-    connections: Array<{
-        client: {
-            name: string
-        }
-    }>
-};
+// export type GetConnectionsResponse = {
+//     connections: Array<{
+//         client: {
+//             name: string
+//         }
+//     }>
+// };
 
 export interface LabmanagerClient {
     getConnections(request: GetConnectionsRequest, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
@@ -208,26 +187,6 @@ export interface LabmanagerClient {
 export async function getLabmanagerClient(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<LabmanagerClient> {
     // Connect with grpc server reflection
     const creds = credsConstructor(md, ssl);
-    const client = new GrpcReflection(address, creds(), channelOptions());
-    const services = await client.listServices(undefined, callOptions(timeoutMs));
 
-    // Get labmanager service
-    const labmanagerService = services.find((value) => {
-        return value === 'artificial.api.labmanager.v1.LabManager';
-    });
-
-    if (!labmanagerService) {
-        throw new Error('Could not find labmanager service');
-    }
-
-    const [clientConstructor, localMethods] = await extractServiceClientConstructor(client, labmanagerService, timeoutMs);
-
-    const grpcClient = new clientConstructor(
-        address,
-        creds(),
-        channelOptions(),
-    );
-
-    // Force it to a LabmanagerClient type for use outside of this module
-    return grpcClient as unknown as LabmanagerClient;
+    return new LabManagerClient(address, creds(), channelOptions());
 }

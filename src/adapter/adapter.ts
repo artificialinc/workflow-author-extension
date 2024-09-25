@@ -16,7 +16,10 @@ See the License for the specific language governing permissions and
 import { getAdapterClients as getAdapterClients, AdapterClient, getRemoteScope, UnimplementedError } from './grpc/grpc';
 import * as grpc from '@grpc/grpc-js';
 import { OutputLog } from '../providers/outputLogProvider';
-
+import { Compliance, complianceClientConstructor } from './compliance';
+import { ComplianceModeServiceClient, IComplianceModeServiceClient } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_grpc_pb';
+import { ComplianceModeState, GetComplianceModeRequest, GetComplianceModeResponse } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_pb';
+import * as semver from 'semver';
 
 const LOCAL_SYMBOL = process.env.LOCAL_SYMBOL || 'manager.management_actions.ManagementActions';
 const REMOTE_SYMBOL = process.env.REMOTE_SYMBOL || 'adapter.manager.management_actions.ManagementActions';
@@ -27,25 +30,27 @@ export interface Output {
 
 export class ArtificialAdapter {
   adapterClients: Map<string, AdapterClient>;
+  complianceClient?: ComplianceModeServiceClient;
   services: string[];
   output: Output;
 
-  constructor(adapterClients: Map<string, AdapterClient>, output: Output = OutputLog.getInstance()) {
+  constructor(adapterClients: Map<string, AdapterClient>, compliance?: ComplianceModeServiceClient, output: Output = OutputLog.getInstance()) {
     this.adapterClients = adapterClients;
+    this.complianceClient = compliance;
     this.services = [...adapterClients.keys()];
     this.output = output;
   }
 
   public static async createLocalAdapter<T extends typeof ArtificialAdapter>(this: T, output: Output = OutputLog.getInstance()): Promise<InstanceType<T>> {
     const adapterClients = await getAdapterClients('localhost:5011', new grpc.Metadata(), false);
-    return new this(adapterClients, output) as InstanceType<T>;
+    return new this(adapterClients, undefined, output) as InstanceType<T>;
   }
 
   // Lab is tbd. Might be its own "manager lab" or something similar
   public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(this: T, address: string, prefix: string, org: string, lab: string, token: string, output: Output = OutputLog.getInstance()): Promise<InstanceType<T>> {
     try {
       OutputLog.getInstance().log('Attempting to get remote scope');
-      const remoteScope = await getRemoteScope(address, lab, token);
+      const remoteScope = await getRemoteScope(`labmanager.${address}`, lab, token);
       OutputLog.getInstance().log(`Got remote scope: ${remoteScope.namespace}:${remoteScope.orgId}:${remoteScope.labId}`);
       prefix = remoteScope.namespace;
       org = remoteScope.orgId;
@@ -62,8 +67,8 @@ export class ArtificialAdapter {
     md.set("authorization", `Bearer ${token}`);
     md.set("forward-to", `${prefix}:${org}:${lab}:substrate`);
     var adapterClients: Map<string, AdapterClient>;
-    adapterClients = await getAdapterClients(address, md, true);
-    return new this(adapterClients, output) as InstanceType<T>;
+    adapterClients = await getAdapterClients(`labmanager.${address}`, md, true);
+    return new this(adapterClients, complianceClientConstructor(address, token, true), output) as InstanceType<T>;
   }
 
   public listActions(): string[] {
@@ -98,7 +103,31 @@ export type AdapterInfo = {
 
 export class ArtificialAdapterManager extends ArtificialAdapter {
   public async updateAdapterImage(adapterName: string, image: string): Promise<void> {
-    return new Promise((resolve, reject) => {
+    const compliance = await new Promise<boolean>((resolve, reject) => {
+      if (!this.complianceClient) {
+        resolve(false);
+      } else {
+        this.complianceClient.getComplianceMode(new GetComplianceModeRequest(), (err: grpc.ServiceError | null, response: GetComplianceModeResponse) => {
+          if (err) {
+            reject(err);
+          }
+          if (response.getMode() === ComplianceModeState.COMPLIANCE_MODE_ON_GLOBAL) {
+            resolve(true);
+          }
+          resolve(false);
+        });
+      }
+    });
+
+    if (compliance) {
+      // If image is not semver, we should reject
+      const tag = image.split(':').pop();
+      if (!semver.valid(tag)) {
+        throw new Error('Cannot update adapter image to a non CI built image while in compliance mode');
+      }
+    }
+
+    return new Promise<void>((resolve, reject) => {
       this.getManagementClient().client.updateAdapterImage({
         "adapter_name": { value: adapterName }, // eslint-disable-line @typescript-eslint/naming-convention
         "image": { value: image },

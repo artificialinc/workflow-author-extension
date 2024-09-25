@@ -221,7 +221,7 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       var org: string;
       try {
         adapter = await ArtificialAdapterManager.createRemoteAdapter(
-          `labmanager.${configVals.getHost()}`,
+          configVals.getHost(),
           configVals.getPrefix(),
           configVals.getOrgId(),
           `${configVals.getLabId()}-manager`,
@@ -288,9 +288,10 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         } catch (e) {
           console.log(e);
           vscode.window.showErrorMessage(`Failed to update adapter image: ${e}`);
-        } finally {
-          vscode.window.showInformationMessage(`Updated adapter ${adapterToUpdate.label} to image ${image}`);
+          return;
         }
+        vscode.window.showInformationMessage(`Updated adapter ${adapterToUpdate.label} to image ${image}`);
+        return;
       } else {
         vscode.window.showErrorMessage('An image is mandatory to execute this action');
       }
@@ -304,7 +305,7 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         new Promise<string[]>(async (resolve, reject) => {
           try {
             const adapter2 = await ArtificialAdapter.createRemoteAdapter(
-              `labmanager.${configVals.getHost()}`,
+              configVals.getHost(),
               configVals.getPrefix(),
               configVals.getOrgId(),
               configVals.getLabId(),
@@ -329,4 +330,4 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
   );
 }
 
-export function deactivate() {}
+export function deactivate() { }

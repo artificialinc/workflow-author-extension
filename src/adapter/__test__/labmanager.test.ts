@@ -16,8 +16,10 @@ See the License for the specific language governing permissions and
 import { Labmanager } from '../labmanager';
 import { mock } from 'jest-mock-extended';
 import { expect, test } from '@jest/globals';
-import { LabmanagerClient, GetConnectionsRequest, GetConnectionsResponse } from '../grpc/grpc';
+import { LabmanagerClient } from '../grpc/grpc';
 import * as grpc from '@grpc/grpc-js';
+import { Compliance } from '../compliance';
+import { GetConnectionsRequest, GetConnectionsResponse } from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_pb';
 
 jest.mock('../grpc/grpc');
 
@@ -27,13 +29,11 @@ describe('test labmanager', function () {
     (m.getConnections as unknown as any)
       .mockImplementation(
         (request: any, cb: (err: grpc.ServiceError | null, data: any) => void) => {
-          cb(null, { connections: [] });
+          cb(null, new GetConnectionsResponse().setConnectionsList([]));
         });
     const lm = new Labmanager(m, "prefix", "org", "lab");
     await lm.getAdapters();
 
-    expect(m.getConnections).toBeCalledWith({
-      scope: "prefix:org:lab:"
-    }, expect.any(Function));
+    expect(m.getConnections).toBeCalledWith(new GetConnectionsRequest().setScope("prefix:org:lab:"), expect.any(Function));
   }, 10000);
 });
