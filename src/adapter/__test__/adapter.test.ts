@@ -40,7 +40,7 @@ describe('test artificial adapter', function () {
     }, expect.any(Function));
   });
 
-  test('test udpate adapter image compliance with manager', async function () {
+  test('test update adapter image compliance with manager', async function () {
     const m = mock<AdapterClient>();
     m.client.updateAdapterImage = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {}));
     const c = mock<ComplianceModeServiceClient>();
