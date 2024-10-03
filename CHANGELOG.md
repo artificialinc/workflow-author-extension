@@ -1,6 +1,6 @@
 # Change Log
 
-## [3.2.4]
+## [3.2.5]
 
 - Instance sign-in accepts more flexible urls
 
