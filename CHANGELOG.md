@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.2.5]
+
+- Instance sign-in accepts more flexible urls
+
 ## [3.2.3]
 
 - Fix Codespace login

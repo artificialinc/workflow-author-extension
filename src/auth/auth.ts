@@ -55,17 +55,18 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
   context.subscriptions.push(
     vscode.commands.registerCommand(`adapterActions.signin`, async () => {
       // Ask for instance url
-      const instanceUrl = await vscode.window.showInputBox({
+      const rawInstanceUrl = await vscode.window.showInputBox({
         prompt: 'Enter the URL of your instance',
         placeHolder: 'https://example.artificial.com',
       });
 
-      if (instanceUrl === undefined) {
+      if (rawInstanceUrl === undefined) {
         vscode.window.showErrorMessage('Sign in failed: missing instance URL');
         return;
       }
+
       try {
-        new URL(instanceUrl);
+        new URL(rawInstanceUrl);
       } catch (e) {
         const log = OutputLog.getInstance();
         log.log(`Error getting instance url during signin: ${e}`);
@@ -73,12 +74,16 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
         return;
       }
 
+      const instanceUrl = new URL(rawInstanceUrl);
+
       // Get an externally addressable callback URI for the handler that the authentication provider can use
       const extensionId = 'artificial.artificial-workflow-extension';
       const callbackUri = await vscode.env.asExternalUri(
         vscode.Uri.parse(`${vscode.env.uriScheme}://${extensionId}/auth-complete`)
       );
-      const authUri = vscode.Uri.parse(`${instanceUrl}/app/#/vscode-login?instanceURL=${instanceUrl}&redirect=${callbackUri}`);
+      const authUri = vscode.Uri.parse(
+        `${instanceUrl.origin}/app/#/vscode-login?instanceURL=${instanceUrl.origin}&redirect=${callbackUri}`
+      );
       vscode.env.openExternal(authUri);
     })
   );
