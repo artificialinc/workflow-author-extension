@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
  limitations under the License. 
 */
 
-import { ApolloClient, HttpLink, from, gql } from '@apollo/client/core';
+import { ApolloClient, HttpLink, from, gql, ApolloError, ServerError } from '@apollo/client/core';
 import { RetryLink } from '@apollo/client/link/retry';
 import { InMemoryCache, NormalizedCacheObject } from '@apollo/client/cache/';
 import fetch from 'cross-fetch';
@@ -141,6 +141,16 @@ export class ArtificialApollo {
     this.apollo = this.createApollo();
   }
 
+  private errorHandler(err: ApolloError){
+    const networkError = err.networkError as ServerError | undefined;
+    if (networkError?.statusCode === 403) {
+        this.throwError(err);
+    }
+    else {
+      this.outputLog.log(`Error during gql query:  ${err} ${networkError?.result}`);
+    }
+  }
+
   private throwError = debounce((error: any) => {
     this.outputLog.log(`Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`);
     vscode.window.showErrorMessage(
@@ -169,11 +179,7 @@ export class ArtificialApollo {
         return result.data;
       }
     } catch (err: any) {
-      if (err.message === 'Timeout exceeded') {
-        this.outputLog.log(`Timeout querying for workflows. Error:  ${err} ${err.networkError.result}`);
-      } else {
-        this.throwError(err);
-      }
+        this.errorHandler(err);
     }
   }
 
@@ -214,11 +220,7 @@ export class ArtificialApollo {
         return result.data;
       }
     } catch (err: any) {
-      if (err.message === 'Timeout exceeded') {
-        this.outputLog.log(`Timeout querying for assistants. Error:  ${err} ${err.networkError.result}`);
-      } else {
-        this.throwError(err);
-      }
+      this.errorHandler(err);
     }
   }
   public async queryLabs(): Promise<LabReply | undefined> {
@@ -243,11 +245,7 @@ export class ArtificialApollo {
         return result.data;
       }
     } catch (err: any) {
-      if (err.message === 'Timeout exceeded') {
-        this.outputLog.log(`Timeout querying for labs. Error:  ${err} ${err.networkError.result}`);
-      } else {
-        this.throwError(err);
-      }
+      this.errorHandler(err);
     }
   }
   public async queryConfigs(): Promise<ConfigReply | undefined> {
@@ -276,11 +274,7 @@ export class ArtificialApollo {
         return result.data;
       }
     } catch (err: any) {
-      if (err.message === 'Timeout exceeded') {
-        this.outputLog.log(`Timeout querying for configs. Error:  ${err} ${err.networkError.result}`);
-      } else {
-        this.throwError(err);
-      }
+      this.errorHandler(err);
     }
   }
 
@@ -307,11 +301,7 @@ export class ArtificialApollo {
         return result.data;
       }
     } catch (err: any) {
-      if (err.message === 'Timeout exceeded') {
-        this.outputLog.log(`Timeout querying for action. Error:  ${err} ${err.networkError.result}`);
-      } else {
-        this.throwError(err);
-      }
+      this.errorHandler(err);
     }
   }
 
@@ -337,11 +327,7 @@ export class ArtificialApollo {
         return result.data;
       }
     } catch (err: any) {
-      if (err.message === 'Timeout exceeded') {
-        this.outputLog.log(`Timeout deleting Action. Error:  ${err} ${err.networkError.result}`);
-      } else {
-        this.throwError(err);
-      }
+      this.errorHandler(err);
     }
   }
   public async queryOrgConfig(): Promise<OrgConfigReply | undefined> {
@@ -367,11 +353,7 @@ export class ArtificialApollo {
         return result.data;
       }
     } catch (err: any) {
-      if (err.message === 'Timeout exceeded') {
-        this.outputLog.log(`Timeout querying for org config. Error:  ${err} ${err.networkError.result}`);
-      } else {
-        this.throwError(err);
-      }
+      this.errorHandler(err);
     }
   }
 
@@ -400,11 +382,7 @@ export class ArtificialApollo {
         return result.data;
       }
     } catch (err: any) {
-      if (err.message === 'Timeout exceeded') {
-        this.outputLog.log(`Timeout querying for lab config. Error:  ${err} ${err.networkError.result}`);
-      } else {
-        this.throwError(err);
-      }
+      this.errorHandler(err);
     }
   }
 }
