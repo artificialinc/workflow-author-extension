@@ -34,7 +34,7 @@ import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
 import { UnimplementedError, getRemoteScope } from './adapter/grpc/grpc';
 import { authExternalUriRegistration } from './auth/auth';
-
+import { addFileToContext } from './utils';
 
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -78,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
   taskExitWatcher(dataTree);
   // Setup adapter commands
   setupAdapterCommands(configVals, context);
-
+  setupPickLabCommand(configVals, context);
   console.log('Artificial Workflow Extension is active');
 }
 
@@ -209,6 +209,34 @@ async function setupConfig(context: vscode.ExtensionContext) {
   context.subscriptions.push(watchConfig);
   return { configVals, rootPath };
 }
+
+
+function setupPickLabCommand(configVals: ConfigValues, context: vscode.ExtensionContext){
+  context.subscriptions.push(
+    vscode.commands.registerCommand('configActions.updateLab', async () => {
+      const client = ArtificialApollo.getInstance();
+      const response = await client.queryLabs();
+      if (!response) {vscode.window.showErrorMessage('Run Artificial: Sign In Command first to configure connection'); return;}
+      const options = response.labs.map((lab) => {
+        return {
+          label: lab.name,
+          description: lab.id,
+        };
+      });
+      const lab = await vscode.window.showQuickPick(options, { placeHolder: 'Select a lab' });
+      const generatedObj = {
+        artificial: {
+          host: configVals.getHost(),
+          token: configVals.getToken(),
+          lab: lab?.description,
+        },
+      };
+
+      addFileToContext(JSON.stringify(generatedObj), 'generated.yaml');
+    }
+  ));
+}
+
 
 function setupAdapterCommands(configVals: ConfigValues, context: vscode.ExtensionContext) {
   // Update adapter image command

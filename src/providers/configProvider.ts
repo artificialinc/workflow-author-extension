@@ -66,7 +66,7 @@ export class ConfigValues {
     }
 
     const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
-    if (!config) {
+    if (!config || config.error) {
       this.hostName = '';
       this.apiToken = '';
       this.prefix = '';

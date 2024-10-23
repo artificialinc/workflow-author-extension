@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.2.5",
+  "version": "3.2.6",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -249,6 +249,12 @@
         "title": "Export Single Lab or Assistant",
         "category": "Artificial",
         "icon": "$(cloud-download)"
+      },
+      {
+        "command": "configActions.updateLab",
+        "title": "Choose Lab for Adapter to Connect to",
+        "category": "Artificial",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {

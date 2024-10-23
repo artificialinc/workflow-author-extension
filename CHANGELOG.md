@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.2.6]
+
+- Add command for choosing a lab
+
 ## [3.2.5]
 
 - Instance sign-in accepts more flexible urls
