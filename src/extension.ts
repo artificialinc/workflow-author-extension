@@ -216,7 +216,7 @@ function setupPickLabCommand(configVals: ConfigValues, context: vscode.Extension
     vscode.commands.registerCommand('configActions.updateLab', async () => {
       const client = ArtificialApollo.getInstance();
       const response = await client.queryLabs();
-      if (!response) {vscode.window.showErrorMessage('Run Artificial: Sign In Command first to configure connection'); return;}
+      if (!response) {return;}
       const options = response.labs.map((lab) => {
         return {
           label: lab.name,
