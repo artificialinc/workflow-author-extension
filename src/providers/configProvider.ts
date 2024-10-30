@@ -39,6 +39,7 @@ export class ConfigValues {
     private gitRemote: string = '',
     private githubUser: string = '',
     private githubToken: string = '',
+    private pythonInterpreter: string = ''
   ) {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
@@ -56,7 +57,7 @@ export class ConfigValues {
     // Set git remote
     this.gitRemote = this.getGitRemote() ?? '';
     const configPath = path.join(rootPath, 'tmp/merged.yaml');
-    const getPythonInterpreter = await this.getPythonInterpreter();
+    this.pythonInterpreter = await this.getPythonInterpreterFromPythonAPI();
     if (!pathExists(configPath)) {
       this.hostName = '';
       this.apiToken = '';
@@ -129,6 +130,9 @@ export class ConfigValues {
   public getGithubToken() {
     return this.githubToken;
   }
+  public getPythonInterpreter() {
+    return this.pythonInterpreter;
+  }
 
   private getGitRemote(): string | undefined {
     const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
@@ -196,46 +200,20 @@ export class ConfigValues {
     this.githubToken = env.PYPI_PASSWORD;
   }
 
-    /**
-   * Return the python interpreter to use when starting the server.
-   *
-   * This uses the official python extension to grab the user's currently
-   * configured environment.
-   *
-   * @returns The python interpreter to use to launch the server
-   */
-  private async getPythonInterpreter(resource?: vscode.Uri): Promise<string | undefined> {
-    const config = vscode.workspace.getConfiguration("pygls.server", resource);
-    const pythonPath = config.get<string>('pythonPath');
-    if (pythonPath) {
-        this.outputLog.log(`Using user configured python environment: '${pythonPath}'`);
-        return pythonPath;
+  private async getPythonInterpreterFromPythonAPI(): Promise<string> {
+    const pythonExtension = vscode.extensions.getExtension('ms-python.python');
+    if (!pythonExtension) {
+        vscode.window.showErrorMessage('Python extension is not installed');
+        return '';
+    }
+    if (!pythonExtension.isActive) {
+        await pythonExtension.activate();
     }
 
-    if (!python) {
-        return;
-    }
-
-    if (resource) {
-        this.outputLog.log(`Looking for environment in which to execute: '${resource.toString()}'`);
-    }
-    // Use whichever python interpreter the user has configured.
-    const activeEnvPath = python.environments.getActiveEnvironmentPath(resource);
-    this.outputLog.log(`Found environment: ${activeEnvPath.id}: ${activeEnvPath.path}`);
-
-    const activeEnv = await python.environments.resolveEnvironment(activeEnvPath);
-    if (!activeEnv) {
-        this.outputLog.log(`Unable to resolve envrionment: ${activeEnvPath}`);
-        return;
-    }
-
-    const pythonUri = activeEnv.executable.uri;
-    if (!pythonUri) {
-        this.outputLog.log(`URI of Python executable is undefined!`);
-        return;
-    }
-
-    return pythonUri.fsPath;
+    const api = pythonExtension.exports;
+    const interpreterPath = api.settings.getExecutionDetails().execCommand;
+    this.outputLog.log(`Python interpreter: ${interpreterPath ? interpreterPath.join(' ') : 'Not found'}`);
+    return interpreterPath ? interpreterPath.join(' ') : '';
   }
 }
 
