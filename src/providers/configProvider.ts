@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-
+import { PythonExtension } from "@vscode/python-extension";
 import * as vscode from 'vscode';
 import * as parse from 'yaml';
 import * as path from 'path';
@@ -22,6 +22,7 @@ import * as fs from 'fs';
 import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
 import { OutputLog } from './outputLogProvider';
+let python: PythonExtension;
 
 export class ConfigValues {
   private static instance: ConfigValues;
@@ -193,6 +194,48 @@ export class ConfigValues {
       return;
     }
     this.githubToken = env.PYPI_PASSWORD;
+  }
+
+    /**
+   * Return the python interpreter to use when starting the server.
+   *
+   * This uses the official python extension to grab the user's currently
+   * configured environment.
+   *
+   * @returns The python interpreter to use to launch the server
+   */
+  private async getPythonInterpreter(resource?: vscode.Uri): Promise<string | undefined> {
+    const config = vscode.workspace.getConfiguration("pygls.server", resource);
+    const pythonPath = config.get<string>('pythonPath');
+    if (pythonPath) {
+        this.outputLog.log(`Using user configured python environment: '${pythonPath}'`);
+        return pythonPath;
+    }
+
+    if (!python) {
+        return;
+    }
+
+    if (resource) {
+        this.outputLog.log(`Looking for environment in which to execute: '${resource.toString()}'`);
+    }
+    // Use whichever python interpreter the user has configured.
+    const activeEnvPath = python.environments.getActiveEnvironmentPath(resource);
+    this.outputLog.log(`Found environment: ${activeEnvPath.id}: ${activeEnvPath.path}`);
+
+    const activeEnv = await python.environments.resolveEnvironment(activeEnvPath);
+    if (!activeEnv) {
+        this.outputLog.log(`Unable to resolve envrionment: ${activeEnvPath}`);
+        return;
+    }
+
+    const pythonUri = activeEnv.executable.uri;
+    if (!pythonUri) {
+        this.outputLog.log(`URI of Python executable is undefined!`);
+        return;
+    }
+
+    return pythonUri.fsPath;
   }
 }
 

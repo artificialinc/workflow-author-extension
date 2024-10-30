@@ -426,6 +426,7 @@
   "dependencies": {
     "@apollo/client": "^3.6.9",
     "@artificial/artificial-protos": "^0.108.2",
+    "@vscode/python-extension": "^1.0.5",
     "@grpc/grpc-js": "^1.10.9",
     "@grpc/proto-loader": "0.7.8",
     "@snyk/docker-registry-v2-client": "^2.10.1",
@@ -443,6 +444,7 @@
     "yaml": "^2.1.1"
   },
   "extensionDependencies": [
-    "vscode.git"
+    "vscode.git",
+    "ms-python.python"
   ]
 }
