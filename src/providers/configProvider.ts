@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-
+import { PythonExtension } from "@vscode/python-extension";
 import * as vscode from 'vscode';
 import * as parse from 'yaml';
 import * as path from 'path';
@@ -22,6 +22,7 @@ import * as fs from 'fs';
 import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
 import { OutputLog } from './outputLogProvider';
+let python: PythonExtension;
 
 export class ConfigValues {
   private static instance: ConfigValues;
@@ -38,11 +39,12 @@ export class ConfigValues {
     private gitRemote: string = '',
     private githubUser: string = '',
     private githubToken: string = '',
+
   ) {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
   }
-  private initialize() {
+  private async initialize() {
     let rootPath =
       vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
@@ -193,6 +195,26 @@ export class ConfigValues {
       return;
     }
     this.githubToken = env.PYPI_PASSWORD;
+  }
+
+  public async getPythonInterpreter(): Promise<string> {
+    const pythonExtension = vscode.extensions.getExtension('ms-python.python');
+    if (!pythonExtension) {
+        vscode.window.showErrorMessage('Python extension is not installed');
+        return '';
+    }
+    if (!pythonExtension.isActive) {
+        await pythonExtension.activate();
+    }
+
+    const api = pythonExtension.exports;
+    const interpreterPath = api.settings.getExecutionDetails().execCommand;
+    this.outputLog.log(`Python interpreter: ${interpreterPath ? path.dirname(interpreterPath.join(' ')) : 'Not found'}`);
+    
+    if (!interpreterPath) {
+      vscode.window.showErrorMessage('Python interpreter not found');
+    }
+    return interpreterPath ? path.dirname(interpreterPath.join(' ')) : '';
   }
 }
 
