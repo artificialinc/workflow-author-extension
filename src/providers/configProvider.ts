@@ -213,6 +213,9 @@ export class ConfigValues {
     const api = pythonExtension.exports;
     const interpreterPath = api.settings.getExecutionDetails().execCommand;
     this.outputLog.log(`Python interpreter: ${interpreterPath ? interpreterPath.join(' ') : 'Not found'}`);
+    if (!interpreterPath) {
+      vscode.window.showErrorMessage('Python interpreter not found');
+    }
     return interpreterPath ? interpreterPath.join(' ') : '';
   }
 }
