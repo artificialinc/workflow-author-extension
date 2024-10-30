@@ -43,7 +43,7 @@ export class ConfigValues {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
   }
-  private initialize() {
+  private async initialize() {
     let rootPath =
       vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
         ? vscode.workspace.workspaceFolders[0].uri.fsPath
@@ -56,7 +56,7 @@ export class ConfigValues {
     // Set git remote
     this.gitRemote = this.getGitRemote() ?? '';
     const configPath = path.join(rootPath, 'tmp/merged.yaml');
-
+    const getPythonInterpreter = await this.getPythonInterpreter();
     if (!pathExists(configPath)) {
       this.hostName = '';
       this.apiToken = '';
