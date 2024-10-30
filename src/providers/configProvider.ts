@@ -39,7 +39,7 @@ export class ConfigValues {
     private gitRemote: string = '',
     private githubUser: string = '',
     private githubToken: string = '',
-    private pythonInterpreter: string = ''
+
   ) {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
@@ -57,7 +57,7 @@ export class ConfigValues {
     // Set git remote
     this.gitRemote = this.getGitRemote() ?? '';
     const configPath = path.join(rootPath, 'tmp/merged.yaml');
-    this.pythonInterpreter = await this.getPythonInterpreterFromPythonAPI();
+
     if (!pathExists(configPath)) {
       this.hostName = '';
       this.apiToken = '';
@@ -130,9 +130,6 @@ export class ConfigValues {
   public getGithubToken() {
     return this.githubToken;
   }
-  public getPythonInterpreter() {
-    return this.pythonInterpreter;
-  }
 
   private getGitRemote(): string | undefined {
     const gitExtension = vscode.extensions.getExtension<GitExtension>('vscode.git');
@@ -200,7 +197,7 @@ export class ConfigValues {
     this.githubToken = env.PYPI_PASSWORD;
   }
 
-  private async getPythonInterpreterFromPythonAPI(): Promise<string> {
+  public async getPythonInterpreter(): Promise<string> {
     const pythonExtension = vscode.extensions.getExtension('ms-python.python');
     if (!pythonExtension) {
         vscode.window.showErrorMessage('Python extension is not installed');
@@ -212,11 +209,12 @@ export class ConfigValues {
 
     const api = pythonExtension.exports;
     const interpreterPath = api.settings.getExecutionDetails().execCommand;
-    this.outputLog.log(`Python interpreter: ${interpreterPath ? interpreterPath.join(' ') : 'Not found'}`);
+    this.outputLog.log(`Python interpreter: ${interpreterPath ? path.dirname(interpreterPath.join(' ')) : 'Not found'}`);
+    
     if (!interpreterPath) {
       vscode.window.showErrorMessage('Python interpreter not found');
     }
-    return interpreterPath ? interpreterPath.join(' ') : '';
+    return interpreterPath ? path.dirname(interpreterPath.join(' ')) : '';
   }
 }
 

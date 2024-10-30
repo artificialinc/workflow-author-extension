@@ -21,6 +21,7 @@ import { AssistantByLabTreeView } from '../views/assistantTreeView';
 
 import * as _ from 'lodash';
 import { artificialAwaitTask } from '../utils';
+import { ConfigValues } from '../providers/configProvider';
 
 export class GenerateAssistantStubs {
   outputChannel = OutputLog.getInstance();
@@ -44,6 +45,7 @@ export class GenerateAssistantStubs {
   private async generateAssistantStubs(): Promise<void> {
     const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
     const fullPath = path.join(this.workspaceRoot, customAssistantStubPath);
-    await artificialAwaitTask('Generate Assistant Stubs', `wf assistantstubs -o ${fullPath}`);
+    const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
+    await artificialAwaitTask('Generate Assistant Stubs', `${pythonInterpreter}/wf assistantstubs -o ${fullPath}`);
   }
 }

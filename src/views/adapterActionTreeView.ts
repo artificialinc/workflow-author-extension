@@ -19,6 +19,7 @@ import * as path from 'path';
 import { artificialAwaitTask, pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
+import { ConfigValues } from '../providers/configProvider';
 type TreeElement = Module | Function;
 export class AdapterActionTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
@@ -101,7 +102,8 @@ export class AdapterActionTreeView
   }
   private async generateActionStubs(): Promise<void> {
     const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
-    await artificialAwaitTask('Generate Action Stubs', `(cd adapter; wf adapterstubs ${module} -o ${this.stubPath})`);
+    const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
+    await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${this.stubPath})`);
     await this.refresh();
   }
 
