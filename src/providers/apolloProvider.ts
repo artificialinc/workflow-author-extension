@@ -143,19 +143,41 @@ export class ArtificialApollo {
 
   private errorHandler(err: ApolloError){
     const networkError = err.networkError as ServerError | undefined;
-    if (networkError?.statusCode === 403) {
-        this.throwError(err);
+    if (networkError) {
+      this.throwError(networkError);
     }
     else {
-      this.outputLog.log(`Error during gql query:  ${err} ${networkError?.result}`);
+      this.outputLog.log(`Error during gql query:  ${err}`);
     }
   }
 
-  private throwError = debounce((error: any) => {
-    this.outputLog.log(`Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`);
-    vscode.window.showErrorMessage(
-      `Problem connecting to Artificial, check token/config ${error} ${error.networkError.result}`
-    );
+  private throwError = debounce((error: ServerError) => {
+    const configVals = ConfigValues.getInstance();
+    this.outputLog.log(`Problem connecting to ${configVals.getHost()}, Status Code: ${error.statusCode} Result: ${error.result}  Error: ${error}`);
+    switch (error.statusCode) {
+      case 401:
+        vscode.window.showErrorMessage(`Artificial: Unauthorized: ${error.result}`);
+        break;
+      case 403:
+        vscode.window.showErrorMessage(`Artificial: Forbidden: ${error.result}`);
+        break;
+      case 404:
+        vscode.window.showErrorMessage(`Artificial: Not Found: ${error.result}`);
+        break;
+      case 408:
+          vscode.window.showErrorMessage(`Artificial: Timeout: ${error.result}`);
+          break;
+      case 500:
+        vscode.window.showErrorMessage(`Artificial: Internal Server Error: ${error.result}`);
+        break;
+      case 503:
+          vscode.window.showErrorMessage(`Artificial: No upstream: ${error.result}`);
+          break;
+      default:
+        vscode.window.showErrorMessage(`Problem connecting to ${configVals.getHost()}, Status Code: ${error.statusCode} Result: ${error.result}`);
+        break;
+    }
+   
   }, 2000);
 
   public async queryWorkflows() {

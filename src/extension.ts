@@ -111,7 +111,7 @@ async function setupAssistantTree(configVals: ConfigValues, context: vscode.Exte
 }
 
 function setupAdapterFuncTree(configVals: ConfigValues, context: vscode.ExtensionContext) {
-  const funcTree = new AdapterActionTreeView(configVals.getAdapterActionStubPath(), context);
+  const funcTree = new AdapterActionTreeView(context);
   funcTree.init();
   return funcTree;
 }
@@ -197,14 +197,14 @@ async function setupConfig(context: vscode.ExtensionContext) {
   const watchConfig = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(rootPath + '/configs', '**/*.yaml')
   );
-  watchConfig.onDidChange((uri) => {
-    initConfig(rootPath);
+  watchConfig.onDidChange(async (uri) => {
+    await initConfig(rootPath);
   });
-  watchConfig.onDidCreate((uri) => {
-    initConfig(rootPath);
+  watchConfig.onDidCreate(async (uri) => {
+    await initConfig(rootPath);
   });
-  watchConfig.onDidDelete((uri) => {
-    initConfig(rootPath);
+  watchConfig.onDidDelete(async (uri) => {
+    await initConfig(rootPath);
   });
   context.subscriptions.push(watchConfig);
   return { configVals, rootPath };
