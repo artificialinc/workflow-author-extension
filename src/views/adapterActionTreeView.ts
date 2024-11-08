@@ -33,7 +33,7 @@ export class AdapterActionTreeView
 
   readonly onDidChangeTreeData: vscode.Event<TreeElement | undefined | void> = this._onDidChangeTreeData.event;
   private uriPath: string;
-  constructor(private stubPath: string, context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext) {
     const view = vscode.window.createTreeView('adapterActions', {
       treeDataProvider: this,
       showCollapseAll: true,
@@ -49,6 +49,7 @@ export class AdapterActionTreeView
   }
 
   async init() {
+    this.configVals = await ConfigValues.getInstance();
     this.treeElements = [];
     this.treeElements = await this.getChildren();
   }
@@ -80,7 +81,7 @@ export class AdapterActionTreeView
 
   private treeElements!: TreeElement[];
   private functionSignatures!: FunctionSignature[];
-
+  private configVals!: ConfigValues;
   async getChildren(element?: TreeElement): Promise<TreeElement[]> {
     if (element) {
       if (element.type === 'module') {
@@ -90,8 +91,8 @@ export class AdapterActionTreeView
       }
       return [];
     } else {
-      if (pathExists(this.stubPath)) {
-        this.functionSignatures = await this.getFuncsInActionPython(this.stubPath);
+      if (pathExists(this.configVals.getAdapterActionStubPath())) {
+        this.functionSignatures = await this.getFuncsInActionPython(this.configVals.getAdapterActionStubPath());
         const modules = this.getModules();
         this.treeElements = this.treeElements.concat(modules);
         return modules.sort((a, b) => a.moduleName.localeCompare(b.moduleName, 'en', { numeric: true }));
@@ -102,8 +103,9 @@ export class AdapterActionTreeView
   }
   private async generateActionStubs(): Promise<void> {
     const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
-    const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
-    await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${this.stubPath})`);
+    const pythonInterpreter = await this.configVals.getPythonInterpreter();
+    const stubPath = this.configVals.getAdapterActionStubPath();
+    await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${stubPath})`);
     await this.refresh();
   }
 
