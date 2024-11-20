@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.2.9]
+
+- User server-side timeout
+
 ## [3.2.8]
 
 - Fix config for stub generation
