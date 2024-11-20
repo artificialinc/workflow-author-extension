@@ -114,11 +114,9 @@ export class ArtificialApollo {
         },
         fetch,
       });
-      const timeoutLink = new ApolloLinkTimeout(3000);
-      const timeoutHttpLink = timeoutLink.concat(httpLink);
       console.log('Hostname: ', hostName);
       this.apollo = new ApolloClient({
-        link: from([retryLink, timeoutHttpLink]),
+        link: from([retryLink, httpLink]),
         cache: new InMemoryCache({}),
         defaultOptions: {
           query: {
