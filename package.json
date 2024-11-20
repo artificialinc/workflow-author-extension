@@ -435,7 +435,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
-    "@artificial/artificial-protos": "^0.108.2",
+    "@artificial/artificial-protos": "^0.119.1",
     "@vscode/python-extension": "^1.0.5",
     "@grpc/grpc-js": "^1.10.9",
     "@grpc/proto-loader": "0.7.8",

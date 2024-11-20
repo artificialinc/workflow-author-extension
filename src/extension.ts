@@ -282,11 +282,11 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       var namespace: string;
       var org: string;
       try {
-        adapter = await ArtificialAdapterManager.createRemoteAdapter(
+        adapter = await ArtificialAdapterManager.createAdapterManager(
           configVals.getHost(),
           configVals.getPrefix(),
           configVals.getOrgId(),
-          `${configVals.getLabId()}-manager`,
+          `${configVals.getLabId()}`,
           configVals.getToken()
         );
       } catch (e) {
