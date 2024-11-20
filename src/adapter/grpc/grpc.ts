@@ -165,18 +165,6 @@ export async function getAdapterClients(address: string, md: grpc.Metadata, ssl:
     return clients;
 }
 
-// TODO: Consider installing the labmanager proto package instead of using reflection.
-// export type GetConnectionsRequest = {
-//     scope: string
-// };
-
-// export type GetConnectionsResponse = {
-//     connections: Array<{
-//         client: {
-//             name: string
-//         }
-//     }>
-// };
 
 export interface LabmanagerClient {
     getConnections(request: GetConnectionsRequest, callback: (error: grpc.ServiceError | null, response: GetConnectionsResponse) => void): void;
@@ -185,7 +173,6 @@ export interface LabmanagerClient {
 }
 
 export async function getLabmanagerClient(address: string, md: grpc.Metadata, ssl: boolean = true, timeoutMs: number = 5000): Promise<LabmanagerClient> {
-    // Connect with grpc server reflection
     const creds = credsConstructor(md, ssl);
 
     return new LabManagerClient(address, creds(), channelOptions());

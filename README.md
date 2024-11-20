@@ -30,8 +30,8 @@ Hand edits to the stubs file will be over-written the next time you generate.<br
 
 Generation and publishing of workflows throws errors to the terminal. User has to be aware and open the terminal to ensure the operation completed successfully.
 
+## Install dependencies
 
-##  Install Dependencies
 ```bash
 # Make sure you are logged into the registry
 echo "//prod.artifacts.artificial.com/repository/npm-priv/:_auth=$(echo <github-user>:<gitub-token> | base64)" >> ~/.npmrc
