@@ -1,5 +1,18 @@
 # Change Log
 
+## [3.2.9]
+
+- User server-side timeout
+
+## [3.2.8]
+
+- Fix config for stub generation
+- Add error handling for apollo
+
+## [3.2.7]
+
+- Use python interpretor for commands
+
 ## [3.2.6]
 
 - Add command for choosing a lab
