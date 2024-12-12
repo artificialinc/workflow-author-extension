@@ -29,13 +29,14 @@ import { initConfig } from './utils';
 import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
+import { StandAloneActionCodeLensProvider } from './providers/standaloneActionCodeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
 import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
 import { UnimplementedError, getRemoteScope } from './adapter/grpc/grpc';
 import { authExternalUriRegistration } from './auth/auth';
-import { addFileToContext } from './utils';
-
+import { addFileToContext, artificialTask, artificialAwaitTask } from './utils';
+import * as path from "path";
 
 export async function activate(context: vscode.ExtensionContext) {
   // Setup authentication URI handler before config so it can be used to fill out config
@@ -81,6 +82,30 @@ export async function activate(context: vscode.ExtensionContext) {
   setupPickLabCommand(configVals, context);
   console.log('Artificial Workflow Extension is active');
 }
+
+
+async function  publishStandaloneAction(action: string): Promise<void> {
+  let rootPath =
+  vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
+    ? vscode.workspace.workspaceFolders[0].uri.fsPath
+    : undefined;
+  const outputLog = OutputLog.getInstance();
+  const generateTaskName = 'Generate Action: ' + action;
+  const publishTaskName = 'Publish Action: ';
+  const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
+  const  stubPath = await  ConfigValues.getInstance().getAdapterActionStubPath();
+  const labId = await ConfigValues.getInstance().getLabId();
+  try {
+    await artificialAwaitTask(generateTaskName, `(cd ${rootPath}/workflow; ${pythonInterpreter}/wfgen ${stubPath} -s ${action} -l ${labId})`);
+  } catch {
+    outputLog.log('Generate Failed, Skipping Publish');
+    return;
+  }
+
+    await artificialTask(publishTaskName, `(${pythonInterpreter}/wf publish ${path.dirname(stubPath)}/${action + '.bin'})`);
+}
+
+
 
 function taskExitWatcher(dataTree: DataTreeView) {
   vscode.tasks.onDidEndTaskProcess((e) => {
@@ -146,6 +171,15 @@ function setupCodeLens(selector: vscode.DocumentFilter, context: vscode.Extensio
     new WorkflowPublishLensProvider()
   );
   context.subscriptions.push(codeLensProviderDisposable);
+  const standaloneCodeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
+    selector,
+    new StandAloneActionCodeLensProvider()
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('workflows.standalonePublish', (action: string) =>
+      publishStandaloneAction(action)
+  ));
+  context.subscriptions.push(standaloneCodeLensProviderDisposable);
 }
 
 function setupStatusBar(configVals: ConfigValues, context: vscode.ExtensionContext) {

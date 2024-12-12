@@ -2,6 +2,11 @@
 
 ## [3.2.9]
 
+- Publish Standalone Action Codelens
+
+
+## [3.2.9]
+
 - User server-side timeout
 
 ## [3.2.8]
