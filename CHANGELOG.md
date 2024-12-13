@@ -1,5 +1,10 @@
 # Change Log
 
+## [3.2.10]
+
+- Publish Standalone Action Codelens
+
+
 ## [3.2.9]
 
 - User server-side timeout
