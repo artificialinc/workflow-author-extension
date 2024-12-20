@@ -74,6 +74,8 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
   // Register a sign in command
   context.subscriptions.push(
     vscode.commands.registerCommand(`adapterActions.signin`, async () => {
+      const log = OutputLog.getInstance();
+
       // Ask for instance url
       const rawInstanceUrl = await vscode.window.showInputBox({
         prompt: 'Enter the URL of your instance',
@@ -88,7 +90,6 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
       try {
         new URL(rawInstanceUrl);
       } catch (e) {
-        const log = OutputLog.getInstance();
         log.log(`Error getting instance url during signin: ${e}`);
         vscode.window.showErrorMessage(`Sign in failed: invalid instance URL`);
         return;
@@ -101,12 +102,17 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
       const callbackUri = await vscode.env.asExternalUri(
         vscode.Uri.parse(`${vscode.env.uriScheme}://${extensionId}/auth-complete`)
       );
-      const authUri = vscode.Uri.parse(
-        `${instanceUrl.origin}${instanceUrl.pathname}#/vscode-login?instanceURL=${encodeURIComponent(
-          instanceUrl.href
-        )}&redirect=${encodeURIComponent(callbackUri.toString())}`
-      );
-      vscode.env.openExternal(authUri);
+      const authUri = `${instanceUrl.origin}${instanceUrl.pathname}#/vscode-login?instanceURL=${encodeURIComponent(
+        instanceUrl.href
+      )}&redirect=${encodeURIComponent(callbackUri.toString())}`;
+      // Need to pass this as a string because vscode.env.openExternal double-decodes URLs
+      // openExternal accepts a string at runtime, but is not typed to accept a string.
+      // See https://github.com/microsoft/vscode/issues/85930 and associated discussions
+      // for more details. Once the issue is resolved, this should be updated to use whatever
+      // official solution they come up with.
+      vscode.env.openExternal(authUri as unknown as ReturnType<typeof vscode.Uri.parse>);
     })
   );
 }
+
+
