@@ -18,16 +18,8 @@ import * as vscode from 'vscode';
 import { addFileToContext } from '../utils';
 import { OutputLog } from '../providers/outputLogProvider';
 
-type DeploymentConfig = {
-  artificial: {
-    host: string;
-    token: string;
-    labId?: string;
-  };
-};
-
 export async function authExternalUriRegistration(context: vscode.ExtensionContext) {
-  // Register a URI handler for the authentication callback
+    // Register a URI handler for the authentication callback
   vscode.window.registerUriHandler({
     handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
       if (uri.path === '/auth-complete') {
@@ -43,32 +35,20 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
         // Convert instanceURL into a valid host for AC
         const u = new URL(instanceURL);
 
-        const generatedObj: DeploymentConfig = {
+        const generatedObj = {
           artificial: {
             host: u.host,
             token: token,
           },
         };
 
-        const labId = query.get('labId');
-
-        if (labId !== null) {
-          generatedObj.artificial.labId = labId;
-        } else {
-          vscode.window.showWarningMessage(
-            'Warning: no lab selected. Please select a lab before running or deploying.'
-          );
-        }
-
         addFileToContext(JSON.stringify(generatedObj), 'generated.yaml');
 
-        vscode.window.showInformationMessage(
-          `Sign in successful!. Please make sure generated.yaml is added to your .gitignore file`
-        );
+        vscode.window.showInformationMessage(`Sign in successful!. Please make sure generated.yaml is added to your .gitignore file`);
       } else {
         vscode.window.showErrorMessage(`Sign in failed: invalid URI path ${uri.path}`);
       }
-    },
+    }
   });
 
   // Register a sign in command
@@ -102,17 +82,13 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
       const callbackUri = await vscode.env.asExternalUri(
         vscode.Uri.parse(`${vscode.env.uriScheme}://${extensionId}/auth-complete`)
       );
-      const authUri = `${instanceUrl.origin}${instanceUrl.pathname}#/vscode-login?instanceURL=${encodeURIComponent(
-        instanceUrl.href
-      )}&redirect=${encodeURIComponent(callbackUri.toString())}`;
-      // Need to pass this as a string because vscode.env.openExternal double-decodes URLs
-      // openExternal accepts a string at runtime, but is not typed to accept a string.
-      // See https://github.com/microsoft/vscode/issues/85930 and associated discussions
-      // for more details. Once the issue is resolved, this should be updated to use whatever
-      // official solution they come up with.
-      vscode.env.openExternal(authUri as unknown as ReturnType<typeof vscode.Uri.parse>);
+      const authUri = vscode.Uri.parse(
+        `${instanceUrl.origin}/app/#/vscode-login?instanceURL=${instanceUrl.origin}&redirect=${callbackUri}`
+      );
+      vscode.env.openExternal(authUri);
     })
   );
+
 }
 
 
