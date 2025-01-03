@@ -104,7 +104,7 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
       );
       const authUri = `${instanceUrl.origin}${instanceUrl.pathname}#/vscode-login?instanceURL=${encodeURIComponent(
         instanceUrl.href
-      )}&redirect=${encodeURIComponent(callbackUri.toString())}`;
+      )}&redirect=${callbackUri}`;
       // Need to pass this as a string because vscode.env.openExternal double-decodes URLs
       // openExternal accepts a string at runtime, but is not typed to accept a string.
       // See https://github.com/microsoft/vscode/issues/85930 and associated discussions
