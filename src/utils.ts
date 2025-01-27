@@ -18,6 +18,7 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { createVisitor, parse } from 'python-ast';
 import { OutputLog } from './providers/outputLogProvider';
+import { ConfigValues } from './providers/configProvider';
 
 export function pathExists(p: string): boolean {
   try {
@@ -33,7 +34,8 @@ export async function initConfig(rootPath: string) {
     await artificialAwaitTask('tmp Directory Creation', 'mkdir tmp');
   }
   try {
-    await artificialAwaitTask('Setup Config', `afconfig view --yaml > tmp/merged.yaml`);
+    const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
+    await artificialAwaitTask('Setup Config', `${pythonInterpreter}/afconfig view --yaml > tmp/merged.yaml`);
   } catch {
     const log = OutputLog.getInstance();
     log.log('Error Setting up Configuration');
@@ -42,7 +44,8 @@ export async function initConfig(rootPath: string) {
 
 export async function addFileToContext(file: string, filename: string) {
   try {
-    await artificialAwaitTask('Add File to Context', `afconfig add-file ${filename} '${file}'`);
+    const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
+    await artificialAwaitTask('Add File to Context', `${pythonInterpreter}/afconfig add-file ${filename} '${file}'`);
   } catch {
     const log = OutputLog.getInstance();
     log.log('Error Adding File to Context. The artificial-common package may be outdated. v0.2.3 or newer is required.');

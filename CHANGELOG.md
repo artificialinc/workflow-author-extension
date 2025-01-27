@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.3.1]
+
+- Use python interpreter when calling afconfig
+
 ## [3.3.0]
 
 - Use new adapter api
