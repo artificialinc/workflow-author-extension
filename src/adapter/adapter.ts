@@ -101,6 +101,7 @@ export type AdapterInfo = {
   name: string;
   image: string;
   is_manager: boolean; // eslint-disable-line @typescript-eslint/naming-convention
+  labId: string;
 };
 
 export class ArtificialAdapterManager extends ArtificialAdapter {
@@ -121,6 +122,10 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
       prefix = remoteScope.namespace;
       org = remoteScope.orgId;
       lab = remoteScope.labId;
+
+      if (lab === '') {
+        throw new Error('Lab is required to manage adapters');
+      }
     } catch (e) {
       if (e instanceof UnimplementedError) {
         OutputLog.getInstance().log('Labmanager does not support getScope method, falling back to local namespace/org');
@@ -149,7 +154,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     return new ArtificialAdapterManager(adapterClients, adapterClient, lab, complianceClientConstructor(address, token, true), output) as InstanceType<T>;
   }
 
-  public async updateAdapterImage(adapterName: string, image: string): Promise<void> {
+  public async updateAdapterImage(adapterName: string, image: string, labId: string): Promise<void> {
     const compliance = await new Promise<boolean>((resolve, reject) => {
       if (!this.complianceClient) {
         resolve(false);
@@ -175,27 +180,34 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     }
 
     return new Promise<void>((resolve, reject) => {
+      // Labmanager has a bug where sometimes labId isn't set. So default to our class lab id. Should be fine in current implementation
+      let lId = labId;
+      if (lId === '') {
+        lId = this.labId;
+      }
       // First try the management client
-      this.adapterServiceClient.updateAdapterImage(new UpdateAdapterImageRequest().setAdapterId(adapterName).setImage(image).setLabId(this.labId), (err: grpc.ServiceError | null, _: any) => {
-        (err: grpc.ServiceError | null, _: any) => {
-          if (err) {
-            if (err.code === grpc.status.UNIMPLEMENTED) {
-              // Fallback to the adapter manager direct connection
-              this.getManagementClient().client.updateAdapterImage({
-                "adapter_name": { value: adapterName }, // eslint-disable-line @typescript-eslint/naming-convention
-                "image": { value: image },
-              }, (err: Error, _: any) => {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve();
-                }
-              });
-            }
+      this.adapterServiceClient.updateAdapterImage(new UpdateAdapterImageRequest().setAdapterId(adapterName).setImage(image).setLabId(lId), (err: grpc.ServiceError | null, _: any) => {
+        // (err: grpc.ServiceError | null, _: any) => {
+        if (err) {
+          if (err.code === grpc.status.UNIMPLEMENTED) {
+            // Fallback to the adapter manager direct connection
+            this.getManagementClient().client.updateAdapterImage({
+              "adapter_name": { value: adapterName }, // eslint-disable-line @typescript-eslint/naming-convention
+              "image": { value: image },
+            }, (err: Error, _: any) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
           } else {
-            resolve();
+            reject(err);
           }
-        };
+        } else {
+          resolve();
+        }
+        // };
       });
     });
   }
@@ -227,8 +239,8 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
           }
         } else {
           try {
-          const adapters = await this.getAdapters(response.getAdapterIdsList());
-          resolve(Array.from(adapters.values()));
+            const adapters = await this.getAdapters(response.getAdapterIdsList());
+            resolve(Array.from(adapters.values()));
           } catch (e) {
             reject(e);
           }
@@ -239,7 +251,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     });
   }
 
-  async getAdapters(ids: string[]): Promise<Map<string,AdapterInfo>> {
+  async getAdapters(ids: string[]): Promise<Map<string, AdapterInfo>> {
     const adapters = (await Promise.all(ids.map(async (id) => {
       return new Promise<AdapterInfo | void>((resolve, reject) => {
         this.adapterServiceClient.getAdapter(new GetAdapterRequest().setAdapterId(id).setLabId(this.labId), (err: grpc.ServiceError | null, response: GetAdapterResponse) => {
@@ -255,6 +267,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
                   name: adapter.getId(),
                   image: management.getImage(),
                   is_manager: false, // eslint-disable-line @typescript-eslint/naming-convention
+                  labId: adapter.getAddress()?.getLabId() || '',
                 });
               } else {
                 resolve();

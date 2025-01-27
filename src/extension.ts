@@ -31,7 +31,7 @@ import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { StandAloneActionCodeLensProvider } from './providers/standaloneActionCodeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
-import { ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
+import { AdapterInfo, ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
 import { UnimplementedError, getRemoteScope } from './adapter/grpc/grpc';
 import { authExternalUriRegistration } from './auth/auth';
@@ -295,25 +295,26 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         return;
       }
 
+      var adapters: AdapterInfo[] = [];
+      try {
+        adapters = await adapter.listNonManagerAdapters();
+      }
+      catch (e) {
+        console.log(e);
+        vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
+        cancellationToken.cancel();
+      }
+
       const adapterToUpdate = await vscode.window.showQuickPick(
         new Promise<vscode.QuickPickItem[]>((resolve, reject) => {
-          adapter
-            .listNonManagerAdapters()
-            .then((adapters) => {
               resolve(
                 adapters.map((a) => {
                   return {
-                    label: a.name,
+                    label: `${a.name}`,
                     description: a.image,
                   };
                 })
               );
-            })
-            .catch((e) => {
-              console.log(e);
-              vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
-              cancellationToken.cancel();
-            });
         }),
         { placeHolder: 'Select an adapter to update' },
         cancellationToken.token
@@ -345,8 +346,14 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       );
 
       if (image !== undefined) {
+        // Get adapter from the selected label
+        let a = adapters.find((a) => a.name === adapterToUpdate.label);
+        if (a === undefined) {
+          vscode.window.showErrorMessage('Failed to find adapter');
+          return;
+        }
         try {
-          await adapter.updateAdapterImage(adapterToUpdate.label, image);
+          await adapter.updateAdapterImage(a.name, image, a.labId);
         } catch (e) {
           console.log(e);
           vscode.window.showErrorMessage(`Failed to update adapter image: ${e}`);
