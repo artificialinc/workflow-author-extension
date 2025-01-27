@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.3.0]
+
+- Use new adapter api
+
 ## [3.2.10]
 
 - Publish Standalone Action Codelens
