@@ -22,19 +22,55 @@ import { AdapterClient } from '../grpc/grpc';
 import { after } from 'lodash';
 import { ComplianceModeServiceClient } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_grpc_pb';
 import { ComplianceModeState, GetComplianceModeRequest, GetComplianceModeResponse } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_pb';
+import { AdapterServiceClient } from "@artificial/artificial-protos/grpc-js/artificial/api/alab/adapter/v1/adapter_grpc_pb";
+import { Adapter, Address, GetAdapterRequest, GetAdapterResponse, ListAdaptersRequest, ListAdaptersResponse, ManagedAdapter, UpdateAdapterImageRequest, UpdateAdapterImageResponse } from "@artificial/artificial-protos/grpc-js/artificial/api/alab/adapter/v1/adapter_pb";
+import { callErrorFromStatus } from "@grpc/grpc-js/build/src/call";
 
 describe('test artificial adapter', function () {
   afterEach(function () {
     jest.clearAllMocks();
   });
 
-  test('test udpate adapter image with manager', async function () {
-    const m = mock<AdapterClient>();
-    m.client.updateAdapterImage = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {}));
-    const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]));
+  test('test update adapter image with manager', async function () {
+    const m = mock<AdapterServiceClient>();
+    m.updateAdapterImage = jest.fn().mockImplementation(
+    // @ts-ignore
+    (request: UpdateAdapterImageRequest, cb: (err: grpc.ServiceError | null, response: UpdateAdapterImageResponse) => void) => {
+      cb(null, new UpdateAdapterImageResponse());
+    }) as any;
+    const c = mock<ComplianceModeServiceClient>();
+    c.getComplianceMode = jest.fn().mockImplementation(
+      // @ts-ignore
+      (request: GetComplianceModeRequest, cb: (err: grpc.ServiceError | null, response: GetComplianceModeResponse) => void) => {
+        cb(null, new GetComplianceModeResponse().setMode(ComplianceModeState.COMPLIANCE_MODE_OFF));
+      }) as any;
 
-    await adapter.updateAdapterImage("adapter_manager", "ghcr.io/artificialinc/adapter-manager:aidan-5");
-    expect(m.client.updateAdapterImage).toBeCalledWith({
+      const adapter = new ArtificialAdapterManager(new Map([]), m, 'labId', c);
+
+    await adapter.updateAdapterImage("adapter_manager", "ghcr.io/artificialinc/adapter-manager:aidan-5", 'labId');
+    expect(m.updateAdapterImage).toBeCalledWith(new UpdateAdapterImageRequest().setLabId("labId").setAdapterId("adapter_manager").setImage("ghcr.io/artificialinc/adapter-manager:aidan-5"), expect.any(Function));
+  });
+
+  test('test update adapter image with manager fallback', async function () {
+    const m = mock<AdapterServiceClient>();
+    m.updateAdapterImage = jest.fn().mockImplementation(
+    // @ts-ignore
+    (request: UpdateAdapterImageRequest, cb: (err: grpc.ServiceError | null, response: UpdateAdapterImageResponse) => void) => {
+      cb(callErrorFromStatus(new grpc.StatusBuilder().withCode(grpc.status.UNIMPLEMENTED).build() as grpc.StatusObject, ''), new UpdateAdapterImageResponse());
+    }) as any;
+    const c = mock<ComplianceModeServiceClient>();
+    c.getComplianceMode = jest.fn().mockImplementation(
+      // @ts-ignore
+      (request: GetComplianceModeRequest, cb: (err: grpc.ServiceError | null, response: GetComplianceModeResponse) => void) => {
+        cb(null, new GetComplianceModeResponse().setMode(ComplianceModeState.COMPLIANCE_MODE_OFF));
+      }) as any;
+
+    const mac = mock<AdapterClient>();
+    mac.client.updateAdapterImage = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {}));
+    const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", mac]]), m, 'labId', c);
+
+    await adapter.updateAdapterImage("adapter_manager", "ghcr.io/artificialinc/adapter-manager:aidan-5", 'labId');
+    expect(mac.client.updateAdapterImage).toBeCalledWith({
       "adapter_name": { value: "adapter_manager" }, // eslint-disable-line @typescript-eslint/naming-convention
       "image": { value: "ghcr.io/artificialinc/adapter-manager:aidan-5" },
     }, expect.any(Function));
@@ -50,13 +86,17 @@ describe('test artificial adapter', function () {
         cb(null, new GetComplianceModeResponse().setMode(ComplianceModeState.COMPLIANCE_MODE_ON_GLOBAL));
       }) as any;
 
-    const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]), c);
-    await expect(adapter.updateAdapterImage("adapter_manager", "ghcr.io/artificialinc/adapter-manager:aidan-5")).rejects.toThrowError("Cannot update adapter image to a non CI built image while in compliance mode");
+    const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]), mock<AdapterServiceClient>(), 'labId', c);
+    await expect(adapter.updateAdapterImage("adapter_manager", "ghcr.io/artificialinc/adapter-manager:aidan-5", 'labId')).rejects.toThrowError("Cannot update adapter image to a non CI built image while in compliance mode");
   });
 
   test('test udpate adapter image compliance good version with manager', async function () {
-    const m = mock<AdapterClient>();
-    m.client.updateAdapterImage = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {}));
+    const m = mock<AdapterServiceClient>();
+    m.updateAdapterImage = jest.fn().mockImplementation(
+    // @ts-ignore
+    (request: UpdateAdapterImageRequest, cb: (err: grpc.ServiceError | null, response: UpdateAdapterImageResponse) => void) => {
+      cb(null, new UpdateAdapterImageResponse());
+    }) as any;
     const c = mock<ComplianceModeServiceClient>();
     c.getComplianceMode = jest.fn().mockImplementation(
       // @ts-ignore
@@ -64,17 +104,37 @@ describe('test artificial adapter', function () {
         cb(null, new GetComplianceModeResponse().setMode(ComplianceModeState.COMPLIANCE_MODE_ON_GLOBAL));
       }) as any;
 
-    const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]), c);
-    await adapter.updateAdapterImage("adapter_manager", "ghcr.io/artificialinc/adapter-manager:1.2.3");
-    expect(m.client.updateAdapterImage).toBeCalledWith({
-      "adapter_name": { value: "adapter_manager" }, // eslint-disable-line @typescript-eslint/naming-convention
-      "image": { value: "ghcr.io/artificialinc/adapter-manager:1.2.3" },
-    }, expect.any(Function));
+      const adapter = new ArtificialAdapterManager(new Map([]), m, 'labId', c);
+
+    await adapter.updateAdapterImage("adapter_manager", "ghcr.io/artificialinc/adapter-manager:1.2.3", 'labId');
+    expect(m.updateAdapterImage).toBeCalledWith(new UpdateAdapterImageRequest().setLabId("labId").setAdapterId("adapter_manager").setImage("ghcr.io/artificialinc/adapter-manager:1.2.3"), expect.any(Function));
   });
 
   test('test list adapters with manager', async function () {
-    const m = mock<AdapterClient>();
-    m.client.listAdapters = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {
+    const m = mock<AdapterServiceClient>();
+    m.listAdapters = jest.fn().mockImplementation(
+      // @ts-ignore
+      (request: ListAdaptersRequest, cb: (err: grpc.ServiceError | null, response: ListAdaptersResponse) => void) => {
+        cb(null, new ListAdaptersResponse().setAdapterIdsList(["adapter1"]));
+      }) as any;
+    m.getAdapter = jest.fn().mockImplementation(
+      // @ts-ignore
+      (request: GetAdapterRequest, cb: (err: grpc.ServiceError | null, response: GetAdapterResponse) => void) => {
+        switch (request.getAdapterId()) {
+          case "adapter1":
+            cb(null, new GetAdapterResponse().setAdapter(new Adapter().setAddress(new Address().setLabId("labId")).setId("adapter1").setManagement(new ManagedAdapter().setImage("ghcr.io/artificialinc/adapter1:aidan-5"))));
+            break;
+        }
+      }) as any;
+
+    const adapter = new ArtificialAdapterManager(new Map([]), m, 'labId', mock<ComplianceModeServiceClient>(),);
+    const adapters = await adapter.listNonManagerAdapters();
+
+    expect(adapters).toStrictEqual([{ name: "adapter1", image: "ghcr.io/artificialinc/adapter1:aidan-5", is_manager: false, labId: "labId" }]); // eslint-disable-line @typescript-eslint/naming-convention
+    expect(m.listAdapters).toBeCalledWith(new ListAdaptersRequest().setLabId("labId"), expect.any(Function));
+
+    const mac = mock<AdapterClient>();
+    mac.client.listAdapters = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {
       "value": [
         {
           "name": "adapter1",
@@ -88,25 +148,17 @@ describe('test artificial adapter', function () {
         },
       ]
     }));
-    const adapter = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", m]]));
-    const adapters = await adapter.listNonManagerAdapters();
+      m.listAdapters = jest.fn().mockImplementation(
+    // @ts-ignore
+    (request: ListAdaptersRequest, cb: (err: grpc.ServiceError | null, response: ListAdaptersResponse) => void) => {
+      cb(callErrorFromStatus(new grpc.StatusBuilder().withCode(grpc.status.UNIMPLEMENTED).build() as grpc.StatusObject, ''), new ListAdaptersResponse());
+    }) as any;
 
-    expect(adapters).toStrictEqual([{ name: "adapter1", image: "ghcr.io/artificialinc/adapter1:aidan-5", is_manager: false }]); // eslint-disable-line @typescript-eslint/naming-convention
-    expect(m.client.listAdapters).toBeCalledWith({}, expect.any(Function));
 
-    const adapter2 = new ArtificialAdapterManager(new Map([["adapter.manager.management_actions.ManagementActions", m]]));
+    const adapter2 = new ArtificialAdapterManager(new Map([["manager.management_actions.ManagementActions", mac]]), m, 'labId', mock<ComplianceModeServiceClient>(),);
     const adapters2 = await adapter2.listNonManagerAdapters();
 
-    expect(adapters2).toStrictEqual([{ name: "adapter1", image: "ghcr.io/artificialinc/adapter1:aidan-5", is_manager: false }]); // eslint-disable-line @typescript-eslint/naming-convention
-    expect(m.client.listAdapters).toBeCalledWith({}, expect.any(Function));
-  });
-
-  test('test list adapters with missing manager', async function () {
-    const mockLog = mock<Output>();
-
-    const adapter = new ArtificialAdapterManager(new Map([["fake", mock<AdapterClient>()]]), undefined, mockLog);
-    await expect(adapter.listNonManagerAdapters()).rejects.toThrowError("Could not find adapter manager client");
-
-    expect(mockLog.log).toBeCalledWith("Could not find management client, available clients are: fake");
+    expect(adapters2).toStrictEqual([{ name: "adapter1", image: "ghcr.io/artificialinc/adapter1:aidan-5", is_manager: false}]); // eslint-disable-line @typescript-eslint/naming-convention
+    expect(m.listAdapters).toBeCalledWith(new ListAdaptersRequest().setLabId("labId"), expect.any(Function));
   });
 });

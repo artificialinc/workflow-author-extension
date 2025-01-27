@@ -1,5 +1,21 @@
 # Change Log
 
+## [3.3.0]
+
+- Use new adapter api
+
+## [3.2.13]
+
+- Fixing sign in redirect
+
+## [3.2.12]
+
+- Fixing labid parsing for codespace
+
+## [3.2.11]
+
+- Allowing labId passthrough in sign-in flow
+
 ## [3.2.10]
 
 - Publish Standalone Action Codelens

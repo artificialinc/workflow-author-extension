@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.2.13",
+  "version": "3.3.0",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -407,7 +407,8 @@
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-    "test-compile": "tsc -p ./"
+    "test-compile": "tsc -p ./",
+    "build-vsix": "vsce package"
   },
   "devDependencies": {
     "@types/github-url-from-git": "^1.5.1",
@@ -435,7 +436,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
-    "@artificial/artificial-protos": "^0.108.2",
+    "@artificial/artificial-protos": "^0.125.5",
     "@vscode/python-extension": "^1.0.5",
     "@grpc/grpc-js": "^1.10.9",
     "@grpc/proto-loader": "0.7.8",
