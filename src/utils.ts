@@ -34,7 +34,7 @@ export async function initConfig(rootPath: string) {
     await artificialAwaitTask('tmp Directory Creation', 'mkdir tmp');
   }
   try {
-    const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
+    const pythonInterpreter = await ConfigValues.getPythonInterpreter();
     await artificialAwaitTask('Setup Config', `${pythonInterpreter}/afconfig view --yaml > tmp/merged.yaml`);
   } catch {
     const log = OutputLog.getInstance();
@@ -44,7 +44,7 @@ export async function initConfig(rootPath: string) {
 
 export async function addFileToContext(file: string, filename: string) {
   try {
-    const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
+    const pythonInterpreter = await ConfigValues.getPythonInterpreter();
     await artificialAwaitTask('Add File to Context', `${pythonInterpreter}/afconfig add-file ${filename} '${file}'`);
   } catch {
     const log = OutputLog.getInstance();

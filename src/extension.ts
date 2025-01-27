@@ -92,7 +92,7 @@ async function  publishStandaloneAction(action: string): Promise<void> {
   const outputLog = OutputLog.getInstance();
   const generateTaskName = 'Generate Action: ' + action;
   const publishTaskName = 'Publish Action: ';
-  const pythonInterpreter = await ConfigValues.getInstance().getPythonInterpreter();
+  const pythonInterpreter = await ConfigValues.getPythonInterpreter();
   const  stubPath = await  ConfigValues.getInstance().getAdapterActionStubPath();
   const labId = await ConfigValues.getInstance().getLabId();
   try {
