@@ -197,7 +197,7 @@ export class ConfigValues {
     this.githubToken = env.PYPI_PASSWORD;
   }
 
-  public async getPythonInterpreter(): Promise<string> {
+  public static async getPythonInterpreter(): Promise<string> {
     const pythonExtension = vscode.extensions.getExtension('ms-python.python');
     if (!pythonExtension) {
         vscode.window.showErrorMessage('Python extension is not installed');
@@ -209,8 +209,8 @@ export class ConfigValues {
 
     const api = pythonExtension.exports;
     const interpreterPath = api.settings.getExecutionDetails().execCommand;
-    this.outputLog.log(`Python interpreter: ${interpreterPath ? path.dirname(interpreterPath.join(' ')) : 'Not found'}`);
-    
+    OutputLog.getInstance().log(`Python interpreter: ${interpreterPath ? path.dirname(interpreterPath.join(' ')) : 'Not found'}`);
+
     if (!interpreterPath) {
       vscode.window.showErrorMessage('Python interpreter not found');
     }
