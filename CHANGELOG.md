@@ -2,7 +2,7 @@
 
 ## [3.4.0]
 
-- Add lab and sign in command to status bar
+- Add lab and sign in command to status bar 
 
 ## [3.3.1]
 
