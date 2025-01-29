@@ -70,7 +70,7 @@ export async function activate(context: vscode.ExtensionContext) {
   //Drop handler for document editor
   const selector = setupDropHandler(context, funcTree, assistantByLab, loadconfigs);
   // Status Bar for Connection Info
-  const statusBar = setupStatusBar(configVals, context);
+  const statusBar = await setupStatusBar(configVals, context);
   // Code Lens for WF Publish
   setupCodeLens(selector, context);
   // Handle config resets across components
@@ -182,11 +182,13 @@ function setupCodeLens(selector: vscode.DocumentFilter, context: vscode.Extensio
   context.subscriptions.push(standaloneCodeLensProviderDisposable);
 }
 
-function setupStatusBar(configVals: ConfigValues, context: vscode.ExtensionContext) {
+async function setupStatusBar(configVals: ConfigValues, context: vscode.ExtensionContext) {
   const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
   const host = configVals.getHost().split('.')[0];
-  statusBar.text = `$(debug-disconnect) ` + host;
+  const labName = await configVals.getLabName();
+  statusBar.text = `$(debug-disconnect) ` + host + ` Lab: (${labName})`;
   statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
+  statusBar.command = 'adapterActions.signin';
   statusBar.show();
   context.subscriptions.push(statusBar);
   return statusBar;
@@ -205,18 +207,23 @@ function configResetWatcher(
   const outputLog = OutputLog.getInstance();
   watchMergedConfig.onDidChange((uri) => {
     outputLog.log('merged.yaml changed');
-    configVals.reset();
-    const client = ArtificialApollo.getInstance();
-    client.reset();
-    statusBar.text = `$(debug-disconnect) ` + configVals.getHost().split('.')[0];
-    statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
-    assistantByLab.refresh();
+    (async () => {
+      await configVals.reset();
+      const client = ArtificialApollo.getInstance();
+      client.reset();
+      statusBar.text = `$(debug-disconnect) ` + configVals.getHost().split('.')[0] + " Lab: (" + (await configVals.getLabName() + ")");
+      statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
+      statusBar.show();
+      assistantByLab.refresh();
+    })();
   });
   context.subscriptions.push(watchMergedConfig);
   const watchEnvFile = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(rootPath, '.env'));
   watchEnvFile.onDidChange((uri) => {
     outputLog.log('.env file changed');
-    configVals.reset();
+    (async () => {
+      configVals.reset();
+    })();
   });
   context.subscriptions.push(watchEnvFile);
 }

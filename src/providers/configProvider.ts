@@ -22,6 +22,7 @@ import * as fs from 'fs';
 import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
 import { OutputLog } from './outputLogProvider';
+import { ArtificialApollo } from './apolloProvider';
 let python: PythonExtension;
 
 export class ConfigValues {
@@ -118,8 +119,8 @@ export class ConfigValues {
   public getLabId() {
     return this.labId;
   }
-  public reset() {
-    this.initialize();
+  public async reset() {
+    await this.initialize();
   }
   public getGitRemoteUrl() {
     return this.gitRemote;
@@ -129,6 +130,17 @@ export class ConfigValues {
   }
   public getGithubToken() {
     return this.githubToken;
+  }
+  public async getLabName(): Promise<string> {
+    const client = ArtificialApollo.getInstance();
+    const labs =  await client.queryLabs();
+    const labData = labs?.labs.find((lab) => lab.id === this.labId);
+    if (labData) {
+      return labData.name;
+    }
+    else {
+      return '';
+    }
   }
 
   private getGitRemote(): string | undefined {
