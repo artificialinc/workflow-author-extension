@@ -222,7 +222,7 @@ function configResetWatcher(
   watchEnvFile.onDidChange((uri) => {
     outputLog.log('.env file changed');
     (async () => {
-      configVals.reset();
+      await configVals.reset();
     })();
   });
   context.subscriptions.push(watchEnvFile);
