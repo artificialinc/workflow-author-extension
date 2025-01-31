@@ -211,7 +211,7 @@ function configResetWatcher(
       await configVals.reset();
       const client = ArtificialApollo.getInstance();
       client.reset();
-      statusBar.text = `$(debug-disconnect) ` + configVals.getHost().split('.')[0] + " Lab: (" + (await configVals.getLabName() + ")");
+      statusBar.text = `$(debug-disconnect) ${await configVals.getLabName()} @ ${configVals.getHost().split('.')[0]}`;
       statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
       statusBar.show();
       assistantByLab.refresh();
