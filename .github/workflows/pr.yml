@@ -39,6 +39,7 @@ jobs:
           minor_pattern: "feat:"
           version_format: "${major}.${minor}.${patch}"
           bump_each_commit: false
+          search_commit_body: true
       - name: set outputs
         id: version_raw
         run: |
