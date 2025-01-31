@@ -186,7 +186,7 @@ async function setupStatusBar(configVals: ConfigValues, context: vscode.Extensio
   const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
   const host = configVals.getHost().split('.')[0];
   const labName = await configVals.getLabName();
-  statusBar.text = `$(debug-disconnect) ` + host + ` Lab: (${labName})`;
+  statusBar.text = `$(debug-disconnect) ${labName} @ ${host}`;
   statusBar.tooltip = `Artificial Workflow extension connected to ${configVals.getHost()}`;
   statusBar.command = 'adapterActions.signin';
   statusBar.show();
