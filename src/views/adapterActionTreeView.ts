@@ -91,7 +91,15 @@ export class AdapterActionTreeView
       }
       return [];
     } else {
-      if (pathExists(this.configVals.getAdapterActionStubPath())) {
+      if (this.configVals.folderBasedStubGenerationEnabled() && pathExists(this.configVals.getAdapterActionStubFolder())) {
+        // TODO: Change this to loop through folders and get all the functions 
+        this.functionSignatures = await this.getFuncsInActionPython(this.configVals.getAdapterActionStubPath());
+        const modules = this.getModules();
+        this.treeElements = this.treeElements.concat(modules);
+        return modules.sort((a, b) => a.moduleName.localeCompare(b.moduleName, 'en', { numeric: true }));
+
+      }
+      else if (pathExists(this.configVals.getAdapterActionStubPath())) {
         this.functionSignatures = await this.getFuncsInActionPython(this.configVals.getAdapterActionStubPath());
         const modules = this.getModules();
         this.treeElements = this.treeElements.concat(modules);

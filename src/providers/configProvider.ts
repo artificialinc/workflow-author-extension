@@ -33,6 +33,8 @@ export class ConfigValues {
     private hostName: string = '',
     private apiToken: string = '',
     private adapterActionStubPath = '',
+    private adapterActionStubFolder = '',
+    private enableFolderBasedStubGeneration = false,
     private assistantStubPath = '',
     private prefix: string = '',
     private orgId: string = '',
@@ -83,6 +85,11 @@ export class ConfigValues {
 
     this.adapterActionStubPath = path.join(rootPath, customAdapterActionStubPath);
 
+    // Set up config values for breaking stub generation changes to allow for scoped stubs by using multiple directories and files
+    this.enableFolderBasedStubGeneration = vscode.workspace.getConfiguration('artificial.workflow.author').enableFolderBasedStubGeneration;
+    const customAdapterActionStubFolder =  vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubFolder;
+    this.adapterActionStubFolder = path.join(rootPath, customAdapterActionStubFolder);
+
     const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
     this.assistantStubPath = path.join(rootPath, customAssistantStubPath);
 
@@ -106,6 +113,12 @@ export class ConfigValues {
   }
   public getAdapterActionStubPath() {
     return this.adapterActionStubPath;
+  }
+  public getAdapterActionStubFolder() {
+    return this.adapterActionStubFolder;
+  }
+  public folderBasedStubGenerationEnabled() {
+    return this.enableFolderBasedStubGeneration;
   }
   public getAssistantStubPath() {
     return this.assistantStubPath;

@@ -95,6 +95,9 @@ async function  publishStandaloneAction(action: string): Promise<void> {
   const pythonInterpreter = await ConfigValues.getPythonInterpreter();
   const  stubPath = await  ConfigValues.getInstance().getAdapterActionStubPath();
   const labId = await ConfigValues.getInstance().getLabId();
+
+ // TODO: Need to adjust this to account for folder based stubs
+
   try {
     await artificialAwaitTask(generateTaskName, `(cd ${rootPath}/workflow; ${pythonInterpreter}/wfgen ${stubPath} -s ${action} -l ${labId})`);
   } catch {
