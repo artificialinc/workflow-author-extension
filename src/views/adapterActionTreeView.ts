@@ -115,6 +115,9 @@ export class AdapterActionTreeView
     }
   }
   private async generateActionStubs(): Promise<void> {
+
+    // TODO: Implement generation for folder based stubs when the feature is ready
+
     const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
     const pythonInterpreter = await ConfigValues.getPythonInterpreter();
     const stubPath = this.configVals.getAdapterActionStubPath();
