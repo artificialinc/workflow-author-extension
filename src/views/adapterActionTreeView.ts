@@ -20,6 +20,7 @@ import { artificialAwaitTask, pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
 import { ConfigValues } from '../providers/configProvider';
+import { findPythonFiles } from '../utils';
 type TreeElement = Module | Function;
 export class AdapterActionTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
@@ -92,8 +93,12 @@ export class AdapterActionTreeView
       return [];
     } else {
       if (this.configVals.folderBasedStubGenerationEnabled() && pathExists(this.configVals.getAdapterActionStubFolder())) {
-        // TODO: Change this to loop through folders and get all the functions 
-        this.functionSignatures = await this.getFuncsInActionPython(this.configVals.getAdapterActionStubPath());
+        const files = await findPythonFiles(this.configVals.getAdapterActionStubFolder());
+        let funcSigBuilder: FunctionSignature[] = [];
+        for (const file of files) {
+          funcSigBuilder.push(...(await this.getFuncsInActionPython(file)));
+        }
+        this.functionSignatures = funcSigBuilder;
         const modules = this.getModules();
         this.treeElements = this.treeElements.concat(modules);
         return modules.sort((a, b) => a.moduleName.localeCompare(b.moduleName, 'en', { numeric: true }));

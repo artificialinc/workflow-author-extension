@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.5.0]
+
+- Add folder based stub generation
+
 ## [3.4.0]
 
 - Add lab and sign in command to status bar 

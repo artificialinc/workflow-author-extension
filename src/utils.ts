@@ -19,6 +19,7 @@ import * as vscode from 'vscode';
 import { createVisitor, parse } from 'python-ast';
 import { OutputLog } from './providers/outputLogProvider';
 import { ConfigValues } from './providers/configProvider';
+import * as path from "path";
 
 export function pathExists(p: string): boolean {
   try {
@@ -132,4 +133,25 @@ export function findLabAndAssistantsInFiles(files: string[]) {
     }
   }
   return labsAndAssistants;
+}
+
+export async function findPythonFiles(dir: string): Promise<string[]> {
+  let pythonFiles: string[] = [];
+
+  const files = await fs.promises.readdir(dir, { withFileTypes: true });
+
+  for (const file of files) {
+      const fullPath = path.join(dir, file.name);
+
+      if (file.isDirectory()) {
+          // Recursively search inside subdirectories
+          const subFiles = await findPythonFiles(fullPath);
+          pythonFiles = pythonFiles.concat(subFiles);
+      } else if (file.isFile() && file.name.endsWith(".py")) {
+          // If it's a Python file, add it to the list
+          pythonFiles.push(fullPath);
+      }
+  }
+
+  return pythonFiles;
 }
