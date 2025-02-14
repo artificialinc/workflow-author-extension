@@ -43,7 +43,7 @@
         },
         "artificial.workflow.author.adapterActionStubFolder": {
           "type": "string",
-          "default": "workflow/stubs",
+          "default": "workflow/stubs/actions",
           "description": "Folder to generate adapter action stubs"
         },
         "artificial.workflow.author.enableFolderBasedStubGeneration": {

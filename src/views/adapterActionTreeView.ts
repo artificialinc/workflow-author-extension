@@ -120,8 +120,15 @@ export class AdapterActionTreeView
 
     const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
     const pythonInterpreter = await ConfigValues.getPythonInterpreter();
-    const stubPath = this.configVals.getAdapterActionStubPath();
-    await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${stubPath})`);
+    let stubPath="";
+    if (this.configVals.folderBasedStubGenerationEnabled()) {
+      stubPath = this.configVals.getAdapterActionStubFolder ();
+      await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs --hierarchical ${module} -o ${stubPath})`);
+    }
+    else {
+      stubPath = this.configVals.getAdapterActionStubPath();
+      await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${stubPath})`);
+    }
     await this.refresh();
   }
 
