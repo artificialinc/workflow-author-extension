@@ -119,6 +119,10 @@ function taskExitWatcher(dataTree: DataTreeView) {
         log.log('Setup Config Completed');
         return;
       }
+      // If we are just checking the version of the CLI, don't show a notification on success
+      if (e.execution.task.name === 'Check artificial-workflows-tools Version') {
+        return;
+      }
       vscode.window.showInformationMessage(`${e.execution.task.name} completed successfully`);
     } else {
       vscode.window.showErrorMessage(`${e.execution.task.name}: Please check terminal logs for error details`);

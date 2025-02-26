@@ -123,6 +123,12 @@ export class AdapterActionTreeView
     let stubPath="";
     if (this.configVals.folderBasedStubGenerationEnabled()) {
       stubPath = this.configVals.getAdapterActionStubFolder ();
+      try{
+        await artificialAwaitTask('Check artificial-workflows-tools Version', `${pythonInterpreter}/wf version --check ">=0.12.6"`);
+      }
+      catch{
+        return;
+      }
       await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs --hierarchical ${module} -o ${stubPath})`);
     }
     else {
