@@ -115,7 +115,6 @@ export class AdapterActionTreeView
     }
   }
   private async generateActionStubs(): Promise<void> {
-
     const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
     const pythonInterpreter = await ConfigValues.getPythonInterpreter();
     let stubPath="";
