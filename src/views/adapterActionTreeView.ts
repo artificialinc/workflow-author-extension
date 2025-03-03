@@ -124,7 +124,7 @@ export class AdapterActionTreeView
     if (this.configVals.folderBasedStubGenerationEnabled()) {
       stubPath = this.configVals.getAdapterActionStubFolder ();
       try{
-        await artificialAwaitTask('Check artificial-workflows-tools Version', `${pythonInterpreter}/wf version --check ">=0.12.6"`);
+        await artificialAwaitTask('Check artificial-workflows-tools Version', `${pythonInterpreter}/wf version --check ">=0.13.0"`);
       }
       catch{
         return;
