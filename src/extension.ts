@@ -95,6 +95,7 @@ async function  publishStandaloneAction(action: string): Promise<void> {
   const pythonInterpreter = await ConfigValues.getPythonInterpreter();
   const  stubPath = await  ConfigValues.getInstance().getAdapterActionStubPath();
   const labId = await ConfigValues.getInstance().getLabId();
+
   try {
     await artificialAwaitTask(generateTaskName, `(cd ${rootPath}/workflow; ${pythonInterpreter}/wfgen ${stubPath} -s ${action} -l ${labId})`);
   } catch {
@@ -116,6 +117,10 @@ function taskExitWatcher(dataTree: DataTreeView) {
       if (e.execution.task.name === 'Setup Config') {
         const log = OutputLog.getInstance();
         log.log('Setup Config Completed');
+        return;
+      }
+      // If we are just checking the version of the CLI, don't show a notification on success
+      if (e.execution.task.name === 'Check artificial-workflows-tools Version') {
         return;
       }
       vscode.window.showInformationMessage(`${e.execution.task.name} completed successfully`);

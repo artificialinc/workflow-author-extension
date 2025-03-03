@@ -20,6 +20,7 @@ import { artificialAwaitTask, pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
 import { ConfigValues } from '../providers/configProvider';
+import { findPythonFiles } from '../utils';
 type TreeElement = Module | Function;
 export class AdapterActionTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
@@ -91,7 +92,19 @@ export class AdapterActionTreeView
       }
       return [];
     } else {
-      if (pathExists(this.configVals.getAdapterActionStubPath())) {
+      if (this.configVals.folderBasedStubGenerationEnabled() && pathExists(this.configVals.getAdapterActionStubFolder())) {
+        const files = await findPythonFiles(this.configVals.getAdapterActionStubFolder());
+        let funcSigBuilder: FunctionSignature[] = [];
+        for (const file of files) {
+          funcSigBuilder.push(...(await this.getFuncsInActionPython(file)));
+        }
+        this.functionSignatures = funcSigBuilder;
+        const modules = this.getModules();
+        this.treeElements = this.treeElements.concat(modules);
+        return modules.sort((a, b) => a.moduleName.localeCompare(b.moduleName, 'en', { numeric: true }));
+
+      }
+      else if (pathExists(this.configVals.getAdapterActionStubPath())) {
         this.functionSignatures = await this.getFuncsInActionPython(this.configVals.getAdapterActionStubPath());
         const modules = this.getModules();
         this.treeElements = this.treeElements.concat(modules);
@@ -104,8 +117,21 @@ export class AdapterActionTreeView
   private async generateActionStubs(): Promise<void> {
     const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
     const pythonInterpreter = await ConfigValues.getPythonInterpreter();
-    const stubPath = this.configVals.getAdapterActionStubPath();
-    await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${stubPath})`);
+    let stubPath="";
+    if (this.configVals.folderBasedStubGenerationEnabled()) {
+      stubPath = this.configVals.getAdapterActionStubFolder ();
+      try{
+        await artificialAwaitTask('Check artificial-workflows-tools Version', `${pythonInterpreter}/wf version --check ">=0.13.0"`);
+      }
+      catch{
+        return;
+      }
+      await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs --hierarchical ${module} -o ${stubPath})`);
+    }
+    else {
+      stubPath = this.configVals.getAdapterActionStubPath();
+      await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${stubPath})`);
+    }
     await this.refresh();
   }
 
