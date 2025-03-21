@@ -13,10 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-import { ComplianceModeServiceClient, IComplianceModeServiceClient } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_grpc_pb';
+import { ComplianceModeServiceClient } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_grpc_pb';
 import * as grpc from '@grpc/grpc-js';
 import { credsConstructor } from './grpc/grpc';
-import { GetComplianceModeRequest, GetComplianceModeResponse, ComplianceModeState } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_pb';
 
 export class Compliance {
   client: ComplianceModeServiceClient;
@@ -28,15 +27,15 @@ export class Compliance {
   // public static async create(address: string, prefix: string, org: string, lab: string, token: string): Promise<Labmanager> {
   public static create(address: string, token: string, ssl: boolean): Compliance {
     const md = new grpc.Metadata();
-    md.set("authorization", `Bearer ${token}`);
+    md.set('authorization', `Bearer ${token}`);
     const creds = credsConstructor(md, ssl);
     return new Compliance(new ComplianceModeServiceClient(address, creds()));
   }
 }
 
-export function complianceClientConstructor(address: string , token: string, ssl: boolean): ComplianceModeServiceClient {
-    const md = new grpc.Metadata();
-    md.set("authorization", `Bearer ${token}`);
-    const creds = credsConstructor(md, ssl);
-    return new ComplianceModeServiceClient(address, creds());
+export function complianceClientConstructor(address: string, token: string, ssl: boolean): ComplianceModeServiceClient {
+  const md = new grpc.Metadata();
+  md.set('authorization', `Bearer ${token}`);
+  const creds = credsConstructor(md, ssl);
+  return new ComplianceModeServiceClient(address, creds());
 }

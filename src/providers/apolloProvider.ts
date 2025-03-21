@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,14 +11,13 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import { ApolloClient, HttpLink, from, gql, ApolloError, ServerError } from '@apollo/client/core';
 import { RetryLink } from '@apollo/client/link/retry';
 import { InMemoryCache, NormalizedCacheObject } from '@apollo/client/cache/';
 import fetch from 'cross-fetch';
-import ApolloLinkTimeout from 'apollo-link-timeout';
 import { ConfigValues } from './configProvider';
 import { OutputLog } from './outputLogProvider';
 import * as vscode from 'vscode';
@@ -45,7 +44,7 @@ export interface Assistant {
       input: boolean;
       index: number;
       typeInfo: AssistantTypeInfo;
-    }
+    },
   ];
 }
 export interface AssistantTypeInfo {
@@ -54,7 +53,7 @@ export interface AssistantTypeInfo {
   subTypes: [
     {
       type: string;
-    }
+    },
   ];
 }
 export interface ActionReply {
@@ -88,7 +87,7 @@ export class ArtificialApollo {
     }
     return ArtificialApollo.instance;
   }
-  private createApollo(): any {
+  private createApollo(): ApolloClient<NormalizedCacheObject> {
     const configVals = ConfigValues.getInstance();
     const hostName = 'https://' + configVals.getHost() + '/graphql';
     const apiToken = configVals.getToken();
@@ -127,10 +126,10 @@ export class ArtificialApollo {
           },
         },
       });
-
       return this.apollo;
     } catch (err) {
       vscode.window.showErrorMessage(`Exception creating apollo client ${err}`);
+      throw new Error(`Exception creating apollo client ${err}`);
     }
   }
 
@@ -139,19 +138,24 @@ export class ArtificialApollo {
     this.apollo = this.createApollo();
   }
 
-  private errorHandler(err: ApolloError){
-    const networkError = err.networkError as ServerError | undefined;
-    if (networkError) {
-      this.throwError(networkError);
-    }
-    else {
-      this.outputLog.log(`Error during gql query:  ${err}`);
+  private errorHandler(err: unknown) {
+    if (err instanceof ApolloError) {
+      const networkError = err.networkError as ServerError | undefined;
+      if (networkError) {
+        this.throwError(networkError);
+      } else {
+        this.outputLog.log(`Error during gql query:  ${err}`);
+      }
+    } else {
+      this.outputLog.log(`Non-apollo error during gql query:  ${err}`);
     }
   }
 
   private throwError = debounce((error: ServerError) => {
     const configVals = ConfigValues.getInstance();
-    this.outputLog.log(`Problem connecting to ${configVals.getHost()}, Status Code: ${error.statusCode} Result: ${error.result}  Error: ${error}`);
+    this.outputLog.log(
+      `Problem connecting to ${configVals.getHost()}, Status Code: ${error.statusCode} Result: ${error.result}  Error: ${error}`,
+    );
     switch (error.statusCode) {
       case 401:
         vscode.window.showErrorMessage(`Artificial: Unauthorized: ${error.result}`);
@@ -163,19 +167,20 @@ export class ArtificialApollo {
         vscode.window.showErrorMessage(`Artificial: Not Found: ${error.result}`);
         break;
       case 408:
-          vscode.window.showErrorMessage(`Artificial: Timeout: ${error.result}`);
-          break;
+        vscode.window.showErrorMessage(`Artificial: Timeout: ${error.result}`);
+        break;
       case 500:
         vscode.window.showErrorMessage(`Artificial: Internal Server Error: ${error.result}`);
         break;
       case 503:
-          vscode.window.showErrorMessage(`Artificial: No upstream: ${error.result}`);
-          break;
+        vscode.window.showErrorMessage(`Artificial: No upstream: ${error.result}`);
+        break;
       default:
-        vscode.window.showErrorMessage(`Problem connecting to ${configVals.getHost()}, Status Code: ${error.statusCode} Result: ${error.result}`);
+        vscode.window.showErrorMessage(
+          `Problem connecting to ${configVals.getHost()}, Status Code: ${error.statusCode} Result: ${error.result}`,
+        );
         break;
     }
-   
   }, 2000);
 
   public async queryWorkflows() {
@@ -198,8 +203,8 @@ export class ArtificialApollo {
         this.throwError.cancel();
         return result.data;
       }
-    } catch (err: any) {
-        this.errorHandler(err);
+    } catch (err) {
+      this.errorHandler(err);
     }
   }
 
@@ -239,7 +244,7 @@ export class ArtificialApollo {
         this.throwError.cancel();
         return result.data;
       }
-    } catch (err: any) {
+    } catch (err) {
       this.errorHandler(err);
     }
   }
@@ -264,7 +269,7 @@ export class ArtificialApollo {
         this.throwError.cancel();
         return result.data;
       }
-    } catch (err: any) {
+    } catch (err) {
       this.errorHandler(err);
     }
   }
@@ -293,7 +298,7 @@ export class ArtificialApollo {
         this.throwError.cancel();
         return result.data;
       }
-    } catch (err: any) {
+    } catch (err) {
       this.errorHandler(err);
     }
   }
@@ -320,7 +325,7 @@ export class ArtificialApollo {
         this.throwError.cancel();
         return result.data;
       }
-    } catch (err: any) {
+    } catch (err) {
       this.errorHandler(err);
     }
   }
@@ -346,7 +351,7 @@ export class ArtificialApollo {
         this.throwError.cancel();
         return result.data;
       }
-    } catch (err: any) {
+    } catch (err) {
       this.errorHandler(err);
     }
   }
@@ -372,7 +377,7 @@ export class ArtificialApollo {
 
         return result.data;
       }
-    } catch (err: any) {
+    } catch (err) {
       this.errorHandler(err);
     }
   }
@@ -401,7 +406,7 @@ export class ArtificialApollo {
         this.throwError.cancel();
         return result.data;
       }
-    } catch (err: any) {
+    } catch (err) {
       this.errorHandler(err);
     }
   }

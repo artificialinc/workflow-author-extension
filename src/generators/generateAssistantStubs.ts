@@ -28,16 +28,16 @@ export class GenerateAssistantStubs {
   constructor(
     context: vscode.ExtensionContext,
     private workspaceRoot: string,
-    private assistantByLab: AssistantByLabTreeView
+    private assistantByLab: AssistantByLabTreeView,
   ) {
     context.subscriptions.push(
       vscode.commands.registerCommand('assistantsByLab.generateAssistantStubs', () =>
-        this.generateAssistantStubsCommand()
-      )
+        this.generateAssistantStubsCommand(),
+      ),
     );
   }
 
-  async generateAssistantStubsCommand(): Promise<any> {
+  async generateAssistantStubsCommand(): Promise<void> {
     await this.generateAssistantStubs();
     await this.assistantByLab.refresh();
   }

@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,13 +11,12 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ArtificialApollo, ConfigReply } from '../providers/apolloProvider';
-import * as _ from 'lodash';
 import { camelCase } from 'lodash';
 
 type TreeElement = LabTreeElement | LoadConfigTreeElement;
@@ -44,11 +43,11 @@ export class LoadingConfigByLabTreeView
     });
     context.subscriptions.push(view);
     this.treeElements = [];
-    
+
     context.subscriptions.push(
       vscode.commands.registerCommand('loadingConfigByLab.refreshEntry', () => this.refresh()),
       vscode.commands.registerCommand('loadingConfigByLab.copyID', (node: LoadConfigTreeElement) =>
-        this.copyID(node.configId)
+        this.copyID(node.configId),
       ),
     );
   }
@@ -70,15 +69,15 @@ export class LoadingConfigByLabTreeView
   }
 
   public async handleDrag(
-    source: TreeElement[],
-    treeDataTransfer: vscode.DataTransfer,
-    token: vscode.CancellationToken
+    _source: TreeElement[],
+    _treeDataTransfer: vscode.DataTransfer,
+    _token: vscode.CancellationToken,
   ): Promise<void> {}
 
   copyID(configId: string): void {
     vscode.env.clipboard.writeText(configId);
   }
-  
+
   getTreeItem(element: TreeElement): vscode.TreeItem {
     return element;
   }
@@ -129,7 +128,7 @@ export class LoadConfigTreeElement extends vscode.TreeItem {
     public readonly label: string,
     public readonly configId: string,
     public readonly labId: string,
-    public readonly labName: string
+    public readonly labName: string,
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.tooltip = `${this.label}`;
@@ -138,14 +137,17 @@ export class LoadConfigTreeElement extends vscode.TreeItem {
   labClassName =
     this.labName.charAt(0).toUpperCase() + camelCase(this.labName.toLowerCase()).slice(1) + 'LoadingConfigs';
   resourceUri = vscode.Uri.parse(
-    'artificial/loadingConfigsByLab/loadingConfig/' + this.labClassName + '/' + this.label
+    'artificial/loadingConfigsByLab/loadingConfig/' + this.labClassName + '/' + this.label,
   );
   type = 'loadingConfig';
   iconPath = new vscode.ThemeIcon('beaker');
 }
 
 export class LabTreeElement extends vscode.TreeItem {
-  constructor(public readonly label: string, public readonly labId: string) {
+  constructor(
+    public readonly label: string,
+    public readonly labId: string,
+  ) {
     super(label, vscode.TreeItemCollapsibleState.Collapsed);
     this.tooltip = `${this.label}`;
   }

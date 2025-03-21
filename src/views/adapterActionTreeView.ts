@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import * as vscode from 'vscode';
@@ -21,6 +21,7 @@ import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
 import { ConfigValues } from '../providers/configProvider';
 import { findPythonFiles } from '../utils';
+// eslint-disable-next-line @typescript-eslint/ban-types
 type TreeElement = Module | Function;
 export class AdapterActionTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
@@ -45,7 +46,7 @@ export class AdapterActionTreeView
     this.uriPath = 'artificial/python/';
     context.subscriptions.push(vscode.commands.registerCommand('adapterActions.refreshEntry', () => this.refresh()));
     context.subscriptions.push(
-      vscode.commands.registerCommand('adapterActions.generateActionStubs', () => this.generateActionStubs())
+      vscode.commands.registerCommand('adapterActions.generateActionStubs', () => this.generateActionStubs()),
     );
   }
 
@@ -62,9 +63,10 @@ export class AdapterActionTreeView
   }
 
   public async handleDrag(
-    source: Function[],
-    treeDataTransfer: vscode.DataTransfer,
-    token: vscode.CancellationToken
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    _source: Function[],
+    _treeDataTransfer: vscode.DataTransfer,
+    _token: vscode.CancellationToken,
   ): Promise<void> {}
 
   getTreeItem(element: TreeElement): vscode.TreeItem {
@@ -92,9 +94,12 @@ export class AdapterActionTreeView
       }
       return [];
     } else {
-      if (this.configVals.folderBasedStubGenerationEnabled() && pathExists(this.configVals.getAdapterActionStubFolder())) {
+      if (
+        this.configVals.folderBasedStubGenerationEnabled() &&
+        pathExists(this.configVals.getAdapterActionStubFolder())
+      ) {
         const files = await findPythonFiles(this.configVals.getAdapterActionStubFolder());
-        let funcSigBuilder: FunctionSignature[] = [];
+        const funcSigBuilder: FunctionSignature[] = [];
         for (const file of files) {
           funcSigBuilder.push(...(await this.getFuncsInActionPython(file)));
         }
@@ -102,9 +107,7 @@ export class AdapterActionTreeView
         const modules = this.getModules();
         this.treeElements = this.treeElements.concat(modules);
         return modules.sort((a, b) => a.moduleName.localeCompare(b.moduleName, 'en', { numeric: true }));
-
-      }
-      else if (pathExists(this.configVals.getAdapterActionStubPath())) {
+      } else if (pathExists(this.configVals.getAdapterActionStubPath())) {
         this.functionSignatures = await this.getFuncsInActionPython(this.configVals.getAdapterActionStubPath());
         const modules = this.getModules();
         this.treeElements = this.treeElements.concat(modules);
@@ -117,20 +120,27 @@ export class AdapterActionTreeView
   private async generateActionStubs(): Promise<void> {
     const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
     const pythonInterpreter = await ConfigValues.getPythonInterpreter();
-    let stubPath="";
+    let stubPath = '';
     if (this.configVals.folderBasedStubGenerationEnabled()) {
-      stubPath = this.configVals.getAdapterActionStubFolder ();
-      try{
-        await artificialAwaitTask('Check artificial-workflows-tools Version', `${pythonInterpreter}/wf version --check ">=0.13.0"`);
-      }
-      catch{
+      stubPath = this.configVals.getAdapterActionStubFolder();
+      try {
+        await artificialAwaitTask(
+          'Check artificial-workflows-tools Version',
+          `${pythonInterpreter}/wf version --check ">=0.13.0"`,
+        );
+      } catch {
         return;
       }
-      await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs --hierarchical ${module} -o ${stubPath})`);
-    }
-    else {
+      await artificialAwaitTask(
+        'Generate Action Stubs',
+        `(cd adapter; ${pythonInterpreter}/wf adapterstubs --hierarchical ${module} -o ${stubPath})`,
+      );
+    } else {
       stubPath = this.configVals.getAdapterActionStubPath();
-      await artificialAwaitTask('Generate Action Stubs', `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${stubPath})`);
+      await artificialAwaitTask(
+        'Generate Action Stubs',
+        `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${stubPath})`,
+      );
     }
     await this.refresh();
   }
@@ -150,6 +160,7 @@ export class AdapterActionTreeView
     return data?.sigsAndTypes.functions ? data?.sigsAndTypes.functions : [];
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
   private getFunctions(moduleName: string | vscode.TreeItemLabel | undefined): Function[] {
     const signatures = this.functionSignatures.map((sig) => {
       if (sig.module === moduleName) {
@@ -162,7 +173,10 @@ export class AdapterActionTreeView
 }
 
 export class Function extends vscode.TreeItem {
-  constructor(public readonly label: string, public readonly functionSignature: FunctionSignature) {
+  constructor(
+    public readonly label: string,
+    public readonly functionSignature: FunctionSignature,
+  ) {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.tooltip = `${this.label}`;
     this.functionSignature = functionSignature;

@@ -26,7 +26,7 @@ export class BuildAssistantSignatures {
       const signatureList: AssistantSignature[] = [];
 
       const buildSignature = (source: string) => {
-        let ast = parse(source);
+        const ast = parse(source);
 
         return createVisitor({
           visitDecorated: (ast) => {

@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import * as vscode from 'vscode';
@@ -28,7 +28,7 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
     context: vscode.ExtensionContext,
     functionTree: AdapterActionTreeView,
     assistantTreeByLab: AssistantByLabTreeView,
-    loadingConfigByLabTreeView: LoadingConfigByLabTreeView
+    loadingConfigByLabTreeView: LoadingConfigByLabTreeView,
   ) {
     this.funcTree = functionTree;
     this.assistantTreeByLab = assistantTreeByLab;
@@ -37,9 +37,9 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
   }
   async provideDocumentDropEdits(
     _document: vscode.TextDocument,
-    position: vscode.Position,
+    _position: vscode.Position,
     dataTransfer: vscode.DataTransfer,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<vscode.DocumentDropEdit | undefined> {
     // Check the data transfer to see if we have some kind of text data
     const dataTransferItem = dataTransfer.get('text/uri-list');
@@ -82,12 +82,12 @@ export class DropProvider implements vscode.DocumentDropEditProvider {
       if (text.includes('/org/')) {
         text = `config_value = get_org_config().configuration['${splitText[splitText.length - 1].replace(
           '%20',
-          ' '
+          ' ',
         )}']`;
       } else if (text.includes('/lab/')) {
         text = `config_value = get_lab_config().configuration['${splitText[splitText.length - 1].replace(
           '%20',
-          ' '
+          ' ',
         )}']`;
       }
     }

@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-import { getTags } from "@snyk/docker-registry-v2-client";
+import { getTags } from '@snyk/docker-registry-v2-client';
 import githubUrlFromGit from 'github-url-from-git';
 
 export class Registry {
@@ -40,21 +40,23 @@ export class Registry {
     // Parse github remote url
     let url;
     try {
-     url = new URL(Registry.sanitizeGitRemote(githubURL));
-    } catch (e) {
+      url = new URL(Registry.sanitizeGitRemote(githubURL));
+    } catch {
       throw new Error(`Invalid github url: ${githubURL}`);
     }
     // Strip trailing .git if exists
-    const path = url.pathname.endsWith(".git") ? url.pathname.slice(0, -4) : url.pathname;
+    const path = url.pathname.endsWith('.git') ? url.pathname.slice(0, -4) : url.pathname;
     // Strip leading slash
-    const pathWithoutLeadingSlash = path.startsWith("/") ? path.slice(1) : path;
-    return new Registry("ghcr.io", pathWithoutLeadingSlash, username, token);
+    const pathWithoutLeadingSlash = path.startsWith('/') ? path.slice(1) : path;
+    return new Registry('ghcr.io', pathWithoutLeadingSlash, username, token);
   }
 
   public async listTags(): Promise<string[]> {
     const tags = await getTags(this.registryBase, this.repository, this.username, this.password);
-    return tags.map((tag) => {
-      return `${this.registryBase}/${this.repository}:${tag}`;
-    }).reverse(); // Although explicitly not guarateed, the tags are returned in reverse chronological order, so we reverse them to get the correct order
+    return tags
+      .map((tag) => {
+        return `${this.registryBase}/${this.repository}:${tag}`;
+      })
+      .reverse(); // Although explicitly not guarateed, the tags are returned in reverse chronological order, so we reverse them to get the correct order
   }
 }

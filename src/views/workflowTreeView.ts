@@ -27,8 +27,10 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
     WorkflowTreeElement | undefined | void
   >();
   readonly onDidChangeTreeData: vscode.Event<WorkflowTreeElement | undefined | void> = this._onDidChangeTreeData.event;
-  public taskResolvers: [{ resolve: (value: any) => void; reject: () => void } | undefined] | [] = [];
-  constructor(private stubPath: string, context: vscode.ExtensionContext) {
+  constructor(
+    private stubPath: string,
+    context: vscode.ExtensionContext,
+  ) {
     const view = vscode.window.createTreeView('workflows', {
       treeDataProvider: this,
       showCollapseAll: false,
@@ -38,17 +40,17 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       view,
       vscode.commands.registerCommand('workflows.refreshEntry', () => this.refresh()),
       vscode.commands.registerCommand('workflows.publish', (path: string, workflowIDs: string[]) =>
-        this.publishWorkflow(path, workflowIDs)
+        this.publishWorkflow(path, workflowIDs),
       ),
       vscode.commands.registerCommand('workflows.treePublish', (node: WorkflowTreeElement) =>
-        this.publishWorkflow(node.path, node.workflowIds)
+        this.publishWorkflow(node.path, node.workflowIds),
       ),
       vscode.commands.registerCommand('workflows.generateBinary', (node: WorkflowTreeElement) =>
-        this.generateWorkflow(node.path, false)
+        this.generateWorkflow(node.path, false),
       ),
       vscode.commands.registerCommand('workflows.generateJson', (node: WorkflowTreeElement) =>
-        this.generateWorkflow(node.path, true)
-      )
+        this.generateWorkflow(node.path, true),
+      ),
     );
   }
 
@@ -79,7 +81,7 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       for (const wfID of workflowIds) {
         await artificialTask(
           publishTaskName + wfID,
-          `(${pythonInterpreter}/wf publish ${path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`
+          `(${pythonInterpreter}/wf publish ${path.split('.').slice(0, -1).join('.') + '_' + wfID + '.py.bin'})`,
         );
       }
     } else {
@@ -98,7 +100,10 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
       jsonFlag = '-j';
     }
     const pythonInterpreter = await ConfigValues.getPythonInterpreter();
-    await artificialTask('Generate Workflow', `(cd ${this.stubPath}/workflow; ${pythonInterpreter}/wfgen ${path} ${jsonFlag})`);
+    await artificialTask(
+      'Generate Workflow',
+      `(cd ${this.stubPath}/workflow; ${pythonInterpreter}/wfgen ${path} ${jsonFlag})`,
+    );
   }
 
   async getChildren(element?: WorkflowTreeElement): Promise<WorkflowTreeElement[]> {
@@ -129,9 +134,12 @@ export class WorkflowTreeView implements vscode.TreeDataProvider<WorkflowTreeEle
 }
 
 class WorkflowTreeElement extends vscode.TreeItem {
-  constructor(public readonly label: string, public readonly workflowIds: string[]) {
+  constructor(
+    public readonly label: string,
+    public readonly workflowIds: string[],
+  ) {
     super(label);
-    collapsibleState: vscode.TreeItemCollapsibleState.None;
+    vscode.TreeItemCollapsibleState.None;
     this.tooltip = `${this.label}`;
     const index = label.indexOf('/workflow/');
     // TODO: HACK

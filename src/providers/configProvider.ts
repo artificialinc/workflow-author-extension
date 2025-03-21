@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
  limitations under the License.
 */
-import { PythonExtension } from "@vscode/python-extension";
+import { PythonExtension } from '@vscode/python-extension';
 import * as vscode from 'vscode';
 import * as parse from 'yaml';
 import * as path from 'path';
@@ -23,11 +23,11 @@ import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
 import { OutputLog } from './outputLogProvider';
 import { ArtificialApollo } from './apolloProvider';
-let python: PythonExtension;
+let _python: PythonExtension;
 
 export class ConfigValues {
   private static instance: ConfigValues;
-    private outputLog;
+  private outputLog;
 
   private constructor(
     private hostName: string = '',
@@ -42,7 +42,6 @@ export class ConfigValues {
     private gitRemote: string = '',
     private githubUser: string = '',
     private githubToken: string = '',
-
   ) {
     this.outputLog = OutputLog.getInstance();
     this.initialize();
@@ -70,6 +69,7 @@ export class ConfigValues {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const config: any = parse.parse(fs.readFileSync(configPath, 'utf-8'));
     if (!config || config.error) {
       this.hostName = '';
@@ -86,8 +86,10 @@ export class ConfigValues {
     this.adapterActionStubPath = path.join(rootPath, customAdapterActionStubPath);
 
     // Set up config values for breaking stub generation changes to allow for scoped stubs by using multiple directories and files
-    this.enableFolderBasedStubGeneration = vscode.workspace.getConfiguration('artificial.workflow.author').enableFolderBasedStubGeneration;
-    const customAdapterActionStubFolder =  vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubFolder;
+    this.enableFolderBasedStubGeneration =
+      vscode.workspace.getConfiguration('artificial.workflow.author').enableFolderBasedStubGeneration;
+    const customAdapterActionStubFolder =
+      vscode.workspace.getConfiguration('artificial.workflow.author').adapterActionStubFolder;
     this.adapterActionStubFolder = path.join(rootPath, customAdapterActionStubFolder);
 
     const customAssistantStubPath = vscode.workspace.getConfiguration('artificial.workflow.author').assistantStubPath;
@@ -146,12 +148,11 @@ export class ConfigValues {
   }
   public async getLabName(): Promise<string> {
     const client = ArtificialApollo.getInstance();
-    const labs =  await client.queryLabs();
+    const labs = await client.queryLabs();
     const labData = labs?.labs.find((lab) => lab.id === this.labId);
     if (labData) {
       return labData.name;
-    }
-    else {
+    } else {
       return '';
     }
   }
@@ -184,13 +185,17 @@ export class ConfigValues {
     }
 
     if (!repository.state.remotes) {
-      vscode.window.showErrorMessage('Artificial Workflow requires a git repository with remotes. Error loading repository data');
+      vscode.window.showErrorMessage(
+        'Artificial Workflow requires a git repository with remotes. Error loading repository data',
+      );
     }
 
     // Make sure remote origin is set
     const origin = repository.state.remotes.find((remote) => remote.name === 'origin');
     if (!origin) {
-      this.outputLog.log(`No remote named origin found. Remotes: ${repository.state.remotes.map((remote) => remote.name).join(', ')}`);
+      this.outputLog.log(
+        `No remote named origin found. Remotes: ${repository.state.remotes.map((remote) => remote.name).join(', ')}`,
+      );
       vscode.window.showErrorMessage('Artificial Workflow requires a remote origin');
       return;
     }
@@ -225,16 +230,18 @@ export class ConfigValues {
   public static async getPythonInterpreter(): Promise<string> {
     const pythonExtension = vscode.extensions.getExtension('ms-python.python');
     if (!pythonExtension) {
-        vscode.window.showErrorMessage('Python extension is not installed');
-        return '';
+      vscode.window.showErrorMessage('Python extension is not installed');
+      return '';
     }
     if (!pythonExtension.isActive) {
-        await pythonExtension.activate();
+      await pythonExtension.activate();
     }
 
     const api = pythonExtension.exports;
     const interpreterPath = api.settings.getExecutionDetails().execCommand;
-    OutputLog.getInstance().log(`Python interpreter: ${interpreterPath ? path.dirname(interpreterPath.join(' ')) : 'Not found'}`);
+    OutputLog.getInstance().log(
+      `Python interpreter: ${interpreterPath ? path.dirname(interpreterPath.join(' ')) : 'Not found'}`,
+    );
 
     if (!interpreterPath) {
       vscode.window.showErrorMessage('Python interpreter not found');
@@ -242,4 +249,3 @@ export class ConfigValues {
     return interpreterPath ? path.dirname(interpreterPath.join(' ')) : '';
   }
 }
-

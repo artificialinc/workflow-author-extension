@@ -30,7 +30,7 @@ export class BuildPythonSignatures {
       let adapterModule = '';
 
       const buildSignature = (source: string) => {
-        let ast = parse(source);
+        const ast = parse(source);
 
         return createVisitor({
           visitDecorated: (ast) => {

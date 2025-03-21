@@ -16,7 +16,7 @@ export class WorkflowPublishLensProvider implements vscode.CodeLensProvider {
     if (!workflows.length) {
       return codeLens;
     }
-    let c: vscode.Command = {
+    const c: vscode.Command = {
       command: 'workflows.publish',
       title: 'Publish Workflow',
       arguments: [document.fileName, workflows[0].ids],

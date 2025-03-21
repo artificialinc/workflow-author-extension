@@ -22,26 +22,20 @@ const defOptions = {
   longs: String,
   enums: String,
   defaults: true,
-  oneofs: true
+  oneofs: true,
 };
 
 export const testPkg = grpc.loadPackageDefinition(
-  protoLoader.loadSync(
-    __dirname + '../../../../../proto/test.proto',
-    defOptions
-  ));
+  protoLoader.loadSync(__dirname + '../../../../../proto/test.proto', defOptions),
+);
 
 export const labmanagerPkg = grpc.loadPackageDefinition(
-  protoLoader.loadSync(
-    __dirname + '../../../../../proto/labmanager.proto',
-    defOptions
-  ));
+  protoLoader.loadSync(__dirname + '../../../../../proto/labmanager.proto', defOptions),
+);
 
 export const labmanagerNoScopePkg = grpc.loadPackageDefinition(
-  protoLoader.loadSync(
-    __dirname + '../../../../../proto/labmanager_no_get_scope.proto',
-    defOptions
-  ));
+  protoLoader.loadSync(__dirname + '../../../../../proto/labmanager_no_get_scope.proto', defOptions),
+);
 
 // Start a server with reflection
 export const startServer = async (port: number): Promise<grpc.Server> => {
@@ -49,21 +43,25 @@ export const startServer = async (port: number): Promise<grpc.Server> => {
   const server = wrapServerWithReflection(new grpc.Server());
 
   server.addService(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    testPkg.manager.management_actions.ManagementActions.service, {
-    TestCall: (_: any, callback: any) => { // eslint-disable-line @typescript-eslint/naming-convention
-      callback(null, {
-        success: true,
-        id: "123"
-      });
-    }
-  }
+    testPkg.manager.management_actions.ManagementActions.service,
+    {
+      // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
+      TestCall: (_: any, callback: any) => {
+        // eslint-disable-line @typescript-eslint/naming-convention
+        callback(null, {
+          success: true,
+          id: '123',
+        });
+      },
+    },
   );
 
   // Choose a random port
   // TODO: Don't return until server has started
   await new Promise<void>((resolve) => {
-    server.bindAsync(`127.0.0.1:${port}`, grpc.ServerCredentials.createInsecure(), (err: any) => {
+    server.bindAsync(`127.0.0.1:${port}`, grpc.ServerCredentials.createInsecure(), (err: unknown) => {
       if (err) {
         throw err;
       }

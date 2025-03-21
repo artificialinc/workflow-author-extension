@@ -33,10 +33,9 @@ import { StandAloneActionCodeLensProvider } from './providers/standaloneActionCo
 import { DataTreeView } from './views/dataTreeView';
 import { AdapterInfo, ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
-import { UnimplementedError, getRemoteScope } from './adapter/grpc/grpc';
 import { authExternalUriRegistration } from './auth/auth';
 import { addFileToContext, artificialTask, artificialAwaitTask } from './utils';
-import * as path from "path";
+import * as path from 'path';
 
 export async function activate(context: vscode.ExtensionContext) {
   // Setup authentication URI handler before config so it can be used to fill out config
@@ -62,7 +61,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Commands to insert & drag/drop functions
   setupDragAndDrop(context);
   // Adapter Function Tree
-  const funcTree = setupAdapterFuncTree(configVals, context);
+  const funcTree = setupAdapterFuncTree(context);
   // Assistant Tree
   const assistantByLab = await setupAssistantTree(configVals, context);
   // Command to generate assistant stubs
@@ -83,30 +82,33 @@ export async function activate(context: vscode.ExtensionContext) {
   console.log('Artificial Workflow Extension is active');
 }
 
-
-async function  publishStandaloneAction(action: string): Promise<void> {
-  let rootPath =
-  vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
-    ? vscode.workspace.workspaceFolders[0].uri.fsPath
-    : undefined;
+async function publishStandaloneAction(action: string): Promise<void> {
+  const rootPath =
+    vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
+      ? vscode.workspace.workspaceFolders[0].uri.fsPath
+      : undefined;
   const outputLog = OutputLog.getInstance();
   const generateTaskName = 'Generate Action: ' + action;
   const publishTaskName = 'Publish Action: ';
   const pythonInterpreter = await ConfigValues.getPythonInterpreter();
-  const  stubPath = await  ConfigValues.getInstance().getAdapterActionStubPath();
+  const stubPath = await ConfigValues.getInstance().getAdapterActionStubPath();
   const labId = await ConfigValues.getInstance().getLabId();
 
   try {
-    await artificialAwaitTask(generateTaskName, `(cd ${rootPath}/workflow; ${pythonInterpreter}/wfgen ${stubPath} -s ${action} -l ${labId})`);
+    await artificialAwaitTask(
+      generateTaskName,
+      `(cd ${rootPath}/workflow; ${pythonInterpreter}/wfgen ${stubPath} -s ${action} -l ${labId})`,
+    );
   } catch {
     outputLog.log('Generate Failed, Skipping Publish');
     return;
   }
 
-    await artificialTask(publishTaskName, `(${pythonInterpreter}/wf publish ${path.dirname(stubPath)}/${action + '.bin'})`);
+  await artificialTask(
+    publishTaskName,
+    `(${pythonInterpreter}/wf publish ${path.dirname(stubPath)}/${action + '.bin'})`,
+  );
 }
-
-
 
 function taskExitWatcher(dataTree: DataTreeView) {
   vscode.tasks.onDidEndTaskProcess((e) => {
@@ -134,13 +136,13 @@ async function setupAssistantTree(configVals: ConfigValues, context: vscode.Exte
   const assistantByLab = new AssistantByLabTreeView(
     configVals.getAssistantStubPath(),
     'artificial/assistantByLab/',
-    context
+    context,
   );
   await assistantByLab.init();
   return assistantByLab;
 }
 
-function setupAdapterFuncTree(configVals: ConfigValues, context: vscode.ExtensionContext) {
+function setupAdapterFuncTree(context: vscode.ExtensionContext) {
   const funcTree = new AdapterActionTreeView(context);
   funcTree.init();
   return funcTree;
@@ -149,8 +151,10 @@ function setupAdapterFuncTree(configVals: ConfigValues, context: vscode.Extensio
 function setupDragAndDrop(context: vscode.ExtensionContext) {
   const funcCall = new InsertFunctionCall();
   context.subscriptions.push(
+    // eslint-disable-next-line @typescript-eslint/ban-types
     vscode.commands.registerCommand('adapterActions.addToFile', (node: Function) => funcCall.insertFunction(node)),
-    vscode.commands.registerCommand('assistantsByLab.addToFile', (node: Function) => funcCall.insertFunction(node))
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    vscode.commands.registerCommand('assistantsByLab.addToFile', (node: Function) => funcCall.insertFunction(node)),
   );
 }
 
@@ -158,14 +162,14 @@ function setupDropHandler(
   context: vscode.ExtensionContext,
   funcTree: AdapterActionTreeView,
   assistantByLab: AssistantByLabTreeView,
-  loadConfigs: LoadingConfigByLabTreeView
+  loadConfigs: LoadingConfigByLabTreeView,
 ) {
   const selector: vscode.DocumentFilter = { language: 'python', scheme: 'file' };
   context.subscriptions.push(
     vscode.languages.registerDocumentDropEditProvider(
       selector,
-      new DropProvider(context, funcTree, assistantByLab, loadConfigs)
-    )
+      new DropProvider(context, funcTree, assistantByLab, loadConfigs),
+    ),
   );
   return selector;
 }
@@ -173,17 +177,16 @@ function setupDropHandler(
 function setupCodeLens(selector: vscode.DocumentFilter, context: vscode.ExtensionContext) {
   const codeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
     selector,
-    new WorkflowPublishLensProvider()
+    new WorkflowPublishLensProvider(),
   );
   context.subscriptions.push(codeLensProviderDisposable);
   const standaloneCodeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
     selector,
-    new StandAloneActionCodeLensProvider()
+    new StandAloneActionCodeLensProvider(),
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand('workflows.standalonePublish', (action: string) =>
-      publishStandaloneAction(action)
-  ));
+    vscode.commands.registerCommand('workflows.standalonePublish', (action: string) => publishStandaloneAction(action)),
+  );
   context.subscriptions.push(standaloneCodeLensProviderDisposable);
 }
 
@@ -204,13 +207,13 @@ function configResetWatcher(
   configVals: ConfigValues,
   statusBar: vscode.StatusBarItem,
   assistantByLab: AssistantByLabTreeView,
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
 ) {
   const watchMergedConfig = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(rootPath + '/tmp', 'merged.yaml')
+    new vscode.RelativePattern(rootPath + '/tmp', 'merged.yaml'),
   );
   const outputLog = OutputLog.getInstance();
-  watchMergedConfig.onDidChange((uri) => {
+  watchMergedConfig.onDidChange(() => {
     outputLog.log('merged.yaml changed');
     (async () => {
       await configVals.reset();
@@ -224,7 +227,7 @@ function configResetWatcher(
   });
   context.subscriptions.push(watchMergedConfig);
   const watchEnvFile = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(rootPath, '.env'));
-  watchEnvFile.onDidChange((uri) => {
+  watchEnvFile.onDidChange(() => {
     outputLog.log('.env file changed');
     (async () => {
       await configVals.reset();
@@ -241,28 +244,29 @@ async function setupConfig(context: vscode.ExtensionContext) {
   await initConfig(rootPath);
   const configVals = ConfigValues.getInstance();
   const watchConfig = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(rootPath + '/configs', '**/*.yaml')
+    new vscode.RelativePattern(rootPath + '/configs', '**/*.yaml'),
   );
-  watchConfig.onDidChange(async (uri) => {
+  watchConfig.onDidChange(async () => {
     await initConfig(rootPath);
   });
-  watchConfig.onDidCreate(async (uri) => {
+  watchConfig.onDidCreate(async () => {
     await initConfig(rootPath);
   });
-  watchConfig.onDidDelete(async (uri) => {
+  watchConfig.onDidDelete(async () => {
     await initConfig(rootPath);
   });
   context.subscriptions.push(watchConfig);
   return { configVals, rootPath };
 }
 
-
-function setupPickLabCommand(configVals: ConfigValues, context: vscode.ExtensionContext){
+function setupPickLabCommand(configVals: ConfigValues, context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('configActions.updateLab', async () => {
       const client = ArtificialApollo.getInstance();
       const response = await client.queryLabs();
-      if (!response) {return;}
+      if (!response) {
+        return;
+      }
       const options = response.labs.map((lab) => {
         return {
           label: lab.name,
@@ -279,10 +283,9 @@ function setupPickLabCommand(configVals: ConfigValues, context: vscode.Extension
       };
 
       addFileToContext(JSON.stringify(generatedObj), 'generated.yaml');
-    }
-  ));
+    }),
+  );
 }
-
 
 function setupAdapterCommands(configVals: ConfigValues, context: vscode.ExtensionContext) {
   // Update adapter image command
@@ -290,16 +293,14 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
     vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
       const cancellationToken = new vscode.CancellationTokenSource();
 
-      var adapter: ArtificialAdapterManager;
-      var namespace: string;
-      var org: string;
+      let adapter: ArtificialAdapterManager;
       try {
         adapter = await ArtificialAdapterManager.createAdapterManager(
           configVals.getHost(),
           configVals.getPrefix(),
           configVals.getOrgId(),
           `${configVals.getLabId()}`,
-          configVals.getToken()
+          configVals.getToken(),
         );
       } catch (e) {
         console.log(e);
@@ -307,29 +308,28 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
         return;
       }
 
-      var adapters: AdapterInfo[] = [];
+      let adapters: AdapterInfo[] = [];
       try {
         adapters = await adapter.listNonManagerAdapters();
-      }
-      catch (e) {
+      } catch (e) {
         console.log(e);
         vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
         cancellationToken.cancel();
       }
 
       const adapterToUpdate = await vscode.window.showQuickPick(
-        new Promise<vscode.QuickPickItem[]>((resolve, reject) => {
-              resolve(
-                adapters.map((a) => {
-                  return {
-                    label: `${a.name}`,
-                    description: a.image,
-                  };
-                })
-              );
+        new Promise<vscode.QuickPickItem[]>((resolve) => {
+          resolve(
+            adapters.map((a) => {
+              return {
+                label: `${a.name}`,
+                description: a.image,
+              };
+            }),
+          );
         }),
         { placeHolder: 'Select an adapter to update' },
-        cancellationToken.token
+        cancellationToken.token,
       );
 
       if (!adapterToUpdate) {
@@ -339,10 +339,10 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       const r = Registry.createFromGithub(
         configVals.getGitRemoteUrl(),
         configVals.getGithubUser(),
-        configVals.getGithubToken()
+        configVals.getGithubToken(),
       );
       const image = await vscode.window.showQuickPick(
-        new Promise<string[]>((resolve, reject) => {
+        new Promise<string[]>((resolve) => {
           r.listTags()
             .then((tags) => {
               resolve(tags);
@@ -354,12 +354,12 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
             });
         }),
         { placeHolder: 'Select an adapter image to update to' },
-        cancellationToken.token
+        cancellationToken.token,
       );
 
       if (image !== undefined) {
         // Get adapter from the selected label
-        let a = adapters.find((a) => a.name === adapterToUpdate.label);
+        const a = adapters.find((a) => a.name === adapterToUpdate.label);
         if (a === undefined) {
           vscode.window.showErrorMessage('Failed to find adapter');
           return;
@@ -376,28 +376,28 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       } else {
         vscode.window.showErrorMessage('An image is mandatory to execute this action');
       }
-    })
+    }),
   );
 
   // Execute adapter action command
   context.subscriptions.push(
     vscode.commands.registerCommand('adapterActions.executeAdapterAction', async () => {
+      const adapter2 = await ArtificialAdapter.createRemoteAdapter(
+        configVals.getHost(),
+        configVals.getPrefix(),
+        configVals.getOrgId(),
+        configVals.getLabId(),
+        configVals.getToken(),
+      );
       const action = await vscode.window.showQuickPick(
-        new Promise<string[]>(async (resolve, reject) => {
+        new Promise<string[]>((resolve, reject) => {
           try {
-            const adapter2 = await ArtificialAdapter.createRemoteAdapter(
-              configVals.getHost(),
-              configVals.getPrefix(),
-              configVals.getOrgId(),
-              configVals.getLabId(),
-              configVals.getToken()
-            );
             resolve(adapter2.listActions());
           } catch (e) {
             reject(e);
           }
         }),
-        { placeHolder: 'Select an action to execute' }
+        { placeHolder: 'Select an action to execute' },
       );
       if (action === '') {
         console.log(action);
@@ -407,8 +407,8 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       if (action !== undefined) {
         console.log(`Extension would execute ${action}, but that code hasn't been written yet`);
       }
-    })
+    }),
   );
 }
 
-export function deactivate() { }
+export function deactivate() {}
