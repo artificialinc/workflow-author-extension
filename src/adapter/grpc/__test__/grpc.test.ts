@@ -16,9 +16,14 @@ See the License for the specific language governing permissions and
 import { getAdapterClients, getLabmanagerClient, getRemoteScope } from '../grpc';
 import * as grpc from '@grpc/grpc-js';
 import { expect, jest, test, describe, beforeEach } from '@jest/globals';
-import { startServer, labmanagerPkg, labmanagerNoScopePkg } from './server';
+import { startServer, labmanagerNoScopePkg } from './server';
 import waitForExpect from 'wait-for-expect';
-import { GetConnectionsRequest, GetConnectionsResponse, GetScopeRequest, GetScopeResponse } from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_pb';
+import {
+  GetConnectionsRequest,
+  GetConnectionsResponse,
+  GetScopeRequest,
+  GetScopeResponse,
+} from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_pb';
 import { LabManagerService } from '@artificial/artificial-protos/grpc-js/artificial/api/labmanager/v1/labmanager_service_grpc_pb';
 
 describe('test grpc against local server', function () {
@@ -33,12 +38,12 @@ describe('test grpc against local server', function () {
 
   afterEach(async function () {
     if (server) {
-        server.tryShutdown((err) => {
-          if (err) {
-            console.log(err);
-          }
-        });
-      }
+      server.tryShutdown((err) => {
+        if (err) {
+          console.log(err);
+        }
+      });
+    }
   });
 
   test('test grpc ok', async function () {
@@ -46,48 +51,55 @@ describe('test grpc against local server', function () {
 
     const e = jest.fn();
 
-    adapter.get('manager.management_actions.ManagementActions')?.client.testCall({
-      "adapter_name": { value: "adapter_manager" }, // eslint-disable-line @typescript-eslint/naming-convention
-      "image": { value: "ghcr.io/artificialinc/adapter-manager:aidan-5" },
-    }, (err: Error, _: any) => {
-      expect(err).toBeNull();
-      e();
-    });
+    adapter.get('manager.management_actions.ManagementActions')?.client.testCall(
+      {
+        adapter_name: { value: 'adapter_manager' }, // eslint-disable-line @typescript-eslint/naming-convention
+        image: { value: 'ghcr.io/artificialinc/adapter-manager:aidan-5' },
+      },
+      (err: Error) => {
+        expect(err).toBeNull();
+        e();
+      },
+    );
 
     await waitForExpect(() => {
       expect(e).toHaveBeenCalled();
     });
-
   }, 10000);
 
   test('test no get scope', async function () {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     server?.addService(labmanagerNoScopePkg.artificial.api.labmanager.v1.LabManager.service, {
-      NoGetScope: (_: any, callback: any) => { // eslint-disable-line @typescript-eslint/naming-convention
+      // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
+      NoGetScope: (_: any, callback: any) => {
+        // eslint-disable-line @typescript-eslint/naming-convention
         callback(null, {
-          scope: "lab"
+          scope: 'lab',
         });
-      }
+      },
     });
     await expect(getRemoteScope(`127.0.0.1:${port}`, 'lab', 'token', false)).rejects.toThrow(
-      "12 UNIMPLEMENTED: The server does not implement the method /artificial.api.labmanager.v1.LabManager/GetScope"
+      '12 UNIMPLEMENTED: The server does not implement the method /artificial.api.labmanager.v1.LabManager/GetScope',
     );
   });
 
   test('test get scope', async function () {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     server?.addService(LabManagerService, {
-      getScope: (call: grpc.ServerUnaryCall<GetScopeRequest, GetScopeResponse>, callback: grpc.sendUnaryData<GetScopeResponse>) => {
-        callback(null, new GetScopeResponse().setLabId("lab").setNamespace("namespace").setOrgId("org"));
-      }
+      getScope: (
+        _call: grpc.ServerUnaryCall<GetScopeRequest, GetScopeResponse>,
+        callback: grpc.sendUnaryData<GetScopeResponse>,
+      ) => {
+        callback(null, new GetScopeResponse().setLabId('lab').setNamespace('namespace').setOrgId('org'));
+      },
     });
-    await expect(getRemoteScope(`127.0.0.1:${port}`, 'lab', 'token', false)).resolves.toStrictEqual(
-      {
-        labId: "lab",
-        namespace: "namespace",
-        orgId: "org",
-      }
-    );
+    await expect(getRemoteScope(`127.0.0.1:${port}`, 'lab', 'token', false)).resolves.toStrictEqual({
+      labId: 'lab',
+      namespace: 'namespace',
+      orgId: 'org',
+    });
   });
 });
 
@@ -95,23 +107,26 @@ describe('test grpc against real adapters', function () {
   test('test grpc.getAdapterClient remote', async function () {
     // Skip in CI
     if (process.env.CI) {
-      console.log("Skipping test");
+      console.log('Skipping test');
       return;
     }
-    let md = new grpc.Metadata();
-    md.set("authorization", `Bearer ${process.env.ART_TOKEN}`);
-    md.set("forward-to", "sprint-rc:artificial:adapter-manager-not-a-real-lab-2:substrate");
+    const md = new grpc.Metadata();
+    md.set('authorization', `Bearer ${process.env.ART_TOKEN}`);
+    md.set('forward-to', 'sprint-rc:artificial:adapter-manager-not-a-real-lab-2:substrate');
     const adapter = await getAdapterClients('labmanager.sprint-rc.notartificial.xyz:443', md, true);
     const e = jest.fn();
 
-    adapter.get('adapter.manager.management_actions.ManagementActions')?.client.updateAdapterImage({
-      // "adapter_name": text.toObject(),
-      "adapter_name": { value: "adapter_manager" }, // eslint-disable-line @typescript-eslint/naming-convention
-      "image": { value: "ghcr.io/artificialinc/adapter-manager:aidan-5" },
-    }, (err: Error, data: any) => {
-      expect(err).toBeNull();
-      e();
-    });
+    adapter.get('adapter.manager.management_actions.ManagementActions')?.client.updateAdapterImage(
+      {
+        // "adapter_name": text.toObject(),
+        adapter_name: { value: 'adapter_manager' }, // eslint-disable-line @typescript-eslint/naming-convention
+        image: { value: 'ghcr.io/artificialinc/adapter-manager:aidan-5' },
+      },
+      (err: Error) => {
+        expect(err).toBeNull();
+        e();
+      },
+    );
 
     await waitForExpect(() => {
       expect(e).toHaveBeenCalled();
@@ -121,22 +136,25 @@ describe('test grpc against real adapters', function () {
   test('test grpc.getAdapterClient local', async function () {
     // Skip in CI
     if (process.env.CI) {
-      console.log("Skipping test");
+      console.log('Skipping test');
       return;
     }
-    let md = new grpc.Metadata();
+    const md = new grpc.Metadata();
 
     const adapter = await getAdapterClients('127.0.0.1:5011', md, false);
 
     const e = jest.fn();
 
-    adapter.get('manager.management_actions.ManagementActions')?.client.updateAdapterImage({
-      "adapter_name": { value: "adapter_manager" }, // eslint-disable-line @typescript-eslint/naming-convention
-      "image": { value: "ghcr.io/artificialinc/adapter-manager:aidan-5" },
-    }, (err: Error, data: any) => {
-      expect(err).toBeNull();
-      e();
-    });
+    adapter.get('manager.management_actions.ManagementActions')?.client.updateAdapterImage(
+      {
+        adapter_name: { value: 'adapter_manager' }, // eslint-disable-line @typescript-eslint/naming-convention
+        image: { value: 'ghcr.io/artificialinc/adapter-manager:aidan-5' },
+      },
+      (err: Error) => {
+        expect(err).toBeNull();
+        e();
+      },
+    );
 
     await waitForExpect(() => {
       expect(e).toHaveBeenCalled();
@@ -146,20 +164,23 @@ describe('test grpc against real adapters', function () {
   test('test grpc.Labmanager client', async function () {
     // Skip in CI
     if (process.env.CI) {
-      console.log("Skipping test");
+      console.log('Skipping test');
       return;
     }
-    let md = new grpc.Metadata();
-    md.set("authorization", `Bearer ${process.env.ART_TOKEN}`);
+    const md = new grpc.Metadata();
+    md.set('authorization', `Bearer ${process.env.ART_TOKEN}`);
     const lm = await getLabmanagerClient('labmanager.synthego-initial-rc.notartificial.xyz:443', md, true);
     const e = jest.fn();
 
     const scope = `synthego-initial-rc:artificial:lab_47ac7844-d68b-4f5d-bd3f-e1651e0dce44:`;
-    lm.getConnections(new GetConnectionsRequest().setScope(scope), (err: grpc.ServiceError | null, data: GetConnectionsResponse) => {
-      expect(err).toBeNull();
-      expect(data.getConnectionsList()[0].getClient()?.getName()).toBe('lenient-bobcat-argo1');
-      e();
-    });
+    lm.getConnections(
+      new GetConnectionsRequest().setScope(scope),
+      (err: grpc.ServiceError | null, data: GetConnectionsResponse) => {
+        expect(err).toBeNull();
+        expect(data.getConnectionsList()[0].getClient()?.getName()).toBe('lenient-bobcat-argo1');
+        e();
+      },
+    );
 
     await waitForExpect(() => {
       expect(e).toHaveBeenCalled();
@@ -169,10 +190,15 @@ describe('test grpc against real adapters', function () {
   test('test grpc remote scope', async function () {
     // Skip in CI
     if (process.env.CI) {
-      console.log("Skipping test");
+      console.log('Skipping test');
       return;
     }
-    const lm = await getRemoteScope('labmanager.aidan-test-cloudflare-proxy.notartificial.xyz:443', 'lab', process.env.ART_TOKEN || '', true);
+    const lm = await getRemoteScope(
+      'labmanager.aidan-test-cloudflare-proxy.notartificial.xyz:443',
+      'lab',
+      process.env.ART_TOKEN || '',
+      true,
+    );
     console.log(lm);
   });
 });

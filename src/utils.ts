@@ -19,12 +19,12 @@ import * as vscode from 'vscode';
 import { createVisitor, parse } from 'python-ast';
 import { OutputLog } from './providers/outputLogProvider';
 import { ConfigValues } from './providers/configProvider';
-import * as path from "path";
+import * as path from 'path';
 
 export function pathExists(p: string): boolean {
   try {
     fs.accessSync(p);
-  } catch (err) {
+  } catch {
     return false;
   }
   return true;
@@ -49,7 +49,9 @@ export async function addFileToContext(file: string, filename: string) {
     await artificialAwaitTask('Add File to Context', `${pythonInterpreter}/afconfig add-file ${filename} '${file}'`);
   } catch {
     const log = OutputLog.getInstance();
-    log.log('Error Adding File to Context. The artificial-common package may be outdated. v0.2.3 or newer is required.');
+    log.log(
+      'Error Adding File to Context. The artificial-common package may be outdated. v0.2.3 or newer is required.',
+    );
   }
 }
 
@@ -64,7 +66,7 @@ export function findWorkflowsInFiles(files: string[]) {
     let isWorkflow = false;
     const workflowIds: string[] = [];
     const findWorkflow = (source: string) => {
-      let ast = parse(source);
+      const ast = parse(source);
 
       return createVisitor({
         visitDecorated: (ast) => {
@@ -73,7 +75,7 @@ export function findWorkflowsInFiles(files: string[]) {
             if (decoratorName === 'workflow') {
               isWorkflow = true;
               workflowIds.push(
-                ast.decorators().decorator(decoratorIndex).arglist()?.argument(1).test(0).text.cleanQuotes() ?? ''
+                ast.decorators().decorator(decoratorIndex).arglist()?.argument(1).test(0).text.cleanQuotes() ?? '',
               );
             }
           }
@@ -94,7 +96,7 @@ export function artificialTask(name: string, command: string) {
     vscode.TaskScope.Global,
     name,
     'Artificial',
-    new vscode.ShellExecution(command)
+    new vscode.ShellExecution(command),
   );
   task.presentationOptions.focus = false;
   task.presentationOptions.reveal = vscode.TaskRevealKind.Silent;
@@ -141,16 +143,16 @@ export async function findPythonFiles(dir: string): Promise<string[]> {
   const files = await fs.promises.readdir(dir, { withFileTypes: true });
 
   for (const file of files) {
-      const fullPath = path.join(dir, file.name);
+    const fullPath = path.join(dir, file.name);
 
-      if (file.isDirectory()) {
-          // Recursively search inside subdirectories
-          const subFiles = await findPythonFiles(fullPath);
-          pythonFiles = pythonFiles.concat(subFiles);
-      } else if (file.isFile() && file.name.endsWith(".py")) {
-          // If it's a Python file, add it to the list
-          pythonFiles.push(fullPath);
-      }
+    if (file.isDirectory()) {
+      // Recursively search inside subdirectories
+      const subFiles = await findPythonFiles(fullPath);
+      pythonFiles = pythonFiles.concat(subFiles);
+    } else if (file.isFile() && file.name.endsWith('.py')) {
+      // If it's a Python file, add it to the list
+      pythonFiles.push(fullPath);
+    }
   }
 
   return pythonFiles;

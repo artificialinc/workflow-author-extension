@@ -16,13 +16,22 @@ See the License for the specific language governing permissions and
 import { getAdapterClients as getAdapterClients, AdapterClient, getRemoteScope, UnimplementedError } from './grpc/grpc';
 import * as grpc from '@grpc/grpc-js';
 import { OutputLog } from '../providers/outputLogProvider';
-import { Compliance, complianceClientConstructor } from './compliance';
-import { ComplianceModeServiceClient, IComplianceModeServiceClient } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_grpc_pb';
-import { ComplianceModeState, GetComplianceModeRequest, GetComplianceModeResponse } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_pb';
+import { complianceClientConstructor } from './compliance';
+import { ComplianceModeServiceClient } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_grpc_pb';
+import {
+  ComplianceModeState,
+  GetComplianceModeRequest,
+  GetComplianceModeResponse,
+} from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_pb';
 import { AdapterServiceClient } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/adapter/v1/adapter_grpc_pb';
 import * as semver from 'semver';
-import { GetAdapterRequest, GetAdapterResponse, ListAdaptersRequest, ListAdaptersResponse, UpdateAdapterImageRequest } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/adapter/v1/adapter_pb';
-import { reject } from 'lodash';
+import {
+  GetAdapterRequest,
+  GetAdapterResponse,
+  ListAdaptersRequest,
+  ListAdaptersResponse,
+  UpdateAdapterImageRequest,
+} from '@artificial/artificial-protos/grpc-js/artificial/api/alab/adapter/v1/adapter_pb';
 
 const LOCAL_SYMBOL = process.env.LOCAL_SYMBOL || 'manager.management_actions.ManagementActions';
 const REMOTE_SYMBOL = process.env.REMOTE_SYMBOL || 'adapter.manager.management_actions.ManagementActions';
@@ -37,23 +46,40 @@ export class ArtificialAdapter {
   services: string[];
   output: Output;
 
-  constructor(adapterClients: Map<string, AdapterClient>, compliance?: ComplianceModeServiceClient, output: Output = OutputLog.getInstance()) {
+  constructor(
+    adapterClients: Map<string, AdapterClient>,
+    compliance?: ComplianceModeServiceClient,
+    output: Output = OutputLog.getInstance(),
+  ) {
     this.adapterClients = adapterClients;
     this.complianceClient = compliance;
     this.services = [...adapterClients.keys()];
     this.output = output;
   }
 
-  public static async createLocalAdapter<T extends typeof ArtificialAdapter>(this: T, output: Output = OutputLog.getInstance()): Promise<InstanceType<T>> {
+  public static async createLocalAdapter<T extends typeof ArtificialAdapter>(
+    this: T,
+    output: Output = OutputLog.getInstance(),
+  ): Promise<InstanceType<T>> {
     const adapterClients = await getAdapterClients('localhost:5011', new grpc.Metadata(), false);
     return new this(adapterClients, undefined, output) as InstanceType<T>;
   }
 
-  public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(this: T, address: string, prefix: string, org: string, lab: string, token: string, output: Output = OutputLog.getInstance()): Promise<InstanceType<T>> {
+  public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(
+    this: T,
+    address: string,
+    prefix: string,
+    org: string,
+    lab: string,
+    token: string,
+    output: Output = OutputLog.getInstance(),
+  ): Promise<InstanceType<T>> {
     try {
       OutputLog.getInstance().log('Attempting to get remote scope');
       const remoteScope = await getRemoteScope(`labmanager.${address}`, lab, token);
-      OutputLog.getInstance().log(`Got remote scope: ${remoteScope.namespace}:${remoteScope.orgId}:${remoteScope.labId}`);
+      OutputLog.getInstance().log(
+        `Got remote scope: ${remoteScope.namespace}:${remoteScope.orgId}:${remoteScope.labId}`,
+      );
       prefix = remoteScope.namespace;
       org = remoteScope.orgId;
       lab = remoteScope.labId;
@@ -66,19 +92,20 @@ export class ArtificialAdapter {
     }
 
     const md = new grpc.Metadata();
-    md.set("authorization", `Bearer ${token}`);
-    md.set("forward-to", `${prefix}:${org}:${lab}:substrate`);
-    var adapterClients: Map<string, AdapterClient>;
-    adapterClients = await getAdapterClients(`labmanager.${address}`, md, true);
+    md.set('authorization', `Bearer ${token}`);
+    md.set('forward-to', `${prefix}:${org}:${lab}:substrate`);
+    const adapterClients = await getAdapterClients(`labmanager.${address}`, md, true);
     return new this(adapterClients, complianceClientConstructor(address, token, true), output) as InstanceType<T>;
   }
 
   public listActions(): string[] {
     let actions: string[] = [];
     this.services.forEach((service) => {
-      actions = actions.concat(this.adapterClients.get(service)?.methods.map((method) => {
-        return `${service}:${method}`;
-      }) || []);
+      actions = actions.concat(
+        this.adapterClients.get(service)?.methods.map((method) => {
+          return `${service}:${method}`;
+        }) || [],
+      );
     });
     return actions;
   }
@@ -86,16 +113,19 @@ export class ArtificialAdapter {
   public getManagementClient(): AdapterClient {
     // Try the two ways these things seem to get registered.  At least until we fully standardize
     if (this.adapterClients.has(LOCAL_SYMBOL)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return this.adapterClients.get(LOCAL_SYMBOL)!;
     } else if (this.adapterClients.has(REMOTE_SYMBOL)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return this.adapterClients.get(REMOTE_SYMBOL)!;
     } else {
-      this.output.log('Could not find management client, available clients are: ' + Array.from(this.adapterClients.keys()).join(', '));
+      this.output.log(
+        'Could not find management client, available clients are: ' + Array.from(this.adapterClients.keys()).join(', '),
+      );
       throw new Error('Could not find adapter manager client');
     }
   }
 }
-
 
 export type AdapterInfo = {
   name: string;
@@ -108,17 +138,33 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
   adapterServiceClient: AdapterServiceClient;
   labId: string;
 
-  constructor(adapterClients: Map<string, AdapterClient>, adapterServiceClient: AdapterServiceClient, labId: string, compliance?: ComplianceModeServiceClient, output: Output = OutputLog.getInstance()) {
+  constructor(
+    adapterClients: Map<string, AdapterClient>,
+    adapterServiceClient: AdapterServiceClient,
+    labId: string,
+    compliance?: ComplianceModeServiceClient,
+    output: Output = OutputLog.getInstance(),
+  ) {
     super(adapterClients, compliance, output);
     this.adapterServiceClient = adapterServiceClient;
     this.labId = labId;
   }
 
-  public static async createAdapterManager<T extends typeof ArtificialAdapterManager>(this: T, address: string, prefix: string, org: string, lab: string, token: string, output: Output = OutputLog.getInstance()): Promise<InstanceType<T>> {
+  public static async createAdapterManager<T extends typeof ArtificialAdapterManager>(
+    this: T,
+    address: string,
+    prefix: string,
+    org: string,
+    lab: string,
+    token: string,
+    output: Output = OutputLog.getInstance(),
+  ): Promise<InstanceType<T>> {
     try {
       OutputLog.getInstance().log('Attempting to get remote scope');
       const remoteScope = await getRemoteScope(`labmanager.${address}`, lab, token);
-      OutputLog.getInstance().log(`Got remote scope: ${remoteScope.namespace}:${remoteScope.orgId}:${remoteScope.labId}`);
+      OutputLog.getInstance().log(
+        `Got remote scope: ${remoteScope.namespace}:${remoteScope.orgId}:${remoteScope.labId}`,
+      );
       prefix = remoteScope.namespace;
       org = remoteScope.orgId;
       lab = remoteScope.labId;
@@ -135,23 +181,36 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     }
 
     const md = new grpc.Metadata();
-    md.set("authorization", `Bearer ${token}`);
-    md.set("forward-to", `${prefix}:${org}:${lab}-manager:substrate`);
-    var adapterClients: Map<string, AdapterClient>;
-    adapterClients = await getAdapterClients(`labmanager.${address}`, md, true);
+    md.set('authorization', `Bearer ${token}`);
+    md.set('forward-to', `${prefix}:${org}:${lab}-manager:substrate`);
+    const adapterClients = await getAdapterClients(`labmanager.${address}`, md, true);
     const lmMd = new grpc.Metadata();
-    lmMd.set("authorization", `Bearer ${token}`);
-    const adapterClient = new AdapterServiceClient(`labmanager.${address}`, grpc.credentials.combineChannelCredentials(grpc.credentials.createSsl(), grpc.credentials.createFromMetadataGenerator(
-      (_: any, cb: (err: Error | null, metadata?: grpc.Metadata) => void) => {
-        cb(null, lmMd);
-      }
-    )), {
-      callInvocationTransformer: (callProperties) => {
-        callProperties.callOptions.deadline = new Date(Date.now() + 15000);
-        return callProperties;
-      }
-    });
-    return new ArtificialAdapterManager(adapterClients, adapterClient, lab, complianceClientConstructor(address, token, true), output) as InstanceType<T>;
+    lmMd.set('authorization', `Bearer ${token}`);
+    const adapterClient = new AdapterServiceClient(
+      `labmanager.${address}`,
+      grpc.credentials.combineChannelCredentials(
+        grpc.credentials.createSsl(),
+        grpc.credentials.createFromMetadataGenerator(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (_: any, cb: (err: Error | null, metadata?: grpc.Metadata) => void) => {
+            cb(null, lmMd);
+          },
+        ),
+      ),
+      {
+        callInvocationTransformer: (callProperties) => {
+          callProperties.callOptions.deadline = new Date(Date.now() + 15000);
+          return callProperties;
+        },
+      },
+    );
+    return new ArtificialAdapterManager(
+      adapterClients,
+      adapterClient,
+      lab,
+      complianceClientConstructor(address, token, true),
+      output,
+    ) as InstanceType<T>;
   }
 
   public async updateAdapterImage(adapterName: string, image: string, labId: string): Promise<void> {
@@ -159,15 +218,18 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
       if (!this.complianceClient) {
         resolve(false);
       } else {
-        this.complianceClient.getComplianceMode(new GetComplianceModeRequest(), (err: grpc.ServiceError | null, response: GetComplianceModeResponse) => {
-          if (err) {
-            reject(err);
-          }
-          if (response.getMode() === ComplianceModeState.COMPLIANCE_MODE_ON_GLOBAL) {
-            resolve(true);
-          }
-          resolve(false);
-        });
+        this.complianceClient.getComplianceMode(
+          new GetComplianceModeRequest(),
+          (err: grpc.ServiceError | null, response: GetComplianceModeResponse) => {
+            if (err) {
+              reject(err);
+            }
+            if (response.getMode() === ComplianceModeState.COMPLIANCE_MODE_ON_GLOBAL) {
+              resolve(true);
+            }
+            resolve(false);
+          },
+        );
       }
     });
 
@@ -186,97 +248,114 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
         lId = this.labId;
       }
       // First try the management client
-      this.adapterServiceClient.updateAdapterImage(new UpdateAdapterImageRequest().setAdapterId(adapterName).setImage(image).setLabId(lId), (err: grpc.ServiceError | null, _: any) => {
-        // (err: grpc.ServiceError | null, _: any) => {
-        if (err) {
-          if (err.code === grpc.status.UNIMPLEMENTED) {
-            // Fallback to the adapter manager direct connection
-            this.getManagementClient().client.updateAdapterImage({
-              "adapter_name": { value: adapterName }, // eslint-disable-line @typescript-eslint/naming-convention
-              "image": { value: image },
-            }, (err: Error, _: any) => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
+      this.adapterServiceClient.updateAdapterImage(
+        new UpdateAdapterImageRequest().setAdapterId(adapterName).setImage(image).setLabId(lId),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (err: grpc.ServiceError | null, _: any) => {
+          // (err: grpc.ServiceError | null, _: any) => {
+          if (err) {
+            if (err.code === grpc.status.UNIMPLEMENTED) {
+              // Fallback to the adapter manager direct connection
+              this.getManagementClient().client.updateAdapterImage(
+                {
+                  adapter_name: { value: adapterName }, // eslint-disable-line @typescript-eslint/naming-convention
+                  image: { value: image },
+                },
+                (err: Error) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve();
+                  }
+                },
+              );
+            } else {
+              reject(err);
+            }
           } else {
-            reject(err);
+            resolve();
           }
-        } else {
-          resolve();
-        }
-        // };
-      });
+          // };
+        },
+      );
     });
   }
-
 
   public async listNonManagerAdapters(): Promise<AdapterInfo[]> {
     // TODO: Filter out dupes when recently connected
     return new Promise((resolve, reject) => {
-      this.adapterServiceClient.listAdapters(new ListAdaptersRequest().setLabId(this.labId), async (err: grpc.ServiceError | null, response: ListAdaptersResponse) => {
-        if (err) {
-          if (err.code === grpc.status.UNIMPLEMENTED) {
-            const client = this.getManagementClient().client;
-            if (client && 'listAdapters' in client) {
-              client.listAdapters({}, (err: Error, response: any) => {
-                if (err) {
-                  reject(err);
-                } else {
-                  // Filter out adapter_manager here
-                  resolve(response.value.filter((adapter: AdapterInfo) => !adapter.is_manager));
-                }
-              });
+      this.adapterServiceClient.listAdapters(
+        new ListAdaptersRequest().setLabId(this.labId),
+        async (err: grpc.ServiceError | null, response: ListAdaptersResponse) => {
+          if (err) {
+            if (err.code === grpc.status.UNIMPLEMENTED) {
+              const client = this.getManagementClient().client;
+              if (client && 'listAdapters' in client) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                client.listAdapters({}, (err: Error, response: any) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    // Filter out adapter_manager here
+                    resolve(response.value.filter((adapter: AdapterInfo) => !adapter.is_manager));
+                  }
+                });
+              } else {
+                this.output.log(
+                  'This adapter manager does not support listAdapters. Available clients are: ' +
+                    Array.from(client.keys()).join(', '),
+                );
+                reject(new Error('This adapter manager does not support listAdapters'));
+              }
             } else {
-              this.output.log('This adapter manager does not support listAdapters. Available clients are: ' + Array.from(client.keys()).join(', '));
-              reject(new Error('This adapter manager does not support listAdapters'));
+              reject(err);
             }
-
           } else {
-            reject(err);
+            try {
+              const adapters = await this.getAdapters(response.getAdapterIdsList());
+              resolve(Array.from(adapters.values()));
+            } catch (e) {
+              reject(e);
+            }
           }
-        } else {
-          try {
-            const adapters = await this.getAdapters(response.getAdapterIdsList());
-            resolve(Array.from(adapters.values()));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      }
+        },
       );
-
     });
   }
 
   async getAdapters(ids: string[]): Promise<Map<string, AdapterInfo>> {
-    const adapters = (await Promise.all(ids.map(async (id) => {
-      return new Promise<AdapterInfo | void>((resolve, reject) => {
-        this.adapterServiceClient.getAdapter(new GetAdapterRequest().setAdapterId(id).setLabId(this.labId), (err: grpc.ServiceError | null, response: GetAdapterResponse) => {
-          if (err) {
-            this.output.log(`Error getting adapter ${id}: ${err.message}`);
-            resolve();
-          } else {
-            const adapter = response.getAdapter();
-            if (adapter) {
-              const management = adapter.getManagement();
-              if (management) {
-                resolve({
-                  name: adapter.getId(),
-                  image: management.getImage(),
-                  is_manager: false, // eslint-disable-line @typescript-eslint/naming-convention
-                  labId: adapter.getAddress()?.getLabId() || '',
-                });
-              } else {
-                resolve();
-              }
-            }
-          }
-        });
-      });
-    }))).filter((adapter) => adapter !== undefined);
+    const adapters = (
+      await Promise.all(
+        ids.map(async (id) => {
+          return new Promise<AdapterInfo | void>((resolve) => {
+            this.adapterServiceClient.getAdapter(
+              new GetAdapterRequest().setAdapterId(id).setLabId(this.labId),
+              (err: grpc.ServiceError | null, response: GetAdapterResponse) => {
+                if (err) {
+                  this.output.log(`Error getting adapter ${id}: ${err.message}`);
+                  resolve();
+                } else {
+                  const adapter = response.getAdapter();
+                  if (adapter) {
+                    const management = adapter.getManagement();
+                    if (management) {
+                      resolve({
+                        name: adapter.getId(),
+                        image: management.getImage(),
+                        is_manager: false, // eslint-disable-line @typescript-eslint/naming-convention
+                        labId: adapter.getAddress()?.getLabId() || '',
+                      });
+                    } else {
+                      resolve();
+                    }
+                  }
+                }
+              },
+            );
+          });
+        }),
+      )
+    ).filter((adapter) => adapter !== undefined);
 
     if (adapters.length === 0) {
       throw new Error('No adapters found. Make sure adapter manager is deployed and up to date');

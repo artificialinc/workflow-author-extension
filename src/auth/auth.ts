@@ -56,14 +56,14 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
           generatedObj.artificial.labId = labId;
         } else {
           vscode.window.showWarningMessage(
-            'Warning: no lab selected. Please select a lab before running or deploying.'
+            'Warning: no lab selected. Please select a lab before running or deploying.',
           );
         }
 
         addFileToContext(JSON.stringify(generatedObj), 'generated.yaml');
 
         vscode.window.showInformationMessage(
-          `Sign in successful!. Please make sure generated.yaml is added to your .gitignore file`
+          `Sign in successful!. Please make sure generated.yaml is added to your .gitignore file`,
         );
       } else {
         vscode.window.showErrorMessage(`Sign in failed: invalid URI path ${uri.path}`);
@@ -100,10 +100,10 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
       // Get an externally addressable callback URI for the handler that the authentication provider can use
       const extensionId = 'artificial.artificial-workflow-extension';
       const callbackUri = await vscode.env.asExternalUri(
-        vscode.Uri.parse(`${vscode.env.uriScheme}://${extensionId}/auth-complete`)
+        vscode.Uri.parse(`${vscode.env.uriScheme}://${extensionId}/auth-complete`),
       );
       const authUri = `${instanceUrl.origin}${instanceUrl.pathname}#/vscode-login?instanceURL=${encodeURIComponent(
-        instanceUrl.href
+        instanceUrl.href,
       )}&redirect=${callbackUri}`;
       // Need to pass this as a string because vscode.env.openExternal double-decodes URLs
       // openExternal accepts a string at runtime, but is not typed to accept a string.
@@ -111,8 +111,6 @@ export async function authExternalUriRegistration(context: vscode.ExtensionConte
       // for more details. Once the issue is resolved, this should be updated to use whatever
       // official solution they come up with.
       vscode.env.openExternal(authUri as unknown as ReturnType<typeof vscode.Uri.parse>);
-    })
+    }),
   );
 }
-
-

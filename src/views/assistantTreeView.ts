@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Artificial, Inc. 
+Copyright 2022 Artificial, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import * as vscode from 'vscode';
@@ -37,7 +37,11 @@ export class AssistantByLabTreeView
   private assistantResponse!: AssistantReply | undefined;
   private assistantSignatures!: AssistantSignature[];
 
-  constructor(private stubPath: string, private uriPath: string, context: vscode.ExtensionContext) {
+  constructor(
+    private stubPath: string,
+    private uriPath: string,
+    context: vscode.ExtensionContext,
+  ) {
     const view = vscode.window.createTreeView('assistantsByLab', {
       treeDataProvider: this,
       showCollapseAll: true,
@@ -67,12 +71,6 @@ export class AssistantByLabTreeView
     this.treeElements = await this.getChildren();
     this._onDidChangeTreeData.fire();
   }
-
-  public async handleDrag(
-    source: TreeElement[],
-    treeDataTransfer: vscode.DataTransfer,
-    token: vscode.CancellationToken
-  ): Promise<void> {}
 
   getTreeItem(element: TreeElement): vscode.TreeItem {
     return element;
@@ -148,8 +146,8 @@ export class AssistantByLabTreeView
             element.labId,
             element.label,
             sig,
-            'Assistant does not match a known lab in Artificial Cloud'
-          )
+            'Assistant does not match a known lab in Artificial Cloud',
+          ),
         );
       }
     }
@@ -171,8 +169,8 @@ export class AssistantByLabTreeView
                 element.labId,
                 element.label,
                 blankSignature,
-                'No Stub for ALab Assistant'
-              )
+                'No Stub for ALab Assistant',
+              ),
             );
           }
         }
@@ -229,7 +227,7 @@ export class AssistantByLabTreeView
     const valid: boolean[] = [];
     for (const param of parameters) {
       valid.push(
-        this.typeCheck(param.type, assistant.parameters.find((ele) => ele.id === param.assistantParamId)?.typeInfo)
+        this.typeCheck(param.type, assistant.parameters.find((ele) => ele.id === param.assistantParamId)?.typeInfo),
       );
     }
     if (valid.every((ele) => ele === true)) {
@@ -287,7 +285,7 @@ export class AssistantTreeElement extends vscode.TreeItem {
     public readonly label: string,
     public readonly labId: string,
     public readonly labName: string,
-    public readonly functionSignature: AssistantSignature
+    public readonly functionSignature: AssistantSignature,
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.tooltip = `${this.label}`;
@@ -308,7 +306,7 @@ export class AssistantTreeElementError extends vscode.TreeItem {
     public readonly labId: string,
     public readonly labName: string,
     public readonly functionSignature: AssistantSignature,
-    public readonly tooltip: string
+    public readonly tooltip: string,
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.tooltip = tooltip;
@@ -325,7 +323,10 @@ export class AssistantTreeElementError extends vscode.TreeItem {
   };
 }
 export class LabTreeElement extends vscode.TreeItem {
-  constructor(public readonly label: string, public readonly labId: string) {
+  constructor(
+    public readonly label: string,
+    public readonly labId: string,
+  ) {
     super(label, vscode.TreeItemCollapsibleState.Collapsed);
     this.tooltip = `${this.label}`;
   }
