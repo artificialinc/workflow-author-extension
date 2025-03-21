@@ -21,8 +21,8 @@ import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
 import { ConfigValues } from '../providers/configProvider';
 import { findPythonFiles } from '../utils';
-// eslint-disable-next-line @typescript-eslint/ban-types
-type TreeElement = Module | Function;
+
+type TreeElement = Module | ArtificialFunction;
 export class AdapterActionTreeView
   implements vscode.TreeDataProvider<TreeElement>, vscode.TreeDragAndDropController<TreeElement>
 {
@@ -63,8 +63,7 @@ export class AdapterActionTreeView
   }
 
   public async handleDrag(
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    _source: Function[],
+    _source: ArtificialFunction[],
     _treeDataTransfer: vscode.DataTransfer,
     _token: vscode.CancellationToken,
   ): Promise<void> {}
@@ -160,11 +159,10 @@ export class AdapterActionTreeView
     return data?.sigsAndTypes.functions ? data?.sigsAndTypes.functions : [];
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  private getFunctions(moduleName: string | vscode.TreeItemLabel | undefined): Function[] {
+  private getFunctions(moduleName: string | vscode.TreeItemLabel | undefined): ArtificialFunction[] {
     const signatures = this.functionSignatures.map((sig) => {
       if (sig.module === moduleName) {
-        return new Function(sig.name, sig);
+        return new ArtificialFunction(sig.name, sig);
       }
     });
     const compactedSigs = _.compact(signatures);
@@ -172,7 +170,7 @@ export class AdapterActionTreeView
   }
 }
 
-export class Function extends vscode.TreeItem {
+export class ArtificialFunction extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly functionSignature: FunctionSignature,

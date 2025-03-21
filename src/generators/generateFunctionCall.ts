@@ -15,11 +15,10 @@ See the License for the specific language governing permissions and
 */
 
 import * as vscode from 'vscode';
-import { Function } from '../views/adapterActionTreeView';
+import { ArtificialFunction } from '../views/adapterActionTreeView';
 
 export class InsertFunctionCall {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  insertFunction(node: Function): void {
+  insertFunction(node: ArtificialFunction): void {
     const editor = vscode.window.activeTextEditor;
     let className = '';
     let pythonCall = true;

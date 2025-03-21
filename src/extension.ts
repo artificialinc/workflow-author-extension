@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { GenerateAssistantStubs } from './generators/generateAssistantStubs';
 import { InsertFunctionCall } from './generators/generateFunctionCall';
 import { DropProvider } from './providers/dropProvider';
-import { AdapterActionTreeView, Function } from './views/adapterActionTreeView';
+import { AdapterActionTreeView, ArtificialFunction } from './views/adapterActionTreeView';
 import { AssistantByLabTreeView } from './views/assistantTreeView';
 import { ViewFileDecorationProvider } from './providers/decorationProvider';
 import { WorkflowTreeView } from './views/workflowTreeView';
@@ -151,10 +151,12 @@ function setupAdapterFuncTree(context: vscode.ExtensionContext) {
 function setupDragAndDrop(context: vscode.ExtensionContext) {
   const funcCall = new InsertFunctionCall();
   context.subscriptions.push(
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    vscode.commands.registerCommand('adapterActions.addToFile', (node: Function) => funcCall.insertFunction(node)),
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    vscode.commands.registerCommand('assistantsByLab.addToFile', (node: Function) => funcCall.insertFunction(node)),
+    vscode.commands.registerCommand('adapterActions.addToFile', (node: ArtificialFunction) =>
+      funcCall.insertFunction(node),
+    ),
+    vscode.commands.registerCommand('assistantsByLab.addToFile', (node: ArtificialFunction) =>
+      funcCall.insertFunction(node),
+    ),
   );
 }
 
