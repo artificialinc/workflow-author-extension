@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { artificialAwaitTask, pathExists } from '../utils';
+import { generateActionStubs, pathExists } from '../utils';
 import { BuildPythonSignatures } from '../parsers/parseAdapterActionSignatures';
 import * as _ from 'lodash';
 import { ConfigValues } from '../providers/configProvider';
@@ -46,7 +46,10 @@ export class AdapterActionTreeView
     this.uriPath = 'artificial/python/';
     context.subscriptions.push(vscode.commands.registerCommand('adapterActions.refreshEntry', () => this.refresh()));
     context.subscriptions.push(
-      vscode.commands.registerCommand('adapterActions.generateActionStubs', () => this.generateActionStubs()),
+      vscode.commands.registerCommand('adapterActions.generateActionStubs', async () => {
+        await generateActionStubs(this.configVals);
+        await this.refresh();
+      }),
     );
   }
 
@@ -115,33 +118,6 @@ export class AdapterActionTreeView
         return [];
       }
     }
-  }
-  private async generateActionStubs(): Promise<void> {
-    const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
-    const pythonInterpreter = await ConfigValues.getPythonInterpreter();
-    let stubPath = '';
-    if (this.configVals.folderBasedStubGenerationEnabled()) {
-      stubPath = this.configVals.getAdapterActionStubFolder();
-      try {
-        await artificialAwaitTask(
-          'Check artificial-workflows-tools Version',
-          `${pythonInterpreter}/wf version --check ">=0.13.0"`,
-        );
-      } catch {
-        return;
-      }
-      await artificialAwaitTask(
-        'Generate Action Stubs',
-        `(cd adapter; ${pythonInterpreter}/wf adapterstubs --hierarchical ${module} -o ${stubPath})`,
-      );
-    } else {
-      stubPath = this.configVals.getAdapterActionStubPath();
-      await artificialAwaitTask(
-        'Generate Action Stubs',
-        `(cd adapter; ${pythonInterpreter}/wf adapterstubs ${module} -o ${stubPath})`,
-      );
-    }
-    await this.refresh();
   }
 
   private getModules() {

@@ -58,7 +58,6 @@ function channelOptions(): grpc.ChannelOptions {
   return {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'grpc.service_config': JSON.stringify({
-      // eslint-disable-line @typescript-eslint/naming-convention
       methodConfig: [
         {
           name: [],

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
 Copyright 2023 Artificial, Inc.
 
@@ -24,6 +25,7 @@ import {
   GetComplianceModeResponse,
 } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/compliance/v1/mode_pb';
 import { AdapterServiceClient } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/adapter/v1/adapter_grpc_pb';
+import { InternalActionsClient } from '@artificial/artificial-protos/grpc-js/artificial/api/adapter/internal_actions/v1/internal_actions_grpc_pb';
 import * as semver from 'semver';
 import {
   GetAdapterRequest,
@@ -32,6 +34,10 @@ import {
   ListAdaptersResponse,
   UpdateAdapterImageRequest,
 } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/adapter/v1/adapter_pb';
+import { credsConstructor } from './grpc/grpc';
+import { Signatures } from '@artificial/artificial-protos/grpc-js/artificial/api/signature_registry/v1/signature_registry_pb';
+import { InternalActions_get_signaturesRequest } from '@artificial/artificial-protos/grpc-js/artificial/api/adapter/internal_actions/v1/internal_actions_pb';
+import { BoolValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 
 const LOCAL_SYMBOL = process.env.LOCAL_SYMBOL || 'manager.management_actions.ManagementActions';
 const REMOTE_SYMBOL = process.env.REMOTE_SYMBOL || 'adapter.manager.management_actions.ManagementActions';
@@ -45,9 +51,11 @@ export class ArtificialAdapter {
   complianceClient?: ComplianceModeServiceClient;
   services: string[];
   output: Output;
+  internalActionsClient: InternalActionsClient;
 
   constructor(
     adapterClients: Map<string, AdapterClient>,
+    internalActionsClient: InternalActionsClient,
     compliance?: ComplianceModeServiceClient,
     output: Output = OutputLog.getInstance(),
   ) {
@@ -55,6 +63,7 @@ export class ArtificialAdapter {
     this.complianceClient = compliance;
     this.services = [...adapterClients.keys()];
     this.output = output;
+    this.internalActionsClient = internalActionsClient;
   }
 
   public static async createLocalAdapter<T extends typeof ArtificialAdapter>(
@@ -62,16 +71,20 @@ export class ArtificialAdapter {
     output: Output = OutputLog.getInstance(),
   ): Promise<InstanceType<T>> {
     const adapterClients = await getAdapterClients('localhost:5011', new grpc.Metadata(), false);
-    return new this(adapterClients, undefined, output) as InstanceType<T>;
+    return new this(
+      adapterClients,
+      internalActionsClientConstructor('localhost:5011', new grpc.Metadata(), false),
+      undefined,
+      output,
+    ) as InstanceType<T>;
   }
 
   public static async createRemoteAdapter<T extends typeof ArtificialAdapter>(
     this: T,
     address: string,
-    prefix: string,
-    org: string,
     lab: string,
     token: string,
+    scope: string,
     output: Output = OutputLog.getInstance(),
   ): Promise<InstanceType<T>> {
     try {
@@ -80,8 +93,6 @@ export class ArtificialAdapter {
       OutputLog.getInstance().log(
         `Got remote scope: ${remoteScope.namespace}:${remoteScope.orgId}:${remoteScope.labId}`,
       );
-      prefix = remoteScope.namespace;
-      org = remoteScope.orgId;
       lab = remoteScope.labId;
     } catch (e) {
       if (e instanceof UnimplementedError) {
@@ -93,9 +104,14 @@ export class ArtificialAdapter {
 
     const md = new grpc.Metadata();
     md.set('authorization', `Bearer ${token}`);
-    md.set('forward-to', `${prefix}:${org}:${lab}:substrate`);
+    md.set('forward-to', scope);
     const adapterClients = await getAdapterClients(`labmanager.${address}`, md, true);
-    return new this(adapterClients, complianceClientConstructor(address, token, true), output) as InstanceType<T>;
+    return new this(
+      adapterClients,
+      internalActionsClientConstructor(`labmanager.${address}`, md, true),
+      complianceClientConstructor(address, token, true),
+      output,
+    ) as InstanceType<T>;
   }
 
   public listActions(): string[] {
@@ -125,6 +141,22 @@ export class ArtificialAdapter {
       throw new Error('Could not find adapter manager client');
     }
   }
+
+  public async getSigPak(externalOnly = true): Promise<Signatures> {
+    return new Promise<Signatures>((resolve, reject) => {
+      this.internalActionsClient.get_signatures(
+        new InternalActions_get_signaturesRequest().setExternalOnly(new BoolValue().setValue(externalOnly)),
+        (err: grpc.ServiceError | null, response: Signatures) => {
+          if (err) {
+            OutputLog.getInstance().log(`Error getting signatures: ${err.message}`);
+            reject(err);
+          } else {
+            resolve(response);
+          }
+        },
+      );
+    });
+  }
 }
 
 export type AdapterInfo = {
@@ -132,6 +164,8 @@ export type AdapterInfo = {
   image: string;
   is_manager: boolean; // eslint-disable-line @typescript-eslint/naming-convention
   labId: string;
+  scope: string;
+  banned: boolean;
 };
 
 export class ArtificialAdapterManager extends ArtificialAdapter {
@@ -140,12 +174,13 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
 
   constructor(
     adapterClients: Map<string, AdapterClient>,
+    internalActionsClient: InternalActionsClient,
     adapterServiceClient: AdapterServiceClient,
     labId: string,
     compliance?: ComplianceModeServiceClient,
     output: Output = OutputLog.getInstance(),
   ) {
-    super(adapterClients, compliance, output);
+    super(adapterClients, internalActionsClient, compliance, output);
     this.adapterServiceClient = adapterServiceClient;
     this.labId = labId;
   }
@@ -191,7 +226,6 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
       grpc.credentials.combineChannelCredentials(
         grpc.credentials.createSsl(),
         grpc.credentials.createFromMetadataGenerator(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (_: any, cb: (err: Error | null, metadata?: grpc.Metadata) => void) => {
             cb(null, lmMd);
           },
@@ -206,6 +240,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     );
     return new ArtificialAdapterManager(
       adapterClients,
+      internalActionsClientConstructor(`labmanager.${address}`, md, true),
       adapterClient,
       lab,
       complianceClientConstructor(address, token, true),
@@ -250,18 +285,17 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
       // First try the management client
       this.adapterServiceClient.updateAdapterImage(
         new UpdateAdapterImageRequest().setAdapterId(adapterName).setImage(image).setLabId(lId),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (err: grpc.ServiceError | null, _: any) => {
           // (err: grpc.ServiceError | null, _: any) => {
           if (err) {
-            if (err.code === grpc.status.UNIMPLEMENTED) {
+            if (err.code === grpc.status.UNIMPLEMENTED || err.code === grpc.status.NOT_FOUND) {
               // Fallback to the adapter manager direct connection
               this.getManagementClient().client.updateAdapterImage(
                 {
                   adapter_name: { value: adapterName }, // eslint-disable-line @typescript-eslint/naming-convention
                   image: { value: image },
                 },
-                (err: Error) => {
+                (err: Error, _: any) => {
                   if (err) {
                     reject(err);
                   } else {
@@ -281,17 +315,16 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     });
   }
 
-  public async listNonManagerAdapters(): Promise<AdapterInfo[]> {
+  public async listNonManagerAdapters(managedOnly: boolean): Promise<AdapterInfo[]> {
     // TODO: Filter out dupes when recently connected
     return new Promise((resolve, reject) => {
       this.adapterServiceClient.listAdapters(
         new ListAdaptersRequest().setLabId(this.labId),
         async (err: grpc.ServiceError | null, response: ListAdaptersResponse) => {
           if (err) {
-            if (err.code === grpc.status.UNIMPLEMENTED) {
+            if (err.code === grpc.status.UNIMPLEMENTED || err.code === grpc.status.NOT_FOUND) {
               const client = this.getManagementClient().client;
               if (client && 'listAdapters' in client) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 client.listAdapters({}, (err: Error, response: any) => {
                   if (err) {
                     reject(err);
@@ -312,7 +345,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
             }
           } else {
             try {
-              const adapters = await this.getAdapters(response.getAdapterIdsList());
+              const adapters = await this.getAdapters(response.getAdapterIdsList(), managedOnly);
               resolve(Array.from(adapters.values()));
             } catch (e) {
               reject(e);
@@ -323,7 +356,7 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     });
   }
 
-  async getAdapters(ids: string[]): Promise<Map<string, AdapterInfo>> {
+  async getAdapters(ids: string[], managedOnly: boolean): Promise<Map<string, AdapterInfo>> {
     const adapters = (
       await Promise.all(
         ids.map(async (id) => {
@@ -338,12 +371,16 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
                   const adapter = response.getAdapter();
                   if (adapter) {
                     const management = adapter.getManagement();
-                    if (management) {
+                    if (!adapter.getActiveSubscription()) {
+                      resolve();
+                    } else if (management || !managedOnly) {
                       resolve({
                         name: adapter.getId(),
-                        image: management.getImage(),
+                        image: management?.getImage() || '',
                         is_manager: false, // eslint-disable-line @typescript-eslint/naming-convention
                         labId: adapter.getAddress()?.getLabId() || '',
+                        scope: adapter.getScope(),
+                        banned: adapter.getBanned(),
                       });
                     } else {
                       resolve();
@@ -369,4 +406,13 @@ export class ArtificialAdapterManager extends ArtificialAdapter {
     });
     return m;
   }
+}
+
+export function internalActionsClientConstructor(
+  address: string,
+  md: grpc.Metadata,
+  ssl = true,
+): InternalActionsClient {
+  const creds = credsConstructor(md, ssl);
+  return new InternalActionsClient(address, creds());
 }

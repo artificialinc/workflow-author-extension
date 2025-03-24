@@ -49,7 +49,6 @@ export const startServer = async (port: number): Promise<grpc.Server> => {
     {
       // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
       TestCall: (_: any, callback: any) => {
-        // eslint-disable-line @typescript-eslint/naming-convention
         callback(null, {
           success: true,
           id: '123',

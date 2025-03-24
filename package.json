@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.5.0",
+  "version": "3.6.0",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -185,6 +185,12 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "adapterActions.remoteSigGeneration",
+        "title": "Generate Action Stubs From Remote Adapter",
+        "category": "Artificial",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "workflows.refreshEntry",
         "title": "Refresh Workflows",
         "category": "Artificial",
@@ -320,6 +326,10 @@
           "when": "config.artificial.workflow.author.devMode"
         },
         {
+          "command": "adapterActions.remoteSigGeneration",
+          "when": "config.artificial.workflow.author.devMode"
+        },
+        {
           "command": "adapterActions.signin"
         }
       ],
@@ -436,7 +446,7 @@
     "@vscode/test-electron": "^2.1.5",
     "cd": "^0.3.3",
     "esbuild": "^0.15.18",
-    "eslint": "^8.20.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
     "grpc-node-server-reflection": "^1.0.2",
@@ -450,7 +460,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.9",
-    "@artificial/artificial-protos": "^0.125.5",
+    "@artificial/artificial-protos": "^0.134.0",
     "@grpc/grpc-js": "^1.10.9",
     "@grpc/proto-loader": "0.7.8",
     "@snyk/docker-registry-v2-client": "^2.10.1",

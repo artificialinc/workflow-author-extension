@@ -39,6 +39,7 @@ import {
   UpdateAdapterImageResponse,
 } from '@artificial/artificial-protos/grpc-js/artificial/api/alab/adapter/v1/adapter_pb';
 import { callErrorFromStatus } from '@grpc/grpc-js/build/src/call';
+import { InternalActionsClient } from '@artificial/artificial-protos/grpc-js/artificial/api/adapter/internal_actions/v1/internal_actions_grpc_pb';
 
 describe('test artificial adapter', function () {
   afterEach(function () {
@@ -67,7 +68,7 @@ describe('test artificial adapter', function () {
       },
     ) as any;
 
-    const adapter = new ArtificialAdapterManager(new Map([]), m, 'labId', c);
+    const adapter = new ArtificialAdapterManager(new Map([]), mock<InternalActionsClient>(), m, 'labId', c);
 
     await adapter.updateAdapterImage('adapter_manager', 'ghcr.io/artificialinc/adapter-manager:aidan-5', 'labId');
     expect(m.updateAdapterImage).toBeCalledWith(
@@ -111,6 +112,7 @@ describe('test artificial adapter', function () {
     mac.client.updateAdapterImage = jest.fn((_, cb: (err: Error | null, data: any) => void) => cb(null, {}));
     const adapter = new ArtificialAdapterManager(
       new Map([['manager.management_actions.ManagementActions', mac]]),
+      mock<InternalActionsClient>(),
       m,
       'labId',
       c,
@@ -142,6 +144,7 @@ describe('test artificial adapter', function () {
 
     const adapter = new ArtificialAdapterManager(
       new Map([['manager.management_actions.ManagementActions', m]]),
+      mock<InternalActionsClient>(),
       mock<AdapterServiceClient>(),
       'labId',
       c,
@@ -173,7 +176,7 @@ describe('test artificial adapter', function () {
       },
     ) as any;
 
-    const adapter = new ArtificialAdapterManager(new Map([]), m, 'labId', c);
+    const adapter = new ArtificialAdapterManager(new Map([]), mock<InternalActionsClient>(), m, 'labId', c);
 
     await adapter.updateAdapterImage('adapter_manager', 'ghcr.io/artificialinc/adapter-manager:1.2.3', 'labId');
     expect(m.updateAdapterImage).toBeCalledWith(
@@ -202,8 +205,10 @@ describe('test artificial adapter', function () {
               null,
               new GetAdapterResponse().setAdapter(
                 new Adapter()
+                  .setScope('scope')
                   .setAddress(new Address().setLabId('labId'))
                   .setId('adapter1')
+                  .setActiveSubscription(true)
                   .setManagement(new ManagedAdapter().setImage('ghcr.io/artificialinc/adapter1:aidan-5')),
               ),
             );
@@ -212,13 +217,26 @@ describe('test artificial adapter', function () {
       },
     ) as any;
 
-    const adapter = new ArtificialAdapterManager(new Map([]), m, 'labId', mock<ComplianceModeServiceClient>());
-    const adapters = await adapter.listNonManagerAdapters();
+    const adapter = new ArtificialAdapterManager(
+      new Map([]),
+      mock<InternalActionsClient>(),
+      m,
+      'labId',
+      mock<ComplianceModeServiceClient>(),
+    );
+    const adapters = await adapter.listNonManagerAdapters(false);
 
     expect(adapters).toStrictEqual([
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      { name: 'adapter1', image: 'ghcr.io/artificialinc/adapter1:aidan-5', is_manager: false, labId: 'labId' },
-    ]); // eslint-disable-line @typescript-eslint/naming-convention
+      {
+        banned: false,
+        name: 'adapter1',
+        image: 'ghcr.io/artificialinc/adapter1:aidan-5',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        is_manager: false,
+        labId: 'labId',
+        scope: 'scope',
+      },
+    ]);
     expect(m.listAdapters).toBeCalledWith(new ListAdaptersRequest().setLabId('labId'), expect.any(Function));
 
     const mac = mock<AdapterClient>();
@@ -253,16 +271,17 @@ describe('test artificial adapter', function () {
 
     const adapter2 = new ArtificialAdapterManager(
       new Map([['manager.management_actions.ManagementActions', mac]]),
+      mock<InternalActionsClient>(),
       m,
       'labId',
       mock<ComplianceModeServiceClient>(),
     );
-    const adapters2 = await adapter2.listNonManagerAdapters();
+    const adapters2 = await adapter2.listNonManagerAdapters(false);
 
     expect(adapters2).toStrictEqual([
       // eslint-disable-next-line @typescript-eslint/naming-convention
       { name: 'adapter1', image: 'ghcr.io/artificialinc/adapter1:aidan-5', is_manager: false },
-    ]); // eslint-disable-line @typescript-eslint/naming-convention
+    ]);
     expect(m.listAdapters).toBeCalledWith(new ListAdaptersRequest().setLabId('labId'), expect.any(Function));
   });
 });

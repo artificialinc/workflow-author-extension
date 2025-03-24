@@ -157,3 +157,50 @@ export async function findPythonFiles(dir: string): Promise<string[]> {
 
   return pythonFiles;
 }
+
+export async function generateActionStubs(configVals: ConfigValues, sigpak?: string): Promise<void> {
+  const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
+  const pythonInterpreter = await ConfigValues.getPythonInterpreter();
+  let stubPath = '';
+  let cmd = `(cd adapter; ${pythonInterpreter}/wf adapterstubs`;
+  let reqVersion = '';
+  if (configVals.folderBasedStubGenerationEnabled()) {
+    stubPath = configVals.getAdapterActionStubFolder();
+    // Delete the folder if it exists
+    if (pathExists(stubPath)) {
+      fs.rmdirSync(stubPath, { recursive: true });
+    }
+    // Create the folder
+    fs.mkdirSync(stubPath);
+    cmd += ` --hierarchical -o ${stubPath}`;
+    if (sigpak) {
+      cmd += ` --input ${sigpak}`;
+      reqVersion = '0.13.1';
+    } else {
+      cmd += ` ${module}`;
+      reqVersion = '0.13.0';
+    }
+  } else {
+    stubPath = configVals.getAdapterActionStubPath();
+    cmd += `-o ${stubPath}`;
+    if (sigpak) {
+      cmd += ` --input ${sigpak}`;
+      reqVersion = '0.13.1';
+    } else {
+      cmd += ` ${module}`;
+    }
+  }
+
+  if (reqVersion) {
+    try {
+      await artificialAwaitTask(
+        'Check artificial-workflows-tools Version',
+        `${pythonInterpreter}/wf version --check ">=${reqVersion}"`,
+      );
+    } catch {
+      return;
+    }
+  }
+
+  await artificialAwaitTask('Generate Action Stubs', `${cmd})`);
+}
