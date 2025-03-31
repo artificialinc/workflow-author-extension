@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.6.1]
+
+- Fix assistant stub deletion bug introduced in `3.6.0`
+
 ## [3.6.0]
 
 - Add remote adapter based stub generation

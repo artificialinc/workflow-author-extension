@@ -188,7 +188,7 @@ export async function generateActionStubs(configVals: ConfigValues, sigpak?: str
   if (configVals.folderBasedStubGenerationEnabled()) {
     stubPath = configVals.getAdapterActionStubFolder();
     // Create the folder
-    fs.mkdirSync(stubPath);
+    fs.mkdirSync(stubPath, { recursive: true });
     cmd += ` --hierarchical -o ${stubPath} --stub-folder ${STUBS_FOLDER}`;
     if (sigpak) {
       cmd += ` --input ${sigpak}`;
