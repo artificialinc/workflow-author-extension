@@ -158,7 +158,25 @@ export async function findPythonFiles(dir: string): Promise<string[]> {
   return pythonFiles;
 }
 
+function cleanupStubs(configVals: ConfigValues): void {
+  let stubPath = '';
+
+  stubPath = configVals.getAdapterActionStubFolder();
+  // Delete the folder if it exists
+  if (pathExists(stubPath)) {
+    fs.rmSync(stubPath, { recursive: true });
+  }
+
+  stubPath = configVals.getAdapterActionStubPath();
+  // Delete the file if it exists
+  if (pathExists(stubPath)) {
+    fs.rmSync(stubPath);
+  }
+}
+
 export async function generateActionStubs(configVals: ConfigValues, sigpak?: string): Promise<void> {
+  cleanupStubs(configVals);
+
   const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
   const pythonInterpreter = await ConfigValues.getPythonInterpreter();
   let stubPath = '';
@@ -166,10 +184,6 @@ export async function generateActionStubs(configVals: ConfigValues, sigpak?: str
   let reqVersion = '';
   if (configVals.folderBasedStubGenerationEnabled()) {
     stubPath = configVals.getAdapterActionStubFolder();
-    // Delete the folder if it exists
-    if (pathExists(stubPath)) {
-      fs.rmdirSync(stubPath, { recursive: true });
-    }
     // Create the folder
     fs.mkdirSync(stubPath);
     cmd += ` --hierarchical -o ${stubPath}`;

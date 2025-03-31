@@ -103,6 +103,12 @@ export class ConfigValues {
     this.orgId = config.artificial.orgId ?? '';
 
     this.sigpakPath = path.join(rootPath, 'tmp', 'sigpak.bin');
+
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('artificial.workflow')) {
+        this.initialize();
+      }
+    });
   }
   public static getInstance(): ConfigValues {
     if (!ConfigValues.instance) {
