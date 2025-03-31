@@ -182,7 +182,7 @@ export async function generateActionStubs(configVals: ConfigValues, sigpak?: str
     }
   } else {
     stubPath = configVals.getAdapterActionStubPath();
-    cmd += `-o ${stubPath}`;
+    cmd += ` -o ${stubPath}`;
     if (sigpak) {
       cmd += ` --input ${sigpak}`;
       reqVersion = '0.13.1';
