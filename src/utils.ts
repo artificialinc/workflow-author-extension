@@ -158,13 +158,16 @@ export async function findPythonFiles(dir: string): Promise<string[]> {
   return pythonFiles;
 }
 
+const STUBS_FOLDER = 'stubs_actions';
+
 function cleanupStubs(configVals: ConfigValues): void {
   let stubPath = '';
 
   stubPath = configVals.getAdapterActionStubFolder();
   // Delete the folder if it exists
-  if (pathExists(stubPath)) {
-    fs.rmSync(stubPath, { recursive: true });
+  const folderPath = path.join(stubPath, STUBS_FOLDER);
+  if (pathExists(folderPath)) {
+    fs.rmSync(folderPath, { recursive: true });
   }
 
   stubPath = configVals.getAdapterActionStubPath();
@@ -185,8 +188,8 @@ export async function generateActionStubs(configVals: ConfigValues, sigpak?: str
   if (configVals.folderBasedStubGenerationEnabled()) {
     stubPath = configVals.getAdapterActionStubFolder();
     // Create the folder
-    fs.mkdirSync(stubPath);
-    cmd += ` --hierarchical -o ${stubPath}`;
+    fs.mkdirSync(stubPath, { recursive: true });
+    cmd += ` --hierarchical -o ${stubPath} --stub-folder ${STUBS_FOLDER}`;
     if (sigpak) {
       cmd += ` --input ${sigpak}`;
       reqVersion = '0.13.1';
