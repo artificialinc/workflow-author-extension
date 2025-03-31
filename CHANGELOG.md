@@ -1,12 +1,16 @@
 # Change Log
 
+## [3.6.0]
+
+- Add remote adapter based stub generation
+
 ## [3.5.0]
 
 - Add folder based stub generation
 
 ## [3.4.0]
 
-- Add lab and sign in command to status bar 
+- Add lab and sign in command to status bar
 
 ## [3.3.1]
 

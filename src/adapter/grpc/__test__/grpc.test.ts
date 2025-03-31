@@ -73,7 +73,6 @@ describe('test grpc against local server', function () {
     server?.addService(labmanagerNoScopePkg.artificial.api.labmanager.v1.LabManager.service, {
       // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
       NoGetScope: (_: any, callback: any) => {
-        // eslint-disable-line @typescript-eslint/naming-convention
         callback(null, {
           scope: 'lab',
         });

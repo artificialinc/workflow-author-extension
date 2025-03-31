@@ -36,6 +36,7 @@ export class ConfigValues {
     private adapterActionStubFolder = '',
     private enableFolderBasedStubGeneration = false,
     private assistantStubPath = '',
+    private sigpakPath = '',
     private prefix: string = '',
     private orgId: string = '',
     private labId: string = '',
@@ -100,6 +101,14 @@ export class ConfigValues {
     this.prefix = config.artificial.prefix ?? '';
     this.labId = config.artificial.labId ?? '';
     this.orgId = config.artificial.orgId ?? '';
+
+    this.sigpakPath = path.join(rootPath, 'tmp', 'sigpak.bin');
+
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('artificial.workflow')) {
+        this.initialize();
+      }
+    });
   }
   public static getInstance(): ConfigValues {
     if (!ConfigValues.instance) {
@@ -124,6 +133,9 @@ export class ConfigValues {
   }
   public getAssistantStubPath() {
     return this.assistantStubPath;
+  }
+  public getSigpakPath() {
+    return this.sigpakPath;
   }
   public getPrefix() {
     return this.prefix;

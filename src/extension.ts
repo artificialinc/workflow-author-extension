@@ -25,7 +25,7 @@ import { WorkflowTreeView } from './views/workflowTreeView';
 import { ConfigTreeView } from './views/configTreeView';
 import { LoadingConfigByLabTreeView } from './views/loadingConfigView';
 import { ConfigValues } from './providers/configProvider';
-import { initConfig } from './utils';
+import { generateActionStubs, initConfig } from './utils';
 import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
@@ -36,6 +36,7 @@ import { Registry } from './registry/registry';
 import { authExternalUriRegistration } from './auth/auth';
 import { addFileToContext, artificialTask, artificialAwaitTask } from './utils';
 import * as path from 'path';
+import * as fs from 'fs';
 
 export async function activate(context: vscode.ExtensionContext) {
   // Setup authentication URI handler before config so it can be used to fill out config
@@ -77,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Handle terminal command exit code notifications
   taskExitWatcher(dataTree);
   // Setup adapter commands
-  setupAdapterCommands(configVals, context);
+  setupAdapterCommands(configVals, context, funcTree);
   setupPickLabCommand(configVals, context);
   console.log('Artificial Workflow Extension is active');
 }
@@ -289,50 +290,81 @@ function setupPickLabCommand(configVals: ConfigValues, context: vscode.Extension
   );
 }
 
-function setupAdapterCommands(configVals: ConfigValues, context: vscode.ExtensionContext) {
+async function pickAdapter(
+  configVals: ConfigValues,
+  cancellationToken: vscode.CancellationTokenSource,
+  prompt: string,
+  managedOnly = true,
+): Promise<[AdapterInfo, ArtificialAdapterManager] | undefined> {
+  let adapterManager: ArtificialAdapterManager;
+  try {
+    adapterManager = await ArtificialAdapterManager.createAdapterManager(
+      configVals.getHost(),
+      configVals.getPrefix(),
+      configVals.getOrgId(),
+      `${configVals.getLabId()}`,
+      configVals.getToken(),
+    );
+  } catch (e) {
+    console.log(e);
+    vscode.window.showErrorMessage(`Failed to connect to labmanager.${configVals.getHost()}: ${e}`);
+    return;
+  }
+
+  let adapters: AdapterInfo[] = [];
+  try {
+    adapters = await adapterManager.listNonManagerAdapters(managedOnly);
+  } catch (e) {
+    console.log(e);
+    vscode.window.showErrorMessage(`Error getting adapters: ${e}`);
+    cancellationToken.cancel();
+  }
+
+  const adapter = await vscode.window.showQuickPick(
+    new Promise<vscode.QuickPickItem[]>((resolve) => {
+      resolve(
+        adapters.map((a) => {
+          return {
+            label: `${a.name}`,
+            description: a.image || 'No image',
+          };
+        }),
+      );
+    }),
+    { placeHolder: prompt },
+    cancellationToken.token,
+  );
+
+  if (adapter === undefined) {
+    return;
+  }
+
+  // Get adapter from the selected label
+  const a = adapters.find((a) => a.name === adapter.label);
+  if (a === undefined) {
+    vscode.window.showErrorMessage('Failed to find adapter');
+    return;
+  }
+
+  return [a, adapterManager];
+}
+
+function setupAdapterCommands(
+  configVals: ConfigValues,
+  context: vscode.ExtensionContext,
+  funcTree: AdapterActionTreeView,
+) {
   // Update adapter image command
   context.subscriptions.push(
     vscode.commands.registerCommand('adapterActions.updateAdapterImage', async () => {
       const cancellationToken = new vscode.CancellationTokenSource();
 
-      let adapter: ArtificialAdapterManager;
-      try {
-        adapter = await ArtificialAdapterManager.createAdapterManager(
-          configVals.getHost(),
-          configVals.getPrefix(),
-          configVals.getOrgId(),
-          `${configVals.getLabId()}`,
-          configVals.getToken(),
-        );
-      } catch (e) {
-        console.log(e);
-        vscode.window.showErrorMessage(`Failed to connect to labmanager.${configVals.getHost()}: ${e}`);
+      const resp = await pickAdapter(configVals, cancellationToken, 'Select an adapter to update');
+      if (!resp) {
         return;
       }
 
-      let adapters: AdapterInfo[] = [];
-      try {
-        adapters = await adapter.listNonManagerAdapters();
-      } catch (e) {
-        console.log(e);
-        vscode.window.showErrorMessage(`Error getting adapters to update: ${e}`);
-        cancellationToken.cancel();
-      }
-
-      const adapterToUpdate = await vscode.window.showQuickPick(
-        new Promise<vscode.QuickPickItem[]>((resolve) => {
-          resolve(
-            adapters.map((a) => {
-              return {
-                label: `${a.name}`,
-                description: a.image,
-              };
-            }),
-          );
-        }),
-        { placeHolder: 'Select an adapter to update' },
-        cancellationToken.token,
-      );
+      const [adapterToUpdate, adapterManager] = resp;
 
       if (!adapterToUpdate) {
         return;
@@ -361,19 +393,14 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
 
       if (image !== undefined) {
         // Get adapter from the selected label
-        const a = adapters.find((a) => a.name === adapterToUpdate.label);
-        if (a === undefined) {
-          vscode.window.showErrorMessage('Failed to find adapter');
-          return;
-        }
         try {
-          await adapter.updateAdapterImage(a.name, image, a.labId);
+          await adapterManager.updateAdapterImage(adapterToUpdate.name, image, adapterToUpdate.labId);
         } catch (e) {
           console.log(e);
           vscode.window.showErrorMessage(`Failed to update adapter image: ${e}`);
           return;
         }
-        vscode.window.showInformationMessage(`Updated adapter ${adapterToUpdate.label} to image ${image}`);
+        vscode.window.showInformationMessage(`Updated adapter ${adapterToUpdate.name} to image ${image}`);
         return;
       } else {
         vscode.window.showErrorMessage('An image is mandatory to execute this action');
@@ -384,23 +411,33 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
   // Execute adapter action command
   context.subscriptions.push(
     vscode.commands.registerCommand('adapterActions.executeAdapterAction', async () => {
-      const adapter2 = await ArtificialAdapter.createRemoteAdapter(
+      const cancellationToken = new vscode.CancellationTokenSource();
+
+      const resp = await pickAdapter(configVals, cancellationToken, 'Select an adapter to get sigpak');
+      if (!resp) {
+        return;
+      }
+
+      const [adapter, _] = resp;
+
+      const adapterClient = await ArtificialAdapter.createRemoteAdapter(
         configVals.getHost(),
-        configVals.getPrefix(),
-        configVals.getOrgId(),
         configVals.getLabId(),
         configVals.getToken(),
+        adapter.scope,
       );
+
       const action = await vscode.window.showQuickPick(
         new Promise<string[]>((resolve, reject) => {
           try {
-            resolve(adapter2.listActions());
+            resolve(adapterClient.listActions());
           } catch (e) {
             reject(e);
           }
         }),
         { placeHolder: 'Select an action to execute' },
       );
+
       if (action === '') {
         console.log(action);
         vscode.window.showErrorMessage('An action is mandatory');
@@ -409,6 +446,39 @@ function setupAdapterCommands(configVals: ConfigValues, context: vscode.Extensio
       if (action !== undefined) {
         console.log(`Extension would execute ${action}, but that code hasn't been written yet`);
       }
+    }),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('adapterActions.remoteSigGeneration', async () => {
+      const cancellationToken = new vscode.CancellationTokenSource();
+
+      const resp = await pickAdapter(configVals, cancellationToken, 'Select an adapter to get sigpak', false);
+      if (!resp) {
+        return;
+      }
+
+      const [adapter, _] = resp;
+
+      if (adapter.banned) {
+        vscode.window.showErrorMessage('This adapter is banned and cannot be used');
+        return;
+      }
+
+      const adapterClient = await ArtificialAdapter.createRemoteAdapter(
+        configVals.getHost(),
+        configVals.getLabId(),
+        configVals.getToken(),
+        adapter.scope,
+      );
+
+      const sigs = await adapterClient.getSigPak();
+
+      fs.writeFileSync(configVals.getSigpakPath(), sigs.serializeBinary());
+
+      await generateActionStubs(configVals, configVals.getSigpakPath());
+
+      await funcTree.refresh();
     }),
   );
 }
