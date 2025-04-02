@@ -33,12 +33,12 @@
       "properties": {
         "artificial.workflow.author.assistantStubPath": {
           "type": "string",
-          "default": "workflow/stubs_assistants.py",
+          "default": "workflow/stubs/stubs_assistants.py",
           "description": "Path to generate assistant stubs"
         },
         "artificial.workflow.author.adapterActionStubPath": {
           "type": "string",
-          "default": "workflow/stubs_actions.py",
+          "default": "workflow/stubs/stubs_actions.py",
           "description": "Path to generate adapter action stubs"
         },
         "artificial.workflow.author.adapterActionStubFolder": {
