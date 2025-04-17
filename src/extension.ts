@@ -296,6 +296,44 @@ async function pickAdapter(
   prompt: string,
   managedOnly = true,
 ): Promise<[AdapterInfo, ArtificialAdapterManager] | undefined> {
+  const resp = await _pickAdapter(configVals, cancellationToken, prompt, managedOnly, false);
+  if (!resp) {
+    return;
+  }
+  const [adapters, adapterManager] = resp;
+  if (adapters.length === 0) {
+    vscode.window.showErrorMessage('No adapters found');
+    return;
+  }
+  return [adapters[0], adapterManager];
+}
+
+async function pickAdapters(
+  configVals: ConfigValues,
+  cancellationToken: vscode.CancellationTokenSource,
+  prompt: string,
+  managedOnly = true,
+  allowAll = false,
+): Promise<[AdapterInfo[], ArtificialAdapterManager] | undefined> {
+  const resp = await _pickAdapter(configVals, cancellationToken, prompt, managedOnly, allowAll);
+  if (!resp) {
+    return;
+  }
+  const [adapters, adapterManager] = resp;
+  if (adapters.length === 0) {
+    vscode.window.showErrorMessage('No adapters found');
+    return;
+  }
+  return [adapters, adapterManager];
+}
+
+async function _pickAdapter(
+  configVals: ConfigValues,
+  cancellationToken: vscode.CancellationTokenSource,
+  prompt: string,
+  managedOnly = true,
+  allowAll = false,
+): Promise<[AdapterInfo[], ArtificialAdapterManager] | undefined> {
   let adapterManager: ArtificialAdapterManager;
   try {
     adapterManager = await ArtificialAdapterManager.createAdapterManager(
@@ -320,16 +358,20 @@ async function pickAdapter(
     cancellationToken.cancel();
   }
 
+  const adapterOptions: vscode.QuickPickItem[] = adapters.map((a) => {
+    return {
+      label: `${a.name}`,
+      description: a.image || 'No image',
+    };
+  });
+
+  if (allowAll) {
+    adapterOptions.push({ label: 'All', description: 'Select all adapters' });
+  }
+
   const adapter = await vscode.window.showQuickPick(
     new Promise<vscode.QuickPickItem[]>((resolve) => {
-      resolve(
-        adapters.map((a) => {
-          return {
-            label: `${a.name}`,
-            description: a.image || 'No image',
-          };
-        }),
-      );
+      resolve(adapterOptions);
     }),
     { placeHolder: prompt },
     cancellationToken.token,
@@ -339,6 +381,11 @@ async function pickAdapter(
     return;
   }
 
+  if (adapter.label === 'All') {
+    const allAdapters = await adapterManager.listNonManagerAdapters(false);
+    return [allAdapters, adapterManager];
+  }
+
   // Get adapter from the selected label
   const a = adapters.find((a) => a.name === adapter.label);
   if (a === undefined) {
@@ -346,7 +393,7 @@ async function pickAdapter(
     return;
   }
 
-  return [a, adapterManager];
+  return [[a], adapterManager];
 }
 
 function setupAdapterCommands(
@@ -413,7 +460,7 @@ function setupAdapterCommands(
     vscode.commands.registerCommand('adapterActions.executeAdapterAction', async () => {
       const cancellationToken = new vscode.CancellationTokenSource();
 
-      const resp = await pickAdapter(configVals, cancellationToken, 'Select an adapter to get sigpak');
+      const resp = await pickAdapter(configVals, cancellationToken, 'Select an adapter to get sigpak', false);
       if (!resp) {
         return;
       }
@@ -453,30 +500,38 @@ function setupAdapterCommands(
     vscode.commands.registerCommand('adapterActions.remoteSigGeneration', async () => {
       const cancellationToken = new vscode.CancellationTokenSource();
 
-      const resp = await pickAdapter(configVals, cancellationToken, 'Select an adapter to get sigpak', false);
+      const resp = await pickAdapters(configVals, cancellationToken, 'Select an adapter to get sigpak', false, true);
       if (!resp) {
         return;
       }
 
-      const [adapter, _] = resp;
+      const [adapters, _] = resp;
 
-      if (adapter.banned) {
-        vscode.window.showErrorMessage('This adapter is banned and cannot be used');
-        return;
+      const sigpakPaths: string[] = [];
+      for (const adapter of adapters) {
+        if (adapter.banned) {
+          // Skip banned adapters but log
+          OutputLog.getInstance().log(`Skipping banned adapter ${adapter.name}`);
+          continue;
+        }
+
+        const adapterClient = await ArtificialAdapter.createRemoteAdapter(
+          configVals.getHost(),
+          configVals.getLabId(),
+          configVals.getToken(),
+          adapter.scope,
+        );
+
+        const sigs = await adapterClient.getSigPak();
+
+        // Join the sigpak folder with the adapter name
+        const sigpakPath = path.join(configVals.getSigpakPath(), `${adapter.name}.sigpak`);
+        sigpakPaths.push(sigpakPath);
+
+        fs.writeFileSync(sigpakPath, sigs.serializeBinary());
       }
 
-      const adapterClient = await ArtificialAdapter.createRemoteAdapter(
-        configVals.getHost(),
-        configVals.getLabId(),
-        configVals.getToken(),
-        adapter.scope,
-      );
-
-      const sigs = await adapterClient.getSigPak();
-
-      fs.writeFileSync(configVals.getSigpakPath(), sigs.serializeBinary());
-
-      await generateActionStubs(configVals, configVals.getSigpakPath());
+      await generateActionStubs(configVals, sigpakPaths);
 
       await funcTree.refresh();
     }),
