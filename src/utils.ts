@@ -177,7 +177,7 @@ function cleanupStubs(configVals: ConfigValues): void {
   }
 }
 
-export async function generateActionStubs(configVals: ConfigValues, sigpak?: string): Promise<void> {
+export async function generateActionStubs(configVals: ConfigValues, sigpaks?: string[]): Promise<void> {
   cleanupStubs(configVals);
 
   const module = vscode.workspace.getConfiguration('artificial.workflow.author').modulePath;
@@ -190,9 +190,12 @@ export async function generateActionStubs(configVals: ConfigValues, sigpak?: str
     // Create the folder
     fs.mkdirSync(stubPath, { recursive: true });
     cmd += ` --hierarchical -o ${stubPath} --stub-folder ${STUBS_FOLDER}`;
-    if (sigpak) {
-      cmd += ` --input ${sigpak}`;
+    if (sigpaks) {
       reqVersion = '0.13.1';
+      if (sigpaks.length > 1) {
+        reqVersion = '0.13.3';
+      }
+      cmd += ` --input ${sigpaks.join(' ')}`;
     } else {
       cmd += ` ${module}`;
       reqVersion = '0.13.0';
@@ -200,9 +203,12 @@ export async function generateActionStubs(configVals: ConfigValues, sigpak?: str
   } else {
     stubPath = configVals.getAdapterActionStubPath();
     cmd += ` -o ${stubPath}`;
-    if (sigpak) {
-      cmd += ` --input ${sigpak}`;
+    if (sigpaks) {
       reqVersion = '0.13.1';
+      if (sigpaks.length > 1) {
+        throw new Error('Only one sigpak is allowed for non-folder based stub generation');
+      }
+      cmd += ` --input ${sigpaks.join(' ')}`;
     } else {
       cmd += ` ${module}`;
     }

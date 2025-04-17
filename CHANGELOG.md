@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.6.2]
+
+- Support generating stubs from all remote adapters
+
 ## [3.6.1]
 
 - Fix assistant stub deletion bug introduced in `3.6.0`

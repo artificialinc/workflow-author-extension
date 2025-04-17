@@ -102,7 +102,7 @@ export class ConfigValues {
     this.labId = config.artificial.labId ?? '';
     this.orgId = config.artificial.orgId ?? '';
 
-    this.sigpakPath = path.join(rootPath, 'tmp', 'sigpak.bin');
+    this.sigpakPath = path.join(rootPath, 'tmp');
 
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('artificial.workflow')) {
