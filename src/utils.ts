@@ -206,7 +206,7 @@ export async function generateActionStubs(configVals: ConfigValues, sigpaks?: st
     if (sigpaks) {
       reqVersion = '0.13.1';
       if (sigpaks.length > 1) {
-        reqVersion = '0.13.3';
+        throw new Error('Only one sigpak is allowed for non-folder based stub generation');
       }
       cmd += ` --input ${sigpaks.join(' ')}`;
     } else {
