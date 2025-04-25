@@ -23,13 +23,13 @@
     "Workflow": {
         "prefix": "workflow",
         "body": [
-            "from artificial.workflows.decorators import config_type, field, parameter, workflow",
-            "from dataclasses import dataclass",
+            "from artificial.workflows.decorators import parameter, workflow",
             "",
             "",
-            "@parameter('${5:param_name}', {'required': True, 'uiTitle': '${6:Display Name}'})",
-            "@workflow(\"${1:wf_name}\", \"${2:wf_id}\", \"${3:lab_id}\")",
-            "async def ${4:wf_func_name}(${5:param_name}: int) -> None:"
+            "@workflow(\"${1:wf_name}\", \"${2:wf_id}\")",
+            "@parameter('${3:param_name}', {'required': True, 'uiTitle': '${4:Display Name}'})",
+            "async def ${2:wf_id}(${3:param_name}: int) -> None:",
+            "\t${5:pass}"
         ],
         "description": "Workflow"
     },
@@ -43,37 +43,31 @@
     "Action Module": {
         "prefix": "action_module",
         "body": [
-            "from __future__ import annotations",
-            "",
-            "import typing as t",
-            "",
-            "from artificial.adapter_common import BaseActionModule, action",
-            "from artificial.adapter_common.alabpy_base import AlabPyBase",
-            "from artificial.adapter_common.apis import AssetsApi",
+            "from artificial.adapter_common import ActionExecutionContext, ActionModule, action",
             "from artificial.logging import get_logger",
             "",
             "logger = get_logger(__name__)",
-            "class ${1:action_module_name}(BaseActionModule):",
-            "\t_alabpy_base: AlabPyBase",
             "",
-            "\tdef __init__(self, alabpy: AlabPyBase, asset_api: AssetsApi) -> None:",
+            "",
+            "class ${1:ActionModuleName}(ActionModule):",
+            "\tdef __init__(self) -> None:",
             "\t\tsuper().__init__()",
-            "\t\tself._alabpy_base = alabpy",
-            "\t\tself._asset_api = asset_api",
             "",
-            "\tasync def ainit(self) -> None:",
-            "\t\tpass",
-            "",
-            "\tasync def aclose(self) -> None:",
-            "\t\tpass",
-            "",
-            "\tasync def __aenter__(self) -> ${1:action_module_name}:",
-            "\t\tawait self.ainit()",
-            "\t\treturn self",
-            "",
-            "\tasync def __aexit__(self, exc_type: t.Any, exc_value: t.Any, traceback: t.Any) -> None:",
-            "\t\tawait self.aclose()"
+            "\t@action('${2:Action Display Name}', ability_name='${3:ability_name}')",
+            "\tasync def ${4:action_name}(self, actx: ActionExecutionContext) -> None:",
+            "\t\t${5:pass}",
+            ""
         ],
         "description": "Action Module"
+    },
+    "Action": {
+        "prefix": "action",
+        "body": [
+            "\t@action('${1:Action Display Name}', ability_name='${2:ability_name}')",
+            "\tasync def ${3:action_name}(self, actx: ActionExecutionContext) -> None:",
+            "\t\t${4:pass}",
+            ""
+        ],
+        "description": "Action"
     }
 }
