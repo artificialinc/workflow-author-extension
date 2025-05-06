@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/artificialinc/workflow-author-extension"
   },
-  "version": "3.6.1",
+  "version": "3.6.2",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.71.0"
@@ -439,13 +439,14 @@
     "@types/lodash": "^4.14.185",
     "@types/needle": "^3.2.0",
     "@types/node": "16.x",
+    "@types/validator": "^13.15.0",
     "@types/vscode": "^1.71.0",
     "@types/zen-observable": "^0.8.3",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "@vscode/test-electron": "^2.1.5",
     "cd": "^0.3.3",
-    "esbuild": "^0.15.18",
+    "esbuild": "^0.25.4",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
@@ -476,6 +477,7 @@
     "lodash": "^4.17.21",
     "protobufjs": ">=7.2.5",
     "python-ast": "^0.1.0",
+    "validator": "^13.15.0",
     "yaml": "^2.1.1"
   },
   "extensionDependencies": [

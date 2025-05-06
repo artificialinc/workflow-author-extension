@@ -23,6 +23,7 @@ import { GitExtension } from '../git/git';
 import { parse as envParse } from 'dotenv';
 import { OutputLog } from './outputLogProvider';
 import { ArtificialApollo } from './apolloProvider';
+
 let _python: PythonExtension;
 
 export class ConfigValues {
