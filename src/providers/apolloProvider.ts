@@ -268,13 +268,11 @@ export class ArtificialApollo {
 
       if (result && result.data) {
         this.throwError.cancel();
-  
         // Unescape each lab name
-        const unescapedLabs = result.data.labs.map((lab: any) => ({
+        const unescapedLabs = result.data.labs.map((lab: {name: string, id: string}) => ({
           ...lab,
           name: unescape(lab.name),
         }));
-  
         return {
           ...result.data,
           labs: unescapedLabs,
