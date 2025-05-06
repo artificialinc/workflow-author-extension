@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.6.2]
+
+- Escape Lab Names properly
+
 ## [3.6.1]
 
 - Fix assistant stub deletion bug introduced in `3.6.0`
@@ -39,7 +43,6 @@
 ## [3.2.10]
 
 - Publish Standalone Action Codelens
-
 
 ## [3.2.9]
 

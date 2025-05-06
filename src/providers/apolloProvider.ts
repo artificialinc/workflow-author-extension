@@ -22,6 +22,7 @@ import { ConfigValues } from './configProvider';
 import { OutputLog } from './outputLogProvider';
 import * as vscode from 'vscode';
 import { debounce } from 'lodash';
+import { unescape } from 'validator';
 export interface LabReply {
   labs: [{ name: string; id: string }];
 }
@@ -267,7 +268,15 @@ export class ArtificialApollo {
 
       if (result && result.data) {
         this.throwError.cancel();
-        return result.data;
+        // Unescape each lab name
+        const unescapedLabs = result.data.labs.map((lab: { name: string; id: string }) => ({
+          ...lab,
+          name: unescape(lab.name),
+        }));
+        return {
+          ...result.data,
+          labs: unescapedLabs,
+        };
       }
     } catch (err) {
       this.errorHandler(err);
