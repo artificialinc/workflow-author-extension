@@ -30,6 +30,7 @@ import { ArtificialApollo } from './providers/apolloProvider';
 import { OutputLog } from './providers/outputLogProvider';
 import { WorkflowPublishLensProvider } from './providers/codeLensProvider';
 import { StandAloneActionCodeLensProvider } from './providers/standaloneActionCodeLensProvider';
+import { GenerateStubsLensProvider } from './providers/stubGenCodeLensProvider';
 import { DataTreeView } from './views/dataTreeView';
 import { AdapterInfo, ArtificialAdapter, ArtificialAdapterManager } from './adapter/adapter';
 import { Registry } from './registry/registry';
@@ -191,6 +192,11 @@ function setupCodeLens(selector: vscode.DocumentFilter, context: vscode.Extensio
     vscode.commands.registerCommand('workflows.standalonePublish', (action: string) => publishStandaloneAction(action)),
   );
   context.subscriptions.push(standaloneCodeLensProviderDisposable);
+  const stubCodeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
+    selector,
+    new GenerateStubsLensProvider(),
+  );
+  context.subscriptions.push(stubCodeLensProviderDisposable);
 }
 
 async function setupStatusBar(configVals: ConfigValues, context: vscode.ExtensionContext) {
