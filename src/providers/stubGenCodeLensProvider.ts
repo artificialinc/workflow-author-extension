@@ -17,6 +17,7 @@ export class GenerateStubsLensProvider implements vscode.CodeLensProvider {
     const c: vscode.Command = {
       command: 'adapterActions.generateActionStubs',
       title: 'Generate Stubs',
+      tooltip: 'Generate stubs for all adapter actions',
     };
     for (const range of locations) {
       codeLens.push(new vscode.CodeLens(range, c));
