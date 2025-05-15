@@ -111,12 +111,12 @@
       "artificial-workflows": [
         {
           "id": "adapterActions",
-          "name": "Actions",
+          "name": "Action Stubs",
           "icon": "resources/blank.svg"
         },
         {
           "id": "assistantsByLab",
-          "name": "Assistants",
+          "name": "Assistant Stubs",
           "icon": "resources/blank.svg"
         },
         {
