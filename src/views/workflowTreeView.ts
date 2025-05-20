@@ -158,7 +158,7 @@ class WorkflowTreeElement extends vscode.TreeItem {
   }
   path: string;
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'workflow' + '.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'workflow' + '.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'light', 'workflow' + '.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'dark', 'workflow' + '.svg')),
   };
 }

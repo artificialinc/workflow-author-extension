@@ -194,8 +194,8 @@ class LabHeaderTreeItem extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/datatree/lab' + this.label);
 
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg')),
   };
 }
 class AssistantHeaderTreeItem extends vscode.TreeItem {
@@ -208,8 +208,8 @@ class AssistantHeaderTreeItem extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/datatree/lab' + this.label);
 
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg')),
   };
 }
 

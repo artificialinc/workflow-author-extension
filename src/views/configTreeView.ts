@@ -171,7 +171,7 @@ class LabTreeElement extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/loadConfigs/' + 'lab/' + this.labId);
   type = 'lab';
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg')),
   };
 }

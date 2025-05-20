@@ -171,7 +171,7 @@ export class Module extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/python/module/' + this.moduleName);
   type = 'module';
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'pythonActions' + '.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'pythonActions' + '.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'light', 'pythonActions' + '.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'dark', 'pythonActions' + '.svg')),
   };
 }

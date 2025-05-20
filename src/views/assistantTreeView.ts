@@ -296,8 +296,8 @@ export class AssistantTreeElement extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/assistantByLab/assistant/' + this.labClassName + '/' + this.label);
   type = 'assistant';
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg')),
   };
 }
 export class AssistantTreeElementError extends vscode.TreeItem {
@@ -318,8 +318,8 @@ export class AssistantTreeElementError extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/typeError/assistantByLab/assistant/' + this.functionSignature.name);
   type = 'assistant';
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'light', 'assistants.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'dark', 'assistants.svg')),
   };
 }
 export class LabTreeElement extends vscode.TreeItem {
@@ -333,7 +333,7 @@ export class LabTreeElement extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/loadConfigs/' + 'lab/' + this.labId);
   type = 'lab';
   iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'light', 'labs.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', 'resources', 'dark', 'labs.svg')),
   };
 }
