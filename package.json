@@ -111,27 +111,33 @@
       "artificial-workflows": [
         {
           "id": "adapterActions",
-          "name": "Adapter Functions"
+          "name": "Adapter Functions",
+          "icon": "resources/blank.svg"
         },
         {
           "id": "assistantsByLab",
-          "name": "Assistants"
+          "name": "Assistants",
+          "icon": "resources/blank.svg"
         },
         {
           "id": "configs",
-          "name": "Configuration"
+          "name": "Configuration",
+          "icon": "resources/blank.svg"
         },
         {
           "id": "loadingConfigByLab",
-          "name": "Loading Configs"
+          "name": "Loading Configs",
+          "icon": "resources/blank.svg"
         },
         {
           "id": "workflows",
-          "name": "Workflow Publishing"
+          "name": "Workflow Publishing",
+          "icon": "resources/blank.svg"
         },
         {
           "id": "labAsstData",
-          "name": "Lab & Assistant Export/Import"
+          "name": "Lab & Assistant Export/Import",
+          "icon": "resources/blank.svg"
         }
       ]
     },
