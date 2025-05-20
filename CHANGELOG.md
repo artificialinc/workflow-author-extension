@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.6.4]
+
+- Adjust default stub paths
+
 ## [3.6.3]
 
 - Update snippets
