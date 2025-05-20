@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.6.3]
+
+- Update snippets
+
 ## [3.6.2]
 
 - Escape Lab Names properly
