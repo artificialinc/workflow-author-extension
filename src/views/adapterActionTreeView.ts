@@ -159,8 +159,8 @@ export class ArtificialFunction extends vscode.TreeItem {
   resourceUri = vscode.Uri.parse('artificial/python/' + this.functionSignature.name);
   type = 'function';
   iconPath = {
-    light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'pythonActions' + '.svg'),
-    dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pythonActions' + '.svg'),
+    light: vscode.Uri.file(path.join(__filename, '..', '..', '..', 'resources', 'light', 'pythonActions' + '.svg')),
+    dark: vscode.Uri.file(path.join(__filename, '..', '..', '..', 'resources', 'dark', 'pythonActions' + '.svg')),
   };
 }
 export class Module extends vscode.TreeItem {
