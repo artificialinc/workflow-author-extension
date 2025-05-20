@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.6.5]
+
+- Add codelens for generating adapter stubs
+
 ## [3.6.4]
 
 - Adjust default stub paths
