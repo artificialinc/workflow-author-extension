@@ -39,6 +39,11 @@ export class GenerateAssistantStubs {
 
   async generateAssistantStubsCommand(): Promise<void> {
     await this.generateAssistantStubs();
+    try {
+      await vscode.commands.executeCommand('python.analysis.restartLanguageServer');
+    } catch (err) {
+      console.log('Error restarting language server', err);
+    }
     await this.assistantByLab.refresh();
   }
 

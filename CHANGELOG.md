@@ -1,5 +1,9 @@
 # Change Log
 
+## [3.6.6]
+
+- Restart language server after stub generation
+
 ## [3.6.5]
 
 - Add codelens for generating adapter stubs
