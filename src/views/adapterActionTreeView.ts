@@ -48,6 +48,11 @@ export class AdapterActionTreeView
     context.subscriptions.push(
       vscode.commands.registerCommand('adapterActions.generateActionStubs', async () => {
         await generateActionStubs(this.configVals);
+        try {
+          await vscode.commands.executeCommand('python.analysis.restartLanguageServer');
+        } catch (err) {
+          console.log('Error restarting language server', err);
+        }
         await this.refresh();
       }),
     );
